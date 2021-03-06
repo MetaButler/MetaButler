@@ -1,30 +1,14 @@
-![Enterprise](https://i.imgur.com/IYqzviU.jpg)
-# Kigyō bot // @KigyoRobot
+# MetaButler
 
-[![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
-[![ForTheBadge built-with-love](http://ForTheBadge.com/images/badges/built-with-love.svg)](https://GitHub.com/Skuzzy_xD/)</br>
-
-
-![Python Version](https://img.shields.io/badge/python-3.8-green?style=for-the-badge&logo=appveyor)
-![Issues](https://img.shields.io/github/issues/Dank-del/EnterpriseALRobot?style=for-the-badge&logo=appveyor)
-![Forks](https://img.shields.io/github/forks/Dank-del/EnterpriseALRobot?style=for-the-badge&logo=appveyor)
-![Stars](https://img.shields.io/github/stars/Dank-del/EnterpriseALRobot?style=for-the-badge&logo=appveyor)
-![LICENSE](https://img.shields.io/github/license/Dank-del/EnterpriseALRobot?style=for-the-badge&logo=appveyor)
-![Contributors](https://img.shields.io/github/contributors/Dank-del/EnterpriseALRobot?style=for-the-badge&logo=appveyor)
-![Repository Size](https://img.shields.io/github/repo-size/Dank-del/EnterpriseALRobot?style=for-the-badge&logo=appveyor)</br>
-
-
-[![Join Support!](https://img.shields.io/badge/Support%20Chat-EagleUnion-red)](https://t.me/YorktownEagleUnion)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/cfb691a93a064d9ea753ef2b5fccf797)](https://www.codacy.com/manual/Dank-del/EnterpriseALRobot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dank-del/EnterpriseALRobot&amp;utm_campaign=Badge_Grade)
-
+![](images/metabutler.jpeg)
 
 A modular telegram Python bot running on python3 with an sqlalchemy database.
 
-Originally a marie fork - Kigyō has evolved further and was built to be more useful for Anime Chats.
+Originally a Kigyo fork - 
 
-Can be found on telegram as [Kigyō](https://t.me/kigyorobot).
+Can be found on telegram as [MetaButler](https://t.me/MetaButlerBot).
 
-The Support group can be reached out to at [Eagle Union](https://t.me/YorktownEagleUnion), where you can ask for help setting up your bot, discover/request new features, report bugs, and stay in the loop whenever a new update is available.
+The Support group can be reached out to at [MetaButler](https://t.me/MetaButler), where you can ask for help setting up your bot, discover/request new features, report bugs, and stay in the loop whenever a new update is available.
 
 
 
@@ -33,21 +17,76 @@ The Support group can be reached out to at [Eagle Union](https://t.me/YorktownEa
 
 # How to setup
 
-- `git clone https://github.com/Dank-del/EnterpriseALRobot`
-- `cd EnterpriseALRobot`
+- `clone this repository`
+- `cd MetaButler`
 - `cp sample_config.ini config.ini`
 - *Fill in all the vars*
 - `pip3 install -U -r requirements.txt`
-- *And finally* `python3 -m tg_bot`
+- *And finally* `python3 -m MetaButler`
 
 *Enjoy!*
 
+# How can I obtain `bot_token`?
 
-For queries or any issues regarding the bot please open an issue ticket or visit us at [Eagle Union](https://t.me/YorktownEagleUnion)  
+Just talk to [BotFather](https://t.me/BotFather)(described [here](https://core.telegram.org/bots#6-botfather))
+and follow a few simple steps. Once you've created a bot and received your
+authorization token, that's it! that's your `bot_token`.
+
+# How can I obtain a `api_key` and `api_hash`?
+
+In order to obtain an API key and hash you need to do the following:
+
+ - Sign up for Telegram using any application.
+ - Login to your Telegram core: [https://my.telegram.org](https://my.telegram.org).
+ - Go to '[API Development tools](https://my.telegram.org/apps)' and fill out the form.
+ - You will get basic addresses as well as the `api_id` and `api_hash` parameters
+   required for Metabutler's configuration file.
+
+# Database
+
+If you wish to use a database-dependent module(eg: locks, notes, userinfo, users, filters, welcomes),
+you'll need to have a database installed on your system. I use postgres, so I recommend using it for optimal compatibility.
+
+In the case of postgres, this is how you would set up a the database on a debian/ubuntu system. Other distributions may vary.
+
+- install postgresql:
+
+`sudo apt-get update & & sudo apt-get install postgresql`
+
+- change to the postgres user:
+
+`sudo su - postgres`
+
+- create a new database user(change YOUR_USER appropriately):
+
+`createuser -P -s -e YOUR_USER`
+
+This will be followed by you needing to input your password.
+
+- create a new database table:
+
+`createdb -O YOUR_USER YOUR_DB_NAME`
+
+Change YOUR_USER and YOUR_DB_NAME appropriately.
+
+- finally:
+
+`psql YOUR_DB_NAME -h YOUR_HOST YOUR_USER`
+
+This will allow you to connect to your database via your terminal.
+By default, YOUR_HOST should be 0.0.0.0:5432.
+
+You should now be able to build your database URI. This will be:
+
+`sqldbtype://username:pw@hostname:port/db_name`
+
+Replace sqldbtype with whichever db youre using(eg postgres, mysql, sqllite, etc)
+repeat for your username, password, hostname(localhost?), port(5432?), and db name.
 
 ## Credits
-The bot is based of on the original work done by [PaulSonOfLars](https://github.com/PaulSonOfLars)
-This repo was just reamped to suit an Anime-centric community. All original credits go to Paul and his dedication, Without his efforts, this fork would not have been possible!
-
-
-Should any be missing kindly let us know at [Eagle Union](https://t.me/YorktownEagleUnion) or simply submit a pull request on the readme.
+The bot is based of on the original work done by
+ - [PaulSonOfLars](https://github.com/PaulSonOfLars)
+# Thanks to
+ - [Dank-del](https://github.com/Dank-del)
+ - [SoapDev](https://github.com/SoapDev2018)
+ - And much more that we couldn't list it here!
