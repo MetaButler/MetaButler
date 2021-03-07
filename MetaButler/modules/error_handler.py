@@ -62,7 +62,7 @@ def error_callback(update: Update, context: CallbackContext):
         context.bot.send_document(
             OWNER_ID,
             open("error.txt", "rb"),
-            caption=f"#{context.error.identifier}\n<b>Your sugar mommy got an error for you, you cute guy:</b>\n<code>{e}</code>",
+            caption=f"#{context.error.identifier}\n<b>Got an error for you:</b>\n<code>{e}</code>",
             parse_mode="html",
         )
         return

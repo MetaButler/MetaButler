@@ -1,7 +1,7 @@
 future
 emoji
 beautifulsoup4
-requests
+requests==2.20
 sqlalchemy
 python-telegram-bot==13.1
 psycopg2-binary
@@ -12,7 +12,7 @@ tswift
 zalgo-text
 geopy
 nltk
-aiohttp>=2.2.5
+aiohttp==3.7.3
 Pillow>=4.2.0
 CurrencyConverter
 gpytranslate
@@ -31,3 +31,5 @@ PyYAML>=5.1.2
 Intellivoid-SPB
 rich
 psutil
+wikipedia
+hurry.filesize

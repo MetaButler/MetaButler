@@ -159,6 +159,7 @@ def get(update, context, notename, show_none=True, no_format=False):
                         text,
                         reply_to_message_id=reply_id,
                         parse_mode=parseMode,
+                        disable_web_page_preview=True,
                         reply_markup=keyboard,
                     )
                 else:
@@ -176,6 +177,7 @@ def get(update, context, notename, show_none=True, no_format=False):
                             caption=text,
                             reply_to_message_id=reply_id,
                             parse_mode=parseMode,
+                            disable_web_page_preview=True,
                             reply_markup=keyboard,
                         )
 
@@ -196,7 +198,7 @@ def get(update, context, notename, show_none=True, no_format=False):
                 else:
                     message.reply_text(
                         "This note could not be sent, as it is incorrectly formatted. Ask in "
-                        f"@YorkTownEagleUnion if you can't figure out why!"
+                        f"@MetaButler if you can't figure out why!"
                     )
                     log.exception(
                         "Could not parse message #%s in chat %s", notename, str(chat_id)
