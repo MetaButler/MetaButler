@@ -1,5 +1,5 @@
 import speedtest
-from MetaButler import  dispatcher
+from MetaButler import  dispatcher, SUDO_USERS
 from MetaButler.modules.disable import DisableAbleCommandHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
 from telegram.ext import CallbackContext, CallbackQueryHandler
