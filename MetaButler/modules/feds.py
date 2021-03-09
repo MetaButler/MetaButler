@@ -105,10 +105,6 @@ def new_fed(update, context):
         fed_name = fednam
         log.info(fed_id)
 
-        # Currently only for creator
-        # if fednam == 'Team Nusantara Disciplinary Circle':
-        # fed_id = "TeamNusantaraDevs"
-
         x = sql.new_fed(user.id, fed_name, fed_id)
         if not x:
             update.effective_message.reply_text(
