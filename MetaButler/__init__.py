@@ -5,6 +5,7 @@ import time
 import spamwatch
 import telegram.ext as tg
 from telethon import TelegramClient
+from telethon.sessions import MemorySession
 from pyrogram import Client, errors
 from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid, ChannelInvalid
 from pyrogram.types import Chat, User
@@ -84,7 +85,7 @@ else:
         log.warning("Can't connect to SpamWatch!")
 
 updater = tg.Updater(TOKEN, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10})
-telethn = TelegramClient("MetaButler", APP_ID, API_HASH)
+telethn = TelegramClient(MemorySession(), APP_ID, API_HASH)
 dispatcher = updater.dispatcher
 
 kp = Client("MetaButlerPyro", api_id=APP_ID, api_hash=API_HASH, bot_token=TOKEN, workers=min(32, os.cpu_count() + 4))
