@@ -155,7 +155,7 @@ def get_help(chat):
 
 AFK_HANDLER = DisableAbleCommandHandler("afk", afk, run_async=True)
 AFK_REGEX_HANDLER = DisableAbleMessageHandler(
-    Filters.regex("(?i)brb"), afk, friendly="afk", run_async=True
+    Filters.regex("(?i)^brb"), afk, friendly="afk", run_async=True
 )
 
 NO_AFK_HANDLER = DisableAbleMessageHandler(
