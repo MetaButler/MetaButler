@@ -591,7 +591,7 @@ def fed_ban(update, context):
         return
 
     if int(user_id) in SUDO_USERS:
-        message.reply_text("I will not ban a Royal Nation")
+        message.reply_text("I will not ban a Sudo")
         return
 
     if int(user_id) in WHITELIST_USERS:

@@ -154,8 +154,6 @@ def start(update: Update, context: CallbackContext):
                 send_help(update.effective_chat.id, (mb(chat.id, "pm_help_text")))
             elif args[0].lower() == "markdownhelp":
                 IMPORTED["extras"].markdown_help_sender(update)
-            elif args[0].lower() == "nations":
-                IMPORTED["nations"].send_nations(update)
             elif args[0].lower().startswith("stngs_"):
                 match = re.match("stngs_(.*)", args[0].lower())
                 chat = dispatcher.bot.getChat(match.group(1))

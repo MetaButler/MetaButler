@@ -104,12 +104,12 @@ def gban(update: Update, context: CallbackContext):
 
     if int(user_id) in SUDO_USERS:
         message.reply_text(
-            "I spy, with my little eye... a nation! Why are you guys turning on each other?"
+            "I spy, with my little eye... a sudo! Why are you guys turning on each other?"
         )
         return
 
     if int(user_id) in WHITELIST_USERS:
-        message.reply_text("That's a Neptunia! They cannot be banned!")
+        message.reply_text("That's a Whitelisted user! They cannot be banned!")
         return
 
     if int(user_id) in (777000, 1087968824):
