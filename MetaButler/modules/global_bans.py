@@ -1,5 +1,6 @@
 import html
 import time
+import requests
 from datetime import datetime
 from io import BytesIO
 from MetaButler.modules.sql.users_sql import get_user_com_chats
