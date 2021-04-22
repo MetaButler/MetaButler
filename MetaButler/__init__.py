@@ -63,6 +63,7 @@ SPAMMERS = config.get("SPAMMERS").split()
 SPAMMERS = list(map(int, SPAMMERS))
 spamwatch_api = config.get("spamwatch_api")
 CHANNEL_ID = config.get("WALLPOST_CHANNEL_ID")
+WEATHER_API = config.get("WEATHER_API")
 try:
     CF_API_KEY = config.get("CF_API_KEY")
     log.info("AI antispam powered by Intellivoid.")
