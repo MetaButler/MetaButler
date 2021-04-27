@@ -67,7 +67,7 @@ def speedtestxyz_callback(update: Update, context: CallbackContext):
 
     if query.from_user.id in SUDO_USERS:
         msg = update.effective_message.edit_text("Running a speedtest....")
-        speed = speedtest.speedtest()
+        speed = speedtest.Speedtest()
         speed.get_best_server()
         speed.download()
         speed.upload()
