@@ -43,7 +43,7 @@ async def zombies(event):
             msg = "**Cleaning zombies...**\n"
             msg = await event.reply(msg)
             async for user in event.client.iter_participants(event.chat):
-                if user.deleted:
+                if user.deleted and not await user_is_admin(user_id = user, message = event):
                     count += 1
                     await event.client.kick_participant(chat, user)
 
