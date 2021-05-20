@@ -16,7 +16,8 @@ from telegram import Bot, Chat, ChatPermissions, ParseMode, Update
 from telegram.error import BadRequest
 from telegram.ext import CallbackContext, CommandHandler
 from telegram.utils.helpers import mention_html
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
+from MetaButler.modules.helper_funcs.decorators import metacmd
 
 
 def check_user(user_id: int, bot: Bot, chat: Chat) -> Optional[str]:
@@ -43,7 +44,7 @@ def check_user(user_id: int, bot: Bot, chat: Chat) -> Optional[str]:
 
     return None
 
-
+@metacmd(command='mute')
 @connection_status
 @bot_admin
 @user_admin
@@ -90,7 +91,7 @@ def mute(update: Update, context: CallbackContext) -> str:
 
     return ""
 
-
+@metacmd(command='unmute')
 @connection_status
 @bot_admin
 @user_admin
@@ -152,7 +153,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
 
     return ""
 
-
+@metacmd(command=['tmute', 'tempmute'])
 @connection_status
 @bot_admin
 @can_restrict
@@ -234,15 +235,6 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
     return ""
 
 def get_help(chat):
-    return mb(chat, "muting_help")
-
-MUTE_HANDLER = CommandHandler("mute", mute, run_async=True)
-UNMUTE_HANDLER = CommandHandler("unmute", unmute, run_async=True)
-TEMPMUTE_HANDLER = CommandHandler(["tmute", "tempmute"], temp_mute, run_async=True)
-
-dispatcher.add_handler(MUTE_HANDLER)
-dispatcher.add_handler(UNMUTE_HANDLER)
-dispatcher.add_handler(TEMPMUTE_HANDLER)
+    return gs(chat, "muting_help")
 
 __mod_name__ = "Muting"
-__handlers__ = [MUTE_HANDLER, UNMUTE_HANDLER, TEMPMUTE_HANDLER]

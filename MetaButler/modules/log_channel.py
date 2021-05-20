@@ -2,12 +2,12 @@ from datetime import datetime
 from functools import wraps
 
 from telegram.ext import CallbackContext
-
+from MetaButler.modules.helper_funcs.decorators import metacmd
 from MetaButler.modules.helper_funcs.misc import is_module_loaded
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "log_help")
+    return gs(chat, "log_help")
 
 FILENAME = __name__.rsplit(".", 1)[-1]
 
@@ -94,6 +94,7 @@ if is_module_loaded(FILENAME):
                 )
 
     @user_admin
+    @metacmd(command='logchannel')
     def logging(update: Update, context: CallbackContext):
         bot = context.bot
         message = update.effective_message
@@ -112,6 +113,7 @@ if is_module_loaded(FILENAME):
             message.reply_text("No log channel has been set for this group!")
 
     @user_admin
+    @metacmd(command='setlog')
     def setlog(update: Update, context: CallbackContext):
         bot = context.bot
         message = update.effective_message
@@ -155,6 +157,7 @@ if is_module_loaded(FILENAME):
             )
 
     @user_admin
+    @metacmd(command='unsetlog')
     def unsetlog(update: Update, context: CallbackContext):
         bot = context.bot
         message = update.effective_message
@@ -196,14 +199,6 @@ Setting the log channel is done by:
 """
 
     __mod_name__ = "Logger"
-
-    LOG_HANDLER = CommandHandler("logchannel", logging, run_async=True)
-    SET_LOG_HANDLER = CommandHandler("setlog", setlog, run_async=True)
-    UNSET_LOG_HANDLER = CommandHandler("unsetlog", unsetlog, run_async=True)
-
-    dispatcher.add_handler(LOG_HANDLER)
-    dispatcher.add_handler(SET_LOG_HANDLER)
-    dispatcher.add_handler(UNSET_LOG_HANDLER)
 
 else:
     # run anyway if module not loaded

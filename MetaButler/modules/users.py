@@ -2,8 +2,8 @@ from io import BytesIO
 from time import sleep
 
 import MetaButler.modules.sql.users_sql as sql
-from MetaButler import log, OWNER_ID, dispatcher
-from MetaButler.modules.helper_funcs.chat_status import sudo_plus
+from MetaButler import DEV_USERS, log, OWNER_ID, dispatcher
+from MetaButler.modules.helper_funcs.chat_status import dev_plus, sudo_plus
 from MetaButler.modules.sql.users_sql import get_all_users
 from telegram import TelegramError, Update
 from telegram.error import BadRequest
@@ -11,7 +11,7 @@ from telegram.ext import CallbackContext, CommandHandler, Filters, MessageHandle
 
 USERS_GROUP = 4
 CHAT_GROUP = 5
-DEV_AND_MORE = OWNER_ID
+DEV_AND_MORE = DEV_USERS.append(int(OWNER_ID))
 
 
 def get_user_id(username):
@@ -45,7 +45,8 @@ def get_user_id(username):
 
     return None
 
-@sudo_plus
+
+@dev_plus
 def broadcast(update: Update, context: CallbackContext):
     to_send = update.effective_message.text.split(None, 1)
 

@@ -9,7 +9,7 @@ from telegram.ext import CallbackContext, run_async
 from MetaButler import WEATHER_API, dispatcher
 from MetaButler.modules.sql.clear_cmd_sql import get_clearcmd
 from MetaButler.modules.helper_funcs.misc import delete
-
+from MetaButler.modules.helper_funcs.decorators import metacmd
 
 def get_tz(con):
     for c_code in c_n:
@@ -21,7 +21,7 @@ def get_tz(con):
     except KeyError:
         return
 
-
+@metacmd(command='weather', pass_args=True)
 def weather(update: Update, context: CallbackContext):
     bot = context.bot
     chat = update.effective_chat
@@ -151,6 +151,3 @@ def weather(update: Update, context: CallbackContext):
 
     if cleartime:
         context.dispatcher.run_async(delete, delmsg, cleartime.time)
-
-WEATHER_HANDLER = CommandHandler(["weather"], weather, run_async=True)
-dispatcher.add_handler(WEATHER_HANDLER)

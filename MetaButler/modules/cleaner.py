@@ -5,8 +5,8 @@ from MetaButler.modules.disable import DisableAbleCommandHandler
 from MetaButler.modules.helper_funcs.chat_status import (
     bot_can_delete,
     connection_status,
+    dev_plus,
     user_admin,
-    sudo_plus,
 )
 from MetaButler.modules.sql import cleaner_sql as sql
 from telegram import ParseMode, Update
@@ -170,7 +170,8 @@ def add_bluetext_ignore_global(update: Update, context: CallbackContext):
         reply = "No command supplied to be ignored."
         message.reply_text(reply)
 
-@sudo_plus
+
+@dev_plus
 def remove_bluetext_ignore_global(update: Update, context: CallbackContext):
     message = update.effective_message
     args = context.args
@@ -189,7 +190,8 @@ def remove_bluetext_ignore_global(update: Update, context: CallbackContext):
         reply = "No command supplied to be unignored."
         message.reply_text(reply)
 
-@sudo_plus
+
+@dev_plus
 def bluetext_ignore_list(update: Update, context: CallbackContext):
 
     message = update.effective_message
@@ -218,10 +220,10 @@ def bluetext_ignore_list(update: Update, context: CallbackContext):
     message.reply_text(text, parse_mode=ParseMode.HTML)
     return
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "cleaner_help")
+    return gs(chat, "cleaner_help")
 
 SET_CLEAN_BLUE_TEXT_HANDLER = CommandHandler(
     "cleanbluetext", set_blue_text_must_click, pass_args=True, run_async=True

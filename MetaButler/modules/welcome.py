@@ -3,12 +3,14 @@ import random
 import re
 import time
 from functools import partial
-
+from io import BytesIO
 import MetaButler.modules.sql.welcome_sql as sql
 from MetaButler import (
+    DEV_USERS,
     log,
     OWNER_ID,
     SUDO_USERS,
+    SUPPORT_USERS,
     WHITELIST_USERS,
     sw,
     dispatcher,
@@ -24,7 +26,7 @@ from MetaButler.modules.helper_funcs.string_handling import (
     markdown_parser,
 )
 from MetaButler.modules.log_channel import loggable
-from MetaButler.modules.sql.global_bans_sql import is_user_gbanned
+from MetaButler.modules.sql.antispam_sql import is_user_gbanned
 from telegram import (
     ChatPermissions,
     InlineKeyboardButton,
@@ -66,7 +68,9 @@ ENUM_FUNC_MAP = {
 }
 
 VERIFIED_USER_WAITLIST = {}
+CAPTCHA_ANS_DICT = {}
 
+from multicolorcaptcha import CaptchaGenerator
 
 # do not async
 def send(update, message, keyboard, backup_message):
@@ -192,10 +196,26 @@ def new_member(update: Update, context: CallbackContext):
                 )
                 continue
 
+            # Welcome Devs
+            elif new_mem.id in DEV_USERS:
+                update.effective_message.reply_text(
+                    "Whoa! A Dev just joined!",
+                    reply_to_message_id=reply,
+                )
+                continue
+
             # Welcome Sudos
             elif new_mem.id in SUDO_USERS:
                 update.effective_message.reply_text(
-                    "A Sudo user is here.",
+                    "Wew! A SUDO USER just joined! Stay Alert!",
+                    reply_to_message_id=reply,
+                )
+                continue
+
+            # Welcome Support
+            elif new_mem.id in SUPPORT_USERS:
+                update.effective_message.reply_text(
+                    "Wew! A Support User just joined!",
                     reply_to_message_id=reply,
                 )
                 continue
@@ -203,14 +223,14 @@ def new_member(update: Update, context: CallbackContext):
             # Welcome Whitelisted
             elif new_mem.id in WHITELIST_USERS:
                 update.effective_message.reply_text(
-                    "Oof! My Favourite person has joined", reply_to_message_id=reply
+                    "Wew! A Whitelisted User just joined!", reply_to_message_id=reply
                 )
                 continue
 
             # Welcome yourself
             elif new_mem.id == bot.id:
                 update.effective_message.reply_text(
-                    "Thanks for adding me! Join @metabutler for support.",
+                    "Thanks for adding me! Join @MetaButler for support.",
                     reply_to_message_id=reply,
                 )
                 continue
@@ -308,7 +328,7 @@ def new_member(update: Update, context: CallbackContext):
                     if not media_wel:
                         VERIFIED_USER_WAITLIST.update(
                             {
-                                new_mem.id: {
+                                (chat.id, new_mem.id): {
                                     "should_welc": should_welc,
                                     "media_wel": False,
                                     "status": False,
@@ -322,7 +342,7 @@ def new_member(update: Update, context: CallbackContext):
                     else:
                         VERIFIED_USER_WAITLIST.update(
                             {
-                                new_mem.id: {
+                                (chat.id, new_mem.id): {
                                     "should_welc": should_welc,
                                     "chat_id": chat.id,
                                     "status": False,
@@ -368,6 +388,89 @@ def new_member(update: Update, context: CallbackContext):
                         partial(check_not_bot, new_mem, chat.id, message.message_id),
                         120,
                         name="welcomemute",
+                    )
+                if welc_mutes == "captcha":
+                    btn = []
+                    # Captcha image size number (2 -> 640x360)
+                    CAPCTHA_SIZE_NUM = 2
+                    # Create Captcha Generator object of specified size
+                    generator = CaptchaGenerator(CAPCTHA_SIZE_NUM)
+
+                    # Generate a captcha image
+                    captcha = generator.gen_captcha_image(difficult_level=3)
+                    # Get information
+                    image = captcha["image"]
+                    characters = captcha["characters"]
+                    #print(characters)
+                    fileobj = BytesIO()
+                    fileobj.name=f'captcha_{new_mem.id}.png'
+                    image.save(fp=fileobj)
+                    fileobj.seek(0)
+                    CAPTCHA_ANS_DICT[(chat.id, new_mem.id)] = int(characters)
+                    welcome_bool = False
+                    if not media_wel:
+                        VERIFIED_USER_WAITLIST.update(
+                            {
+                                (chat.id, new_mem.id): {
+                                    "should_welc": should_welc,
+                                    "media_wel": False,
+                                    "status": False,
+                                    "update": update,
+                                    "res": res,
+                                    "keyboard": keyboard,
+                                    "backup_message": backup_message,
+                                    "captcha_correct": characters,
+                                }
+                            }
+                        )
+                    else:
+                        VERIFIED_USER_WAITLIST.update(
+                            {
+                                (chat.id, new_mem.id): {
+                                    "should_welc": should_welc,
+                                    "chat_id": chat.id,
+                                    "status": False,
+                                    "media_wel": True,
+                                    "cust_content": cust_content,
+                                    "welc_type": welc_type,
+                                    "res": res,
+                                    "keyboard": keyboard,
+                                    "captcha_correct": characters,
+                                }
+                            }
+                        )
+
+                    nums = [random.randint(1000, 9999) for _ in range(7)]
+                    nums.append(characters)
+                    random.shuffle(nums)
+                    to_append = []
+                    #print(nums)
+                    for a in nums:
+                        to_append.append(InlineKeyboardButton(text=str(a), callback_data=f"user_captchajoin_({chat.id},{new_mem.id})_({a})"))
+                        if len(to_append) > 2:
+                            btn.append(to_append)
+                            to_append = []
+                    if to_append:
+                        btn.append(to_append)
+
+                    message = msg.reply_photo(fileobj, caption=f'Welcome [{escape_markdown(new_mem.first_name)}](tg://user?id={user.id}). Click the correct button to get unmuted!',
+                                    reply_markup=InlineKeyboardMarkup(btn),
+                                    parse_mode=ParseMode.MARKDOWN,
+                                    reply_to_message_id=reply,
+                                )
+                    bot.restrict_chat_member(
+                        chat.id,
+                        new_mem.id,
+                        permissions=ChatPermissions(
+                            can_send_messages=False,
+                            can_invite_users=False,
+                            can_pin_messages=False,
+                            can_send_polls=False,
+                            can_change_info=False,
+                            can_send_media_messages=False,
+                            can_send_other_messages=False,
+                            can_add_web_page_previews=False,
+                        ),
                     )
 
         if welcome_bool:
@@ -415,7 +518,7 @@ def new_member(update: Update, context: CallbackContext):
 
 def check_not_bot(member, chat_id, message_id, context):
     bot = context.bot
-    member_dict = VERIFIED_USER_WAITLIST.pop(member.id)
+    member_dict = VERIFIED_USER_WAITLIST.pop((chat_id, member.id))
     member_status = member_dict.get("status")
     if not member_status:
         try:
@@ -474,6 +577,14 @@ def left_member(update: Update, context: CallbackContext):
             if left_mem.id == OWNER_ID:
                 update.effective_message.reply_text(
                     "Sorry to see you leave :(", reply_to_message_id=reply
+                )
+                return
+
+            # Give the devs a special goodbye
+            elif left_mem.id in DEV_USERS:
+                update.effective_message.reply_text(
+                    "Peru Dev Left",
+                    reply_to_message_id=reply,
                 )
                 return
 
@@ -770,16 +881,27 @@ def welcomemute(update: Update, context: CallbackContext) -> str:
                 f"<b>• Admin:</b> {mention_html(user.id, user.first_name)}\n"
                 f"Has toggled welcome mute to <b>STRONG</b>."
             )
+        elif args[0].lower() in ["captcha"]:
+            sql.set_welcome_mutes(chat.id, "captcha")
+            msg.reply_text(
+                "I will now mute people when they join until they prove they're not a bot.\nThey have to solve a captcha to get unmuted."
+            )
+            return (
+                f"<b>{html.escape(chat.title)}:</b>\n"
+                f"#WELCOME_MUTE\n"
+                f"<b>• Admin:</b> {mention_html(user.id, user.first_name)}\n"
+                f"Has toggled welcome mute to <b>CAPTCHA</b>."
+            )
         else:
             msg.reply_text(
-                "Please enter `off`/`no`/`soft`/`strong`!",
+                "Please enter `off`/`no`/`soft`/`strong`/`captcha`!",
                 parse_mode=ParseMode.MARKDOWN,
             )
             return ""
     else:
         curr_setting = sql.welcome_mutes(chat.id)
         reply = (
-            f"\n Give me a setting!\nChoose one out of: `off`/`no` or `soft` or `strong` only! \n"
+            f"\n Give me a setting!\nChoose one out of: `off`/`no` or `soft`, `strong` or `captcha` only! \n"
             f"Current setting: `{curr_setting}`"
         )
         msg.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
@@ -872,9 +994,8 @@ def user_button(update: Update, context: CallbackContext):
 
     if join_user == user.id:
         sql.set_human_checks(user.id, chat.id)
-        member_dict = VERIFIED_USER_WAITLIST.pop(user.id)
+        member_dict = VERIFIED_USER_WAITLIST[(chat.id, user.id)]
         member_dict["status"] = True
-        VERIFIED_USER_WAITLIST.update({user.id: member_dict})
         query.answer(text="Yeet! You're a human, unmuted!")
         bot.restrict_chat_member(
             chat.id,
@@ -924,6 +1045,88 @@ def user_button(update: Update, context: CallbackContext):
     else:
         query.answer(text="You're not allowed to do this!")
 
+def user_captcha_button(update: Update, context: CallbackContext):
+    chat = update.effective_chat
+    user = update.effective_user
+    query = update.callback_query
+    bot = context.bot
+    #print(query.data)
+    match = re.match(r"user_captchajoin_\(([\d\-]+),(\d+)\)_\((\d{4})\)", query.data)
+    message = update.effective_message
+    join_chat = int(match.group(1))
+    join_user = int(match.group(2))
+    captcha_ans = int(match.group(3))
+    join_usr_data = bot.getChat(join_user)
+
+
+    if join_user == user.id:
+        c_captcha_ans = CAPTCHA_ANS_DICT.pop((join_chat, join_user))
+        if c_captcha_ans == captcha_ans:
+            sql.set_human_checks(user.id, chat.id)
+            member_dict = VERIFIED_USER_WAITLIST[(chat.id, user.id)]
+            member_dict["status"] = True
+            query.answer(text="Yeet! You're a human, unmuted!")
+            bot.restrict_chat_member(
+                chat.id,
+                user.id,
+                permissions=ChatPermissions(
+                    can_send_messages=True,
+                    can_invite_users=True,
+                    can_pin_messages=True,
+                    can_send_polls=True,
+                    can_change_info=True,
+                    can_send_media_messages=True,
+                    can_send_other_messages=True,
+                    can_add_web_page_previews=True,
+                ),
+            )
+            try:
+                bot.deleteMessage(chat.id, message.message_id)
+            except:
+                pass
+            if member_dict["should_welc"]:
+                if member_dict["media_wel"]:
+                    sent = ENUM_FUNC_MAP[member_dict["welc_type"]](
+                        member_dict["chat_id"],
+                        member_dict["cust_content"],
+                        caption=member_dict["res"],
+                        reply_markup=member_dict["keyboard"],
+                        parse_mode="markdown",
+                    )
+                else:
+                    sent = send(
+                        member_dict["update"],
+                        member_dict["res"],
+                        member_dict["keyboard"],
+                        member_dict["backup_message"],
+                    )
+
+                prev_welc = sql.get_clean_pref(chat.id)
+                if prev_welc:
+                    try:
+                        bot.delete_message(chat.id, prev_welc)
+                    except BadRequest:
+                        pass
+
+                    if sent:
+                        sql.set_clean_welcome(chat.id, sent.message_id)
+        else:
+            try:
+                bot.deleteMessage(chat.id, message.message_id)
+            except:
+                pass
+            kicked_msg = f'''
+            ❌ [{escape_markdown(join_usr_data.first_name)}](tg://user?id={join_user}) failed the captcha and was kicked.
+            '''
+            query.answer(text="Wrong answer")
+            res = chat.unban_member(join_user)
+            if res:
+                bot.sendMessage(chat_id=chat.id, text=kicked_msg, parse_mode=ParseMode.MARKDOWN)
+
+
+    else:
+        query.answer(text="You're not allowed to do this!")
+
 
 WELC_HELP_TXT = (
     "Your group's welcome/goodbye messages can be personalised in multiple ways. If you want the messages"
@@ -956,6 +1159,7 @@ WELC_MUTE_HELP_TXT = (
     "The following options are possible:\n"
     "• `/welcomemute soft`*:* restricts new members from sending media for 24 hours.\n"
     "• `/welcomemute strong`*:* mutes new members till they tap on a button thereby verifying they're human.\n"
+    "• `/welcomemute captcha`*:*  mutes new members till they solve a button captcha thereby verifying they're human.\n"
     "• `/welcomemute off`*:* turns off welcomemute.\n"
     "*Note:* Strong mode kicks a user from the chat if they dont verify in 120seconds. They can always rejoin though"
 )
@@ -998,10 +1202,10 @@ def __chat_settings__(chat_id, user_id):
     )
 
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "greetings_help")
+    return gs(chat, "greetings_help")
 
 NEW_MEM_HANDLER = MessageHandler(
     Filters.status_update.new_chat_members, new_member, run_async=True
@@ -1041,6 +1245,9 @@ WELCOME_MUTE_HELP = CommandHandler("welcomemutehelp", welcome_mute_help, run_asy
 BUTTON_VERIFY_HANDLER = CallbackQueryHandler(
     user_button, pattern=r"user_join_", run_async=True
 )
+CAPTCHA_BUTTON_VERIFY_HANDLER = CallbackQueryHandler(
+    user_captcha_button, pattern=r"user_captchajoin_\([\d\-]+,\d+\)_\(\d{4}\)", run_async=True
+)
 
 dispatcher.add_handler(NEW_MEM_HANDLER)
 dispatcher.add_handler(LEFT_MEM_HANDLER)
@@ -1056,6 +1263,7 @@ dispatcher.add_handler(WELCOMEMUTE_HANDLER)
 dispatcher.add_handler(CLEAN_SERVICE_HANDLER)
 dispatcher.add_handler(BUTTON_VERIFY_HANDLER)
 dispatcher.add_handler(WELCOME_MUTE_HELP)
+dispatcher.add_handler(CAPTCHA_BUTTON_VERIFY_HANDLER)
 
 __mod_name__ = "Greetings"
 __command_list__ = []
@@ -1073,5 +1281,6 @@ __handlers__ = [
     WELCOMEMUTE_HANDLER,
     CLEAN_SERVICE_HANDLER,
     BUTTON_VERIFY_HANDLER,
+    CAPTCHA_BUTTON_VERIFY_HANDLER,
     WELCOME_MUTE_HELP,
 ]

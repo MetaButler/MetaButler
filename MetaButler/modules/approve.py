@@ -9,8 +9,9 @@ from MetaButler.modules.log_channel import loggable
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.utils.helpers import mention_html
 from telegram.error import BadRequest
+from MetaButler.modules.helper_funcs.decorators import metacmd, metacallback
 
-
+@metacmd(command='approve', filters=Filters.chat_type.groups)
 @loggable
 @user_admin
 def approve(update, context):
@@ -53,7 +54,7 @@ def approve(update, context):
 
     return log_message
 
-
+@metacmd(command='unapprove', filters=Filters.chat_type.groups)
 @loggable
 @user_admin
 def disapprove(update, context):
@@ -89,7 +90,7 @@ def disapprove(update, context):
 
     return log_message
 
-
+@metacmd(command='approved', filters=Filters.chat_type.groups)
 @user_admin
 def approved(update, context):
     message = update.effective_message
@@ -107,6 +108,7 @@ def approved(update, context):
         message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 
+@metacmd(command='approval', filters=Filters.chat_type.groups)
 @user_admin
 def approval(update, context):
     message = update.effective_message
@@ -129,7 +131,7 @@ def approval(update, context):
         )
 
 
-
+@metacmd(command='unapproveall', filters=Filters.chat_type.groups)
 def unapproveall(update: Update, context: CallbackContext):
     chat = update.effective_chat
     user = update.effective_user
@@ -155,7 +157,7 @@ def unapproveall(update: Update, context: CallbackContext):
             parse_mode=ParseMode.MARKDOWN,
         )
 
-
+@metacallback(pattern=r"unapproveall_.*")
 def unapproveall_btn(update: Update, context: CallbackContext):
     query = update.callback_query
     chat = update.effective_chat
@@ -185,26 +187,9 @@ def unapproveall_btn(update: Update, context: CallbackContext):
         if member.status == "member":
             query.answer("You need to be admin to do this.")
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "approve_help")
-
-APPROVE = DisableAbleCommandHandler("approve", approve, run_async=True, filters=Filters.chat_type.groups)
-DISAPPROVE = DisableAbleCommandHandler("unapprove", disapprove, run_async=True, filters=Filters.chat_type.groups)
-APPROVED = DisableAbleCommandHandler("approved", approved, run_async=True, filters=Filters.chat_type.groups)
-APPROVAL = DisableAbleCommandHandler("approval", approval, run_async=True, filters=Filters.chat_type.groups)
-UNAPPROVEALL = DisableAbleCommandHandler("unapproveall", unapproveall, run_async=True, filters=Filters.chat_type.groups)
-UNAPPROVEALL_BTN = CallbackQueryHandler(
-    unapproveall_btn, pattern=r"unapproveall_.*")
-
-dispatcher.add_handler(APPROVE)
-dispatcher.add_handler(DISAPPROVE)
-dispatcher.add_handler(APPROVED)
-dispatcher.add_handler(APPROVAL)
-dispatcher.add_handler(UNAPPROVEALL)
-dispatcher.add_handler(UNAPPROVEALL_BTN)
+    return gs(chat, "approve_help")
 
 __mod_name__ = "Approvals"
-__command_list__ = ["approve", "unapprove", "approved", "approval"]
-__handlers__ = [APPROVE, DISAPPROVE, APPROVED, APPROVAL]

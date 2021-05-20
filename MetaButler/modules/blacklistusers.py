@@ -2,25 +2,29 @@
 
 import MetaButler.modules.sql.blacklistusers_sql as sql
 from MetaButler import (
+    DEV_USERS,
     OWNER_ID,
     SUDO_USERS,
+    SUPPORT_USERS,
     WHITELIST_USERS,
     dispatcher,
 )
+from MetaButler.modules.helper_funcs.chat_status import dev_plus
 from MetaButler.modules.helper_funcs.extraction import extract_user, extract_user_and_text
-from MetaButler.modules.helper_funcs.chat_status import sudo_plus
 from MetaButler.modules.log_channel import gloggable
 from telegram import ParseMode, Update
 from telegram.error import BadRequest
 from telegram.ext import CallbackContext, CommandHandler, run_async
 from telegram.utils.helpers import mention_html
+from MetaButler.modules.helper_funcs.decorators import metacmd
 
 BLACKLISTWHITELIST = (
-    [OWNER_ID] + SUDO_USERS + WHITELIST_USERS
+    [OWNER_ID] + DEV_USERS + SUDO_USERS + WHITELIST_USERS + SUPPORT_USERS
 )
-BLABLEUSERS = [OWNER_ID]
+BLABLEUSERS = [OWNER_ID] + DEV_USERS
 
-@sudo_plus
+@metacmd(command='ignore', pass_args=True)
+@dev_plus
 @gloggable
 def bl_user(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
@@ -61,7 +65,8 @@ def bl_user(update: Update, context: CallbackContext) -> str:
 
     return log_message
 
-@sudo_plus
+@metacmd(command='notice', pass_args=True)
+@dev_plus
 @gloggable
 def unbl_user(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
@@ -102,7 +107,8 @@ def unbl_user(update: Update, context: CallbackContext) -> str:
         message.reply_text("I am not ignoring them at all though!")
         return ""
 
-@sudo_plus
+@metacmd(command='ignoredlist', pass_args=True)
+@dev_plus
 def bl_users(update: Update, context: CallbackContext):
     users = []
     bot = context.bot
@@ -149,14 +155,4 @@ def __user_info__(user_id):
 
     return text
 
-
-BL_HANDLER = CommandHandler("ignore", bl_user, pass_args=True, run_async=True)
-UNBL_HANDLER = CommandHandler("notice", unbl_user, pass_args=True, run_async=True)
-BLUSERS_HANDLER = CommandHandler("ignoredlist", bl_users, run_async=True)
-
-dispatcher.add_handler(BL_HANDLER)
-dispatcher.add_handler(UNBL_HANDLER)
-dispatcher.add_handler(BLUSERS_HANDLER)
-
 __mod_name__ = "Blacklisting Users"
-__handlers__ = [BL_HANDLER, UNBL_HANDLER, BLUSERS_HANDLER]

@@ -12,11 +12,14 @@ from MetaButler.__main__ import (
     USER_INFO,
     USER_SETTINGS,
 )
-from MetaButler.modules.helper_funcs.chat_status import sudo_plus
+from MetaButler.modules.helper_funcs.chat_status import dev_plus, sudo_plus
 from telegram import ParseMode, Update
 from telegram.ext import CallbackContext, CommandHandler
+from MetaButler.modules.helper_funcs.decorators import metacmd
 
-@sudo_plus
+
+@dev_plus
+@metacmd(command='load')
 def load(update: Update, context: CallbackContext):
     message = update.effective_message
     text = message.text.split(" ", 1)[1]
@@ -80,7 +83,9 @@ def load(update: Update, context: CallbackContext):
         "Successfully loaded module : <b>{}</b>".format(text), parse_mode=ParseMode.HTML
     )
 
-@sudo_plus
+
+@dev_plus
+@metacmd(command='unload')
 def unload(update: Update, context: CallbackContext):
     message = update.effective_message
     text = message.text.split(" ", 1)[1]
@@ -147,6 +152,7 @@ def unload(update: Update, context: CallbackContext):
 
 
 @sudo_plus
+@metacmd(command='listmodules')
 def listmodules(update: Update, context: CallbackContext):
     message = update.effective_message
     module_list = []
@@ -160,13 +166,5 @@ def listmodules(update: Update, context: CallbackContext):
     module_list = "Following modules are loaded : \n\n" + "".join(module_list)
     message.reply_text(module_list, parse_mode=ParseMode.HTML)
 
-
-LOAD_HANDLER = CommandHandler("load", load, run_async=True)
-UNLOAD_HANDLER = CommandHandler("unload", unload, run_async=True)
-LISTMODULES_HANDLER = CommandHandler("listmodules", listmodules, run_async=True)
-
-dispatcher.add_handler(LOAD_HANDLER)
-dispatcher.add_handler(UNLOAD_HANDLER)
-dispatcher.add_handler(LISTMODULES_HANDLER)
 
 __mod_name__ = "Modules"

@@ -4,18 +4,12 @@ import random
 from telegram import Update, MessageEntity
 from telegram.ext import Filters, CallbackContext, MessageHandler
 from telegram.error import BadRequest
-from MetaButler import dispatcher
-from MetaButler.modules.disable import (
-    DisableAbleCommandHandler,
-    DisableAbleMessageHandler,
-)
 from MetaButler.modules.sql import afk_sql as sql
 from MetaButler.modules.users import get_user_id
+from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
 
-AFK_GROUP = 7
-AFK_REPLY_GROUP = 8
-
-
+@metamsg(Filters.regex("(?i)brb"), friendly="afk", group=3)
+@metacmd(command="afk", group=3)
 def afk(update: Update, context: CallbackContext):
     args = update.effective_message.text.split(None, 1)
     user = update.effective_user
@@ -42,7 +36,7 @@ def afk(update: Update, context: CallbackContext):
     except BadRequest:
         pass
 
-
+@metamsg((Filters.all & Filters.chat_type.groups), friendly='afk', group=1)
 def no_longer_afk(update: Update, context: CallbackContext):
     user = update.effective_user
     message = update.effective_message
@@ -73,7 +67,7 @@ def no_longer_afk(update: Update, context: CallbackContext):
         except:
             return
 
-
+@metamsg((Filters.entity(MessageEntity.MENTION) | Filters.entity(MessageEntity.TEXT_MENTION) & Filters.chat_type.groups), friendly='afk', group=8)
 def reply_afk(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
@@ -148,40 +142,9 @@ def check_afk(update, context, user_id, fst_name, userc_id):
 def __gdpr__(user_id):
     sql.rm_afk(user_id)
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "afk_help")
-
-AFK_HANDLER = DisableAbleCommandHandler("afk", afk, run_async=True)
-AFK_REGEX_HANDLER = DisableAbleMessageHandler(
-    Filters.regex("(?i)^brb"), afk, friendly="afk", run_async=True
-)
-
-NO_AFK_HANDLER = DisableAbleMessageHandler(
-    Filters.all & Filters.chat_type.groups,
-    no_longer_afk,
-    friendly="afk",
-    run_async=True,
-)
-AFK_REPLY_HANDLER = DisableAbleMessageHandler(
-    (Filters.entity(MessageEntity.MENTION) | Filters.entity(MessageEntity.TEXT_MENTION))
-    & Filters.chat_type.groups,
-    reply_afk,
-    friendly="afk",
-    run_async=True,
-)
-
-dispatcher.add_handler(AFK_HANDLER, AFK_GROUP)
-dispatcher.add_handler(AFK_REGEX_HANDLER, AFK_GROUP)
-dispatcher.add_handler(NO_AFK_HANDLER, AFK_GROUP)
-dispatcher.add_handler(AFK_REPLY_HANDLER, AFK_REPLY_GROUP)
+    return gs(chat, "afk_help")
 
 __mod_name__ = "AFK"
-__command_list__ = ["afk"]
-__handlers__ = [
-    (AFK_HANDLER, AFK_GROUP),
-    (AFK_REGEX_HANDLER, AFK_GROUP),
-    (NO_AFK_HANDLER, AFK_GROUP),
-    (AFK_REPLY_HANDLER, AFK_REPLY_GROUP),
-]

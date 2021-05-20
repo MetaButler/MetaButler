@@ -89,4 +89,4 @@ The bot is based of on the original work done by
 # Thanks to
  - [Dank-del](https://github.com/Dank-del)
  - [SoapDev](https://github.com/SoapDev2018)
- - And much more that we couldn't list it here!
+ - And many more that we couldn't list it here!

@@ -9,17 +9,21 @@ from MetaButler.modules.helper_funcs.alternate import send_message
 from MetaButler.modules.helper_funcs.chat_status import user_admin, user_not_admin
 from MetaButler.modules.helper_funcs.misc import split_message
 from MetaButler.modules.helper_funcs.string_handling import extract_time
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.warns import warn
-from telegram import Chat, Message, ParseMode, Update, User, Bot
+from telegram import Chat, Message, ParseMode, Update, User, Bot, ChatPermissions
 from telegram.error import BadRequest
 from telegram.ext import  CommandHandler, Filters, MessageHandler, CallbackContext
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html, mention_markdown
+from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
 
+BLACKLIST_GROUP = -3
 
+@metacmd(command='blsticker', pass_args=True)
+@user_admin
 def blackliststicker(update: Update, context: CallbackContext):
     args = context.args
     chat = update.effective_chat  # type: Optional[Chat]
@@ -62,7 +66,7 @@ def blackliststicker(update: Update, context: CallbackContext):
             return
     send_message(update.effective_message, text, parse_mode=ParseMode.HTML)
 
-
+@metacmd(command='addblsticker', pass_args=True)
 @user_admin
 def add_blackliststicker(update: Update, context):
     bot = context.bot
@@ -152,7 +156,7 @@ def add_blackliststicker(update: Update, context):
             "Tell me what stickers you want to add to the blacklist.",
         )
 
-
+@metacmd(command='rmblsticker', pass_args=True)
 @user_admin
 def unblackliststicker(update: Update, context):
     bot = context.bot
@@ -247,7 +251,7 @@ def unblackliststicker(update: Update, context):
             "Tell me what stickers you want to add to the blacklist.",
         )
 
-
+@metacmd(command='blstickermode', pass_args=True)
 @user_admin
 def blacklist_mode(update: Update, context):
     bot = context.bot
@@ -357,7 +361,7 @@ def blacklist_mode(update: Update, context):
         send_message(update.effective_message, text, parse_mode=ParseMode.MARKDOWN)
     return ""
 
-
+@metamsg(((Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.chat_type.groups), group=BLACKLIST_GROUP)
 @user_not_admin
 def del_blackliststicker(update: Update, context):
     bot = context.bot
@@ -395,6 +399,7 @@ def del_blackliststicker(update: Update, context):
                     bot.restrict_chat_member(
                         chat.id,
                         update.effective_user.id,
+                        permissions=ChatPermissions(can_send_messages=False),
                     )
                     bot.sendMessage(
                         chat.id,
@@ -446,6 +451,7 @@ def del_blackliststicker(update: Update, context):
                         chat.id,
                         user.id,
                         until_date=mutetime,
+                        permissions=ChatPermissions(can_send_messages=False),
                     )
                     bot.sendMessage(
                         chat.id,
@@ -483,25 +489,6 @@ def __stats__():
     )
 
 def get_help(chat):
-    return mb(chat, "bl_stickers_help")
-
-BLACKLIST_STICKER_HANDLER = DisableAbleCommandHandler("blsticker", blackliststicker, admin_ok=True, pass_args=True, run_async=True)
-ADDBLACKLIST_STICKER_HANDLER = DisableAbleCommandHandler("addblsticker", add_blackliststicker, pass_args=True, run_async=True)
-UNBLACKLIST_STICKER_HANDLER = CommandHandler(["unblsticker", "rmblsticker"], unblackliststicker, pass_args=True, run_async=True)
-BLACKLISTMODE_HANDLER = CommandHandler("blstickermode", blacklist_mode, pass_args=True, run_async=True)
-BLACKLIST_STICKER_DEL_HANDLER = MessageHandler(Filters.sticker & Filters.chat_type.groups, del_blackliststicker)
-
-dispatcher.add_handler(BLACKLIST_STICKER_HANDLER)
-dispatcher.add_handler(ADDBLACKLIST_STICKER_HANDLER)
-dispatcher.add_handler(UNBLACKLIST_STICKER_HANDLER)
-dispatcher.add_handler(BLACKLISTMODE_HANDLER)
-dispatcher.add_handler(BLACKLIST_STICKER_DEL_HANDLER)
+    return gs(chat, "bl_stickers_help")
 
 __mod_name__ = "Blsticker"
-__command_list__ = ["blsticker", "addblsticker", "unblsticker", "blstickermode"]
-__handlers__ = [
-    BLACKLIST_STICKER_DEL_HANDLER,
-    BLACKLIST_STICKER_HANDLER,
-    BLACKLISTMODE_HANDLER,
-    ADDBLACKLIST_STICKER_HANDLER,
-]

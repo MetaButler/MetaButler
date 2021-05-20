@@ -160,8 +160,9 @@ def extract_unt_fedban(
         ):
             message.reply_text(
                 "I seem to have never interacted with this user "
-                "Previously - please forward the message from them to give me control!"
-                "To run a certain command ...)"
+                "Previously - please forward a message from them to give me control! "
+                "(Like a voodoo doll, I need a piece to be able to "
+                "run a certain command ...)"
             )
             return None, None
         elif excp.message != "Chat not found":

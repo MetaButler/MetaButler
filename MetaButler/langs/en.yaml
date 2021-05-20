@@ -2,10 +2,11 @@
 language: "English 🇺🇲"
 
 pm_start_text: |
-   Hi {}, my name is {}!
-   I am a group management bot with some cool extras ;)
-
-   You can find the list of available commands with /help.
+   Hi {}, I'm {},
+   I am an Group Management bot with some cool extras ;)
+   
+   *Click on help to learn more!*
+   
 grp_start_text: "Hi, I'm Alive."
 
 pm_help_text: |
@@ -15,7 +16,6 @@ pm_help_text: |
    *Main* commands available:
     • /start: Starts me, can be used to check I'm alive or not.
     • /help: PM's you this message.
-    • /language: Change bot language.
     • /settings:
       - in PM: will send you your settings for all supported modules.
       - in a group: will redirect you to pm, with all that chat's settings.
@@ -73,7 +73,7 @@ backup_help: |
     *Admin only:*
      - /import: reply to a group butler backup file to import as much as possible, making the transfer super simple! Note \
        that files/photos can't be imported due to telegram restrictions.
-     - /export: !!! This isn't a command yet, but should be coming soon!
+     - /export: Export group data, which will be exported are: rules, notes (documents, images, music, video, audio, voice, text, text buttons)
 
 bans_help: |
     - /kickme: kicks the user who issued the command
@@ -95,6 +95,13 @@ blacklist_help: |
      • `/addblacklist <triggers>`*:* Add a trigger to the blacklist. Each line is considered one trigger, so using different lines will allow you to add multiple triggers.
      • `/unblacklist <triggers>`*:* Remove triggers from the blacklist. Same newline logic applies here, so you can remove multiple triggers at once.
      • `/blacklistmode <off/del/warn/ban/kick/mute/tban/tmute>`*:* Action to perform when someone sends blacklisted words.
+
+bl_stickers_help: |
+      Blacklist sticker is used to stop certain stickers. Whenever a sticker is sent, the message will be deleted immediately.\n
+       • `/blsticker` *:* See current blacklisted sticker
+       • `/addblsticker <sticker link>` *:* Add the sticker trigger to the black list. Can be added via reply sticker
+       • `/rmblsticker <sticker link>` *:* Remove triggers from blacklist.
+       • `/blstickermode <ban/tban/mute/tmute>` *:* sets up a default action on what to do if users use blacklisted stickers
 
 cleaner_help: |
     - /cleanbluetext <on/off/yes/no> - clean commands after sending
@@ -142,31 +149,77 @@ disable_help: |
      • /listcmds: List all possible disablable commands
 
 feds_help: |
-    Ah, group management. Everything is fun, until the spammer starts entering your group, and you have to block it. Then you need to start banning more, and more, and it hurts.
+    Everything is fun, until a spammer starts entering your group, and you have to block it. Then you need to start banning more, and more, and it hurts.
     But then you have many groups, and you don't want this spammer to be in one of your groups - how can you deal? Do you have to manually block it, in all your groups?
+    *No longer!* With Federation, you can make a ban in one chat overlap with all other chats.
+    You can even designate federation admins, so your trusted admin can ban all the spammers from chats you want to protect.
+    
+    *Click on the buttons below to learn in depth about all the commands.*
 
-    No longer! With Federation, you can make a ban in one chat overlap with all other chats.
-    You can even designate admin federations, so your trusted admin can ban all the chats you want to protect.
+FED_OWNER_HELP: | 
+    *Fed Owner Only:*
+    • `/newfed <fed_name>`*:* Creates a Federation, One allowed per user
+    • `/renamefed <fed_id> <new_fed_name>`*:* Renames the fed id to a new name
+    • `/delfed <fed_id>`*:* Delete a Federation, and any information related to it. Will not cancel blocked users
+    • `/fpromote <user>`*:* Assigns the user as a federation admin. Enables all commands for the user under `Fed Admins`
+    • `/fdemote <user>`*:* Drops the User from the admin Federation to a normal User
+    • `/subfed <fed_id>`*:* Subscribes to a given fed ID, bans from that subscribed fed will also happen in your fed
+    • `/unsubfed <fed_id>`*:* Unsubscribes to a given fed ID
+    • `/setfedlog <fed_id>`*:* Sets the group as a fed log report base for the federation
+    • `/unsetfedlog <fed_id>`*:* Removed the group as a fed log report base for the federation
+    • `/fbroadcast <message>`*:* Broadcasts a messages to all groups that have joined your fed
+    • `/fedsubs`*:* Shows the feds your group is subscribed to `(broken rn)`
 
-    *Commands Available*:
+FED_ADMIN_HELP: |
+    *Fed Admins:*
+    • `/fban <user> <reason>`*:* Fed bans a user
+    • `/unfban <user> <reason>`*:* Removes a user from a fed ban
+    • `/fedinfo <fed_id>`*:* Information about the specified Federation
+    • `/joinfed <fed_id>`*:* Join the current chat to the Federation. Only chat owners can do this. Every chat can only be in one Federation
+    • `/leavefed <fed_id>`*:* Leave the Federation given. Only chat owners can do this
+    • `/setfrules <rules>`*:* Arrange Federation rules
+    • `/fedadmins`*:* Show Federation admin
+    • `/fbanlist`*:* Displays all users who are victimized at the Federation at this time
+    • `/fedchats`*:* Get all the chats that are connected in the Federation
+    • `/chatfed `*:* See the Federation in the current chat
 
-     • /newfed <fedname>: Create a new Federation with the name given. Users are only allowed to have one Federation. This method can also be used to rename the Federation. (max. 64 characters)
-     • /delfed: Delete your Federation, and any information related to it. Will not cancel blocked users.
-     • /fedinfo <FedID>: Information about the specified Federation.
-     • /joinfed <FedID>: Join the current chat to the Federation. Only chat owners can do this. Every chat can only be in one Federation.
-     • /leavefed <FedID>: Leave the Federation given. Only chat owners can do this.
-     • /fpromote <user>: Promote Users to give fed admin. Fed owner only.
-     • /fdemote <user>: Drops the User from the admin Federation to a normal User. Fed owner only.
-     • /fban <user>: Prohibits users from all federations where this chat takes place, and executors have control over.
-     • /unfban <user>: Cancel User from all federations where this chat takes place, and that the executor has control over.
-     • /setfrules: Arrange Federation rules.
-     • /frules: See Federation regulations.
-     • /chatfed: See the Federation in the current chat.
-     • /fedadmins: Show Federation admin.
-     • /fbanlist: Displays all users who are victimized at the Federation at this time.
-     • /fednotif <on / off>: Federation settings not in PM when there are users who are fban / unfban.
-     • /fedchats: Get all the chats that are connected in the Federation.
-     • /importfbans: Reply to the Federation backup message file to import the banned list to the Federation now. (disabled for now.)
+FED_USER_HELP: | 
+    *Any user:*
+    • `/fbanstat`*:* Shows if you/or the user you are replying to or their username is fbanned somewhere or not
+    • `/fednotif <on/off>`*:* Federation settings not in PM when there are users who are fbaned/unfbanned
+    • `/frules`*:* See Federation regulations
+
+formt_help_bse: |
+    MetaButler supports a large number of formatting options to make your messages more expressive. Take a look!
+
+md_help: |
+    <b>Markdown Formatting</b>
+      You can format your message using *bold*, _italics_, -underline-, and much more. Go ahead and experiment!
+      <b>Supported markdown</b>:
+      - <code>`code words`</code>: Backticks are used for monospace fonts. Shows as: <code>code words</code>.
+      - <code>_italic words_</code>: Underscores are used for italic fonts. Shows as: <i>italic words</i>.
+      - <code>*bold words*</code>: Asterisks are used for bold fonts. Shows as: <b>bold words</b>.
+      - <code>~strikethrough~</code>: Tildes are used for strikethrough. Shows as: <strike>strikethrough</strike>.
+      - <code>[hyperlink](example.com)</code>: This is the formatting used for hyperlinks. Shows as: <a href="https://example.com/">hyperlink</a>.
+      - <code>[My Button](buttonurl://example.com)</code>: This is the formatting used for creating buttons. This example will create a button named "My button" which opens <code>example.com</code> when clicked.
+      If you would like to send buttons on the same row, use the <code>:same</code> formatting.
+      <b>Example:</b>
+      <code>[button 1](buttonurl://example.com)</code>
+      <code>[button 2](buttonurl://example.com:same)</code>
+      <code>[button 3](buttonurl://example.com)</code>
+      This will show button 1 and 2 on the same line, with 3 underneath.
+filling_help: |
+      <b>Fillings</b>
+      You can also customise the contents of your message with contextual data. For example, you could mention a user by name in the welcome message, or mention them in a filter!
+      You can use these to mention a user in notes too!
+      <b>Supported fillings:</b>
+      - <code>{first}</code>: The user's first name.
+      - <code>{last}</code>: The user's last name.
+      - <code>{fullname}</code>: The user's full name.
+      - <code>{username}</code>: The user's username. If they don't have one, mentions the user instead.
+      - <code>{mention}</code>: Mentions the user with their firstname.
+      - <code>{id}</code>: The user's ID.
+      - <code>{chatname}</code>: The chat's name.
 
 fun_help: |
      • /runs: reply a random string from an array of replies.
@@ -178,8 +231,7 @@ fun_help: |
      • /shout <keyword>: write anything you want to give loud shout.
      • /stickerid: reply to a sticker to get its ID.
      • /getsticker: reply to a sticker to get the raw PNG image.
-     • /kang: reply to a sticker or image to add it to your pack.
-     • /stickers: search stickers in combot sticker finder.
+     • /steal: reply to a sticker or image to add it to your pack.
 
 antispam_help: |
      *Admins only:*
@@ -187,7 +239,7 @@ antispam_help: |
 
      Anti-Spam, used by bot devs to ban spammers across all groups. This helps protect
      you and your groups by removing spam flooders as quickly as possible.
-     *Note:* Users can appeal gbans or report spammers at @YorkTownEagleUnion
+     *Note:* Users can appeal gbans or report spammers at @MetaButler
 
      MetaButler also integrates @Spamwatch and @Intellivoid's SpamProtectionBot API to remove Spammers as much as possible from your chatroom!
      *What is SpamWatch?*
@@ -200,19 +252,15 @@ antispam_help: |
      Uses @Intellivoid's Coffeehouse Artificial Engine. Every ban is checked by real trusty people before being finalized.
 
 gtranslate_help: |
-     • `/tr` or `/tl` (language code) as reply to a long message.
-     *Example:* `/tr en`*:* translates something to english.
-         `/tr ja-en`*:* translates Japanese to english.
+     Use this module to translate stuff... duh!
+     *Commands:*
+     • `/tl` (or `/tr`): as a reply to a message, translates it to English.
+     • `/tl <lang>`: translates to <lang>
+     eg: `/tl ja`: translates to Japanese.
+     • `/tl <source>//<dest>`: translates from <source> to <lang>.
+     eg: `/tl ja//en`: translates from Japanese to English.
+     • `/langs`: get a list of supported languages for translation.
 
-     *Lang Codes available:*
-     `
-     af,am,ar,az,be,bg,bn,bs,ca,ceb,co,cs,cy,da,de,el,en,eo,es,
-     et,eu,fa,fi,fr,fy,ga,gd,gl,gu,ha,haw,hi,hmn,hr,ht,hu,hy,
-     id,ig,is,it,iw,ja,jw,ka,kk,km,kn,ko,ku,ky,la,lb,lo,lt,lv,mg,mi,mk,
-     ml,mn,mr,ms,mt,my,ne,nl,no,ny,pa,pl,ps,pt,ro,ru,sd,si,sk,sl,
-     sm,sn,so,sq,sr,st,su,sv,sw,ta,te,tg,th,tl,tr,uk,ur,uz,
-     vi,xh,yi,yo,zh,zh_CN,zh_TW,zu
-     `
 locks_help: |
      Do stickers annoy you? or want to avoid people sharing links? or pictures?
      You're in the right place!
@@ -277,18 +325,13 @@ misc_help: |
       • /markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.
       • /ud <word>: Type the word or expression you want to search use.
       • /urban <word>: Same as /ud
-      • /paste - Do a paste at `del.dog`
+      • /paste - Do a paste at `nekobin.com`
       • /react: Reacts with a random reaction
       • /tr (language code) as reply to a long message.
       • /cinfo : get info about a user or a chat (uses @Pyrogram methods)
       • /getid : get IDs of chat, user and chat message.
-      • /spbinfo : get info about a user from @Intellivoid's SpamProtection API.
-
-misc_paste_invalid: What am I supposed to do with this?!
-misc_paste_404: Failed to reach dogbin
-misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
-misc_get_pasted_invalid: Please supply a dogbin url!
-misc_get_pasted_unknown: Unknown error occured
+      • /spbinfo : get info about a user from @Intellivoid's SpamProtection API
+      • /weather <city name>: Get weather info from openweather.
 
 muting_help: |
       *Admins only:*
@@ -372,14 +415,6 @@ greetings_help: |
 
       *Welcome markdown:*
        • `/welcomehelp`*:* view more formatting information for custom welcome/goodbye messages.
-
-bl_stickers_help: |
-      Blacklist sticker is used to stop certain stickers. Whenever a sticker is sent, the message will be deleted immediately.\n
-       • `/blsticker` *:* See current blacklisted sticker
-       • `/addblsticker <sticker link>` *:* Add the sticker trigger to the black list. Can be added via reply sticker
-       • `/unblsticker <sticker link>` *:* Remove triggers from blacklist.
-       • `/rmblsticker <sticker link>` *:* Same as above
-       • `/blstickermode <ban/tban/mute/tmute>` *:* sets up a default action on what to do if users use blacklisted stickers
 
 nlp_help: |
 

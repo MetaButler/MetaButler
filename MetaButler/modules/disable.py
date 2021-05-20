@@ -10,10 +10,10 @@ from MetaButler.modules.helper_funcs.handlers import CMD_STARTERS
 from MetaButler.modules.helper_funcs.misc import is_module_loaded
 from MetaButler.modules.helper_funcs.alternate import send_message, typing_action
 from MetaButler.modules.connection import connected
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "disable_help")
+    return gs(chat, "disable_help")
 
 
 CMD_STARTERS = tuple(CMD_STARTERS)

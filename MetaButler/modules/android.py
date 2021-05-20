@@ -3,7 +3,7 @@ import urllib
 from hurry.filesize import size as sizee
 from telethon import custom
 from MetaButler.events import register
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 from requests import get
 import rapidjson as json
@@ -22,7 +22,7 @@ async def los(event):
         device = ''
 
     if device == '':
-        reply_text = mb(chat_id, "cmd_example").format("los")
+        reply_text = gs(chat_id, "cmd_example").format("los")
         await event.reply(reply_text, link_preview=False)
         return
 
@@ -36,16 +36,16 @@ async def los(event):
         buildsize_b = sizee(int(buildsize_a))
         version = response['version']
 
-        reply_text = mb(chat_id, "download").format(filename, url)
-        reply_text += mb(chat_id, "build_size").format(buildsize_b)
-        reply_text += mb(chat_id, "version").format(version)
+        reply_text = gs(chat_id, "download").format(filename, url)
+        reply_text += gs(chat_id, "build_size").format(buildsize_b)
+        reply_text += gs(chat_id, "version").format(version)
 
-        keyboard = [custom.Button.url(mb(chat_id, "btn_dl"), f"{url}")]
+        keyboard = [custom.Button.url(gs(chat_id, "btn_dl"), f"{url}")]
         await event.reply(reply_text, buttons=keyboard, link_preview=False)
         return
 
     else:
-        reply_text = mb(chat_id, "err_not_found")
+        reply_text = gs(chat_id, "err_not_found")
     await event.reply(reply_text, link_preview=False)
 
 
@@ -62,7 +62,7 @@ async def evo(event):
         device = ''
 
     if device == "example":
-        reply_text = mb(chat_id, "err_example_device")
+        reply_text = gs(chat_id, "err_example_device")
         await event.reply(reply_text, link_preview=False)
         return
 
@@ -73,7 +73,7 @@ async def evo(event):
         device = "X01BD"
 
     if device == '':
-        reply_text = mb(chat_id, "cmd_example").format("evo")
+        reply_text = gs(chat_id, "cmd_example").format("evo")
         await event.reply(reply_text, link_preview=False)
         return
 
@@ -98,23 +98,23 @@ async def evo(event):
             size_a = usr['size']
             size_b = sizee(int(size_a))
 
-            reply_text = mb(chat_id, "download").format(filename, url)
-            reply_text += mb(chat_id, "build_size").format(size_b)
-            reply_text += mb(chat_id, "android_version").format(version)
-            reply_text += mb(chat_id, "maintainer").format(
+            reply_text = gs(chat_id, "download").format(filename, url)
+            reply_text += gs(chat_id, "build_size").format(size_b)
+            reply_text += gs(chat_id, "android_version").format(version)
+            reply_text += gs(chat_id, "maintainer").format(
                 f"[{maintainer}](https://t.me/{maintainer_url})")
 
-            keyboard = [custom.Button.url(mb(chat_id, "btn_dl"), f"{url}")]
+            keyboard = [custom.Button.url(gs(chat_id, "btn_dl"), f"{url}")]
             await event.reply(reply_text, buttons=keyboard, link_preview=False)
             return
 
         except ValueError:
-            reply_text = mb(chat_id, "err_json")
+            reply_text = gs(chat_id, "err_json")
             await event.reply(reply_text, link_preview=False)
             return
 
     elif fetch.status_code == 404:
-        reply_text = mb(chat_id, "err_not_found")
+        reply_text = gs(chat_id, "err_not_found")
         await event.reply(reply_text, link_preview=False)
         return
 
@@ -129,7 +129,7 @@ async def phh(event):
         "https://api.github.com/repos/phhusson/treble_experimentations/releases/latest"
     )
     usr = json.loads(fetch.content)
-    reply_text = mb(chat_id, "phh_releases")
+    reply_text = gs(chat_id, "phh_releases")
     for i in range(len(usr)):
         try:
             name = usr['assets'][i]['name']
@@ -152,7 +152,7 @@ async def bootleggers(event):
         codename = ''
 
     if codename == '':
-        reply_text = mb(chat_id, "cmd_example").format("bootleggers")
+        reply_text = gs(chat_id, "cmd_example").format("bootleggers")
         await event.reply(reply_text, link_preview=False)
         return
 
@@ -196,16 +196,16 @@ async def bootleggers(event):
                     else:
                         reply_text += f"\n**{oh}:** `{baby}`"
 
-            reply_text += mb(chat_id, "xda_thread").format(
+            reply_text += gs(chat_id, "xda_thread").format(
                 devices[devicetoget]['xdathread'])
-            reply_text += mb(chat_id, "download").format(
+            reply_text += gs(chat_id, "download").format(
                 devices[devicetoget]['filename'],
                 devices[devicetoget]['download'])
         else:
-            reply_text = mb(chat_id, "err_not_found")
+            reply_text = gs(chat_id, "err_not_found")
 
     elif fetch.status_code == 404:
-        reply_text = mb(chat_id, "err_api")
+        reply_text = gs(chat_id, "err_api")
     await event.reply(reply_text, link_preview=False)
 
 
@@ -250,6 +250,6 @@ async def magisk(event):
     await event.reply(releases, link_preview=False)
 
 def get_help(chat):
-    return mb(chat, "android_help")
+    return gs(chat, "android_help")
 
 __mod_name__ = "Android"

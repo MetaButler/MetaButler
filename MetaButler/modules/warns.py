@@ -62,7 +62,7 @@ def warn(
             message.reply_text("Whitelisted users are warn immune.")
         else:
             message.reply_text(
-                "Neptunian triggered an auto warn filter!\nI can't warn Neptunians users but they should avoid abusing this."
+                "Whitelisted triggered an auto warn filter!\nI can't warn Whitelisted users but they should avoid abusing this."
             )
         return
 
@@ -482,10 +482,10 @@ def __chat_settings__(chat_id, user_id):
     )
 
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "warns_help")
+    return gs(chat, "warns_help")
 
 __mod_name__ = "Warnings"
 

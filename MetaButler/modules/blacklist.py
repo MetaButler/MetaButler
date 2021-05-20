@@ -2,11 +2,11 @@ import html
 import re
 from telegram import ParseMode, ChatPermissions
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, MessageHandler, Filters
+from telegram.ext import Filters
 from telegram.utils.helpers import mention_html
 from MetaButler.modules.sql.approve_sql import is_approved
 import MetaButler.modules.sql.blacklist_sql as sql
-from MetaButler import dispatcher, log
+from MetaButler import log, dispatcher
 from MetaButler.modules.disable import DisableAbleCommandHandler
 from MetaButler.modules.helper_funcs.chat_status import user_admin, user_not_admin
 from MetaButler.modules.helper_funcs.extraction import extract_text
@@ -15,12 +15,12 @@ from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.warns import warn
 from MetaButler.modules.helper_funcs.string_handling import extract_time
 from MetaButler.modules.connection import connected
-
+from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
 from MetaButler.modules.helper_funcs.alternate import send_message, typing_action
 
-BLACKLIST_GROUP = 11
+BLACKLIST_GROUP = -3
 
-
+@metacmd(command="blacklist", pass_args=True, admin_ok=True)
 @user_admin
 @typing_action
 def blacklist(update, context):
@@ -65,7 +65,7 @@ def blacklist(update, context):
             return
         send_message(update.effective_message, text, parse_mode=ParseMode.HTML)
 
-
+@metacmd(command="addblacklist", pass_args=True)
 @user_admin
 @typing_action
 def add_blacklist(update, context):
@@ -118,7 +118,7 @@ def add_blacklist(update, context):
             "Tell me which words you would like to add in blacklist.",
         )
 
-
+@metacmd(command="unblacklist", pass_args=True)
 @user_admin
 @typing_action
 def unblacklist(update, context):
@@ -197,7 +197,7 @@ def unblacklist(update, context):
             "Tell me which words you would like to remove from blacklist!",
         )
 
-
+@metacmd(command="blacklistmode", pass_args=True)
 @loggable
 @user_admin
 @typing_action
@@ -334,6 +334,8 @@ def findall(p, s):
         i = s.find(p, i + 1)
 
 
+
+@metamsg(((Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.chat_type.groups), group=BLACKLIST_GROUP)
 @user_not_admin
 def del_blacklist(update, context):
     chat = update.effective_chat
@@ -450,37 +452,7 @@ def __stats__():
 
 __mod_name__ = "Blacklists"
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "blacklist_help")
-
-
-BLACKLIST_HANDLER = DisableAbleCommandHandler(
-    "blacklist", blacklist, pass_args=True, admin_ok=True, run_async=True
-)
-ADD_BLACKLIST_HANDLER = CommandHandler("addblacklist", add_blacklist, run_async=True)
-UNBLACKLIST_HANDLER = CommandHandler("unblacklist", unblacklist, run_async=True)
-BLACKLISTMODE_HANDLER = CommandHandler(
-    "blacklistmode", blacklist_mode, pass_args=True, run_async=True
-)
-BLACKLIST_DEL_HANDLER = MessageHandler(
-    (Filters.text | Filters.command | Filters.sticker | Filters.photo)
-    & Filters.chat_type.groups,
-    del_blacklist,
-    run_async=True,
-)
-
-dispatcher.add_handler(BLACKLIST_HANDLER)
-dispatcher.add_handler(ADD_BLACKLIST_HANDLER)
-dispatcher.add_handler(UNBLACKLIST_HANDLER)
-dispatcher.add_handler(BLACKLISTMODE_HANDLER)
-dispatcher.add_handler(BLACKLIST_DEL_HANDLER, group=BLACKLIST_GROUP)
-
-__handlers__ = [
-    BLACKLIST_HANDLER,
-    ADD_BLACKLIST_HANDLER,
-    UNBLACKLIST_HANDLER,
-    BLACKLISTMODE_HANDLER,
-    (BLACKLIST_DEL_HANDLER, BLACKLIST_GROUP),
-]
+    return gs(chat, "blacklist_help")

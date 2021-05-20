@@ -6,12 +6,10 @@ from telegram.error import BadRequest, Unauthorized
 from telegram.ext import (
     CommandHandler,
     CallbackQueryHandler,
-    run_async,
-    CallbackContext,
 )
 
 import MetaButler.modules.sql.connection_sql as sql
-from MetaButler import dispatcher, SUDO_USERS
+from MetaButler import dispatcher, SUDO_USERS, DEV_USERS
 from MetaButler.modules.helper_funcs import chat_status
 from MetaButler.modules.helper_funcs.alternate import send_message, typing_action
 
@@ -281,11 +279,13 @@ def connected(bot: Bot, update: Update, chat, user_id, need_admin=True):
             (isadmin)
             or (isallow and ismember)
             or (user.id in SUDO_USERS)
+            or (user.id in DEV_USERS)
         ):
             if need_admin is True:
                 if (
                     getstatusadmin.status in ("administrator", "creator")
                     or user_id in SUDO_USERS
+                    or user.id in DEV_USERS
                 ):
                     return conn_id
                 else:
@@ -385,10 +385,10 @@ def connect_button(update, context):
         connect_chat(update, context)
 
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "connections_help")
+    return gs(chat, "connections_help")
 
 CONNECT_CHAT_HANDLER = CommandHandler("connect", connect_chat, pass_args=True)
 CONNECTION_CHAT_HANDLER = CommandHandler("connection", connection_chat, run_async=True)

@@ -6,11 +6,11 @@ from telegram.ext.dispatcher import CallbackContext
 from telegram.utils.helpers import escape_markdown
 
 import MetaButler.modules.sql.userinfo_sql as sql
-from MetaButler import dispatcher, SUDO_USERS, OWNER_ID
-from MetaButler.modules.disable import DisableAbleCommandHandler
+from MetaButler import dispatcher, SUDO_USERS, DEV_USERS
 from MetaButler.modules.helper_funcs.extraction import extract_user
+from MetaButler.modules.helper_funcs.decorators import metacmd
 
-
+@metacmd(command='me', pass_args=True)
 def about_me(update: Update, context: CallbackContext):
     args = context.args
     bot = context.bot
@@ -36,6 +36,7 @@ def about_me(update: Update, context: CallbackContext):
         )
 
 
+@metacmd(command='setme')
 def set_about_me(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
@@ -46,7 +47,7 @@ def set_about_me(update: Update, context: CallbackContext):
     if message.reply_to_message:
         repl_message = message.reply_to_message
         repl_user_id = repl_message.from_user.id
-        if repl_user_id == bot.id and (user_id in SUDO_USERS):
+        if repl_user_id == bot.id and (user_id in SUDO_USERS or user_id in DEV_USERS):
             user_id = repl_user_id
 
     text = message.text
@@ -66,7 +67,7 @@ def set_about_me(update: Update, context: CallbackContext):
                 )
             )
 
-
+@metacmd(command='bio', pass_args=True)
 def about_bio(update: Update, context: CallbackContext):
     args = context.args
     bot = context.bot
@@ -106,6 +107,7 @@ def about_bio(update: Update, context: CallbackContext):
         if (
             user_id == bot.id
             and sender_id not in SUDO_USERS
+            and sender_id not in DEV_USERS
         ):
             message.reply_text(
                 "Erm... yeah, I only trust sudo users or developers to set my bio."
@@ -131,7 +133,7 @@ def about_bio(update: Update, context: CallbackContext):
     else:
         message.reply_text("Reply to someone's message to set their bio!")
 
-
+@metacmd(command='setbio')
 def set_about_bio(update: Update, context: CallbackContext):
     message = update.effective_message
     sender_id = update.effective_user.id
@@ -150,12 +152,12 @@ def set_about_bio(update: Update, context: CallbackContext):
             )
             return
 
-        if user_id in [777000, 1087968824]:
+        if user_id in [777000, 1087968824] and sender_id not in DEV_USERS:
             message.reply_text("You are not authorised")
             return
 
-        if user_id == bot.id and sender_id not in OWNER_ID:
-            message.reply_text("Erm... yeah, I only trust Eagle Union to set my bio.")
+        if user_id == bot.id and sender_id not in DEV_USERS:
+            message.reply_text("Erm... yeah, I only trust Owner to set my bio.")
             return
 
         text = message.text
@@ -192,26 +194,10 @@ def __user_info__(user_id):
         return "\n"
 
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "userinfo_help")
+    return gs(chat, "userinfo_help")
 
-SET_BIO_HANDLER = DisableAbleCommandHandler("setbio", set_about_bio, run_async=True)
-GET_BIO_HANDLER = DisableAbleCommandHandler(
-    "bio", about_bio, pass_args=True, run_async=True
-)
-
-SET_ABOUT_HANDLER = DisableAbleCommandHandler("setme", set_about_me, run_async=True)
-GET_ABOUT_HANDLER = DisableAbleCommandHandler(
-    "me", about_me, pass_args=True, run_async=True
-)
-
-dispatcher.add_handler(SET_BIO_HANDLER)
-dispatcher.add_handler(GET_BIO_HANDLER)
-dispatcher.add_handler(SET_ABOUT_HANDLER)
-dispatcher.add_handler(GET_ABOUT_HANDLER)
 
 __mod_name__ = "Bios/Abouts"
-__command_list__ = ["setbio", "bio", "setme", "me"]
-__handlers__ = [SET_BIO_HANDLER, GET_BIO_HANDLER, SET_ABOUT_HANDLER, GET_ABOUT_HANDLER]

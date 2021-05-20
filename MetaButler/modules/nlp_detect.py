@@ -1,12 +1,11 @@
 from pyrogram import filters
-from MetaButler import kp, CF_API_KEY, log, dispatcher
+from MetaButler import kp, log, MInit
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import ChatPermissions, Message
 from pyrogram.errors import BadRequest
 import aiohttp, json, asyncio
-from MetaButler.modules.global_bans import SPB_MODE
 import MetaButler.modules.sql.nlp_detect_sql as sql
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 from pyrogram.types import Message
 
@@ -31,7 +30,7 @@ async def admin_check(message: Message) -> bool:
 __mod_name__ = "NLP"
 
 def get_help(chat):
-    return mb(chat, "nlp_help")
+    return gs(chat, "nlp_help")
 
 
 @kp.on_message(filters.command("nlpstat"), group=8)
@@ -72,9 +71,10 @@ async def detect_spam(client, message):
     user = message.from_user
     chat = message.chat
     msg = message.text
-    if user.id == dispatcher.bot.id:
+    if user.id == MInit.bot_id:
         return
 
+    from MetaButler import SPB_MODE, CF_API_KEY
     chat_state = sql.does_chat_nlp(chat.id)
     if SPB_MODE and CF_API_KEY and chat_state == True:
         try:
@@ -85,8 +85,8 @@ async def detect_spam(client, message):
                 spam_check = res_json['results']['spam_prediction']['is_spam']
                 if spam_check == True:
                     pred = res_json['results']['spam_prediction']['prediction']
-                    await kp.restrict_chat_member(chat.id, user.id, ChatPermissions(can_send_messages=False))
                     try:
+                        await kp.restrict_chat_member(chat.id, user.id, ChatPermissions(can_send_messages=False))
                         await message.reply_text(
                         f"**⚠ SPAM DETECTED!**\nSpam Prediction: `{pred}`\nUser: `{user.id}` was muted.",
                         parse_mode="md",
@@ -105,12 +105,12 @@ async def detect_spam(client, message):
                 spam_check = res_json['results']['spam_prediction']['is_spam']
                 if spam_check is True:
                     pred = res_json['results']['spam_prediction']['prediction']
-                    await kp.restrict_chat_member(chat.id, user.id, ChatPermissions(can_send_messages=False))
                     try:
+                        await kp.restrict_chat_member(chat.id, user.id, ChatPermissions(can_send_messages=False))
                         await message.reply_text(
                             f"**⚠ SPAM DETECTED!**\nSpam Prediction: `{pred}`\nUser: `{user.id}` was muted.", parse_mode="markdown")
                     except BadRequest:
                         await message.reply_text(f"**⚠ SPAM DETECTED!**\nSpam Prediction: `{pred}`\nUser: `{user.id}`\nUser could not be restricted due to insufficient admin perms.", parse_mode="markdown")
-        except (aiohttp.ClientConnectionError, asyncio.TimeoutError):
-            log.warning("Can't reach SpamProtection API")
-            await asyncio.sleep(0.5)
+        except BaseException as e:
+            log.warning(f"Can't reach SpamProtection API due to {e}")
+            return

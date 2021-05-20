@@ -1,20 +1,18 @@
+'''#TODO
+
+2020-12-29
+'''
+
 import importlib
 import re
-import datetime
-import json
-import traceback
-from typing import Optional, List
+from typing import Optional
 from sys import argv
-import requests
-from pyrogram import idle, Client
+from pyrogram import idle
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import (TelegramError, Unauthorized, BadRequest,
                             TimedOut, ChatMigrated, NetworkError)
 from telegram.ext import (
     CallbackContext,
-    CommandHandler,
-    MessageHandler,
-    CallbackQueryHandler,
     Filters
 )
 from telegram.ext.dispatcher import DispatcherHandlerStop
@@ -29,9 +27,9 @@ from MetaButler import (
     PORT,
     URL,
     log,
-    ALLOW_EXCL,
     telethn,
     kp,
+    MetaINIT
 )
 
 # needed to dynamically load modules
@@ -39,27 +37,8 @@ from MetaButler import (
 from MetaButler.modules import ALL_MODULES
 from MetaButler.modules.helper_funcs.chat_status import is_user_admin
 from MetaButler.modules.helper_funcs.misc import paginate_modules
-from MetaButler.modules.disable import DisableAbleCommandHandler
-from MetaButler.modules.language import mb
-
-PM_START_TEXT = """
-Hey {} My name is {}.\nI'm here to help you manage your groups!
-Send /help to find out more about how to use me.
-"""
-
-HELP_STRINGS = f"""
-Hello there! My name is *{dispatcher.bot.first_name}*.
-I'm a modular group management bot here to help you manage your grouo.
-*Main* commands available:
- • /start: Starts me, can be used to check I'm alive or not.
- • /help: PM's you this message.
- • /settings:
-   - in PM: will send you your settings for all supported modules.
-   - in a group: will redirect you to pm, with all that chat's settings.
- \nClick on the buttons below to get documentation about specific modules!"""
-
-
-METABUTLER_IMG = "https://telegra.ph/file/888b20d2f85e53d692ebd.jpg"
+from MetaButler.modules.helper_funcs.decorators import metacmd, metacallback, metamsg
+from MetaButler.modules.language import gs
 
 
 IMPORTED = {}
@@ -120,12 +99,17 @@ def send_help(chat_id, text, keyboard=None):
     '''
 
     if not keyboard:
-        keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
+        kb = paginate_modules(0, HELPABLE, "help")
+        kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
+        InlineKeyboardButton(text='Back', callback_data='start_back'), InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
+        keyboard = InlineKeyboardMarkup(kb)
     dispatcher.bot.send_message(
         chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard
     )
 
 
+
+@metacmd(command='text')
 def test(update: Update, context: CallbackContext):
     '''#TODO
 
@@ -139,6 +123,8 @@ def test(update: Update, context: CallbackContext):
     update.effective_message.reply_text("This person edited a message")
     print(update.effective_message)
 
+@metacallback(pattern=r'start_back')
+@metacmd(command='start', pass_args=True)
 def start(update: Update, context: CallbackContext):
     '''#TODO
 
@@ -148,10 +134,64 @@ def start(update: Update, context: CallbackContext):
     '''
     chat = update.effective_chat
     args = context.args
+
+    if hasattr(update, 'callback_query'):
+        query = update.callback_query 
+        if hasattr(query, 'id'):
+            first_name = update.effective_user.first_name
+            update.effective_message.edit_text(
+                text=gs(chat.id, "pm_start_text").format(
+                    escape_markdown(first_name),
+                    escape_markdown(context.bot.first_name),
+                    OWNER_ID,
+                ),
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton(
+                                text=gs(chat.id, "support_chat_link_btn"),
+                                url=f"https://t.me/MetaButler",
+                            ),
+                            InlineKeyboardButton(
+                                text=gs(chat.id, "updates_channel_link_btn"),
+                                url="https://t.me/metabutlernews",
+                            ),
+                            InlineKeyboardButton(
+                                text=gs(chat.id, "src_btn"),
+                                url="https://github.com/destroyer19991/MetaButler",
+                            ),
+                            
+                        ],
+
+                        [
+
+                             InlineKeyboardButton(
+                                 text="Try inline",
+                                 switch_inline_query_current_chat="",
+                             ),
+                             InlineKeyboardButton(
+                                text="Help",
+                                callback_data="help_back",
+                                ),
+                            InlineKeyboardButton(
+                                text=gs(chat.id, "add_bot_to_group_btn"),
+                                url="t.me/{}?startgroup=true".format(
+                                    context.bot.username
+                                ),
+                            ),
+                        ]
+                        
+                    ]
+                ),
+            )
+            context.bot.answer_callback_query(query.id)
+            return
+
     if update.effective_chat.type == "private":
-        if len(args) >= 1:
+        if args and len(args) >= 1:
             if args[0].lower() == "help":
-                send_help(update.effective_chat.id, (mb(chat.id, "pm_help_text")))
+                send_help(update.effective_chat.id, (gs(chat.id, "pm_help_text")))
             elif args[0].lower() == "markdownhelp":
                 IMPORTED["extras"].markdown_help_sender(update)
             elif args[0].lower().startswith("stngs_"):
@@ -168,9 +208,8 @@ def start(update: Update, context: CallbackContext):
 
         else:
             first_name = update.effective_user.first_name
-            update.effective_message.reply_photo(
-                photo=METABUTLER_IMG,
-                caption=mb(chat.id, "pm_start_text").format(
+            update.effective_message.reply_text(
+                text=gs(chat.id, "pm_start_text").format(
                     escape_markdown(first_name),
                     escape_markdown(context.bot.first_name),
                     OWNER_ID,
@@ -180,27 +219,48 @@ def start(update: Update, context: CallbackContext):
                     [
                         [
                             InlineKeyboardButton(
-                                text=mb(chat.id, "add_bot_to_group_btn"),
-                                url="t.me/{}?startgroup=true".format(
-                                    context.bot.username
-                                ),
-                            )
-                        ],
-                        [
-                            InlineKeyboardButton(
-                                text=mb(chat.id, "support_chat_link_btn"),
+                                text=gs(chat.id, "support_chat_link_btn"),
                                 url=f"https://t.me/MetaButler",
                             ),
                             InlineKeyboardButton(
-                                text=mb(chat.id, "updates_channel_link_btn"),
+                                text=gs(chat.id, "updates_channel_link_btn"),
                                 url="https://t.me/metabutlernews",
                             ),
+                            InlineKeyboardButton(
+                                text=gs(chat.id, "src_btn"),
+                                url="https://github.com/destroyer19991/MetaButler",
+                            ),
+                            
                         ],
+
+                        [
+
+                             InlineKeyboardButton(
+                                 text="Try inline",
+                                 switch_inline_query_current_chat="",
+                             ),
+                             InlineKeyboardButton(
+                                text="Help",
+                                callback_data="help_back",
+                                ),
+                            InlineKeyboardButton(
+                                text=gs(chat.id, "add_bot_to_group_btn"),
+                                url="t.me/{}?startgroup=true".format(
+                                    context.bot.username
+                                ),
+                            ),
+                        ]
+                        
                     ]
                 ),
             )
     else:
-        update.effective_message.reply_text(mb(chat.id, "grp_start_text"))
+        update.effective_message.reply_text(gs(chat.id, "grp_start_text"))
+    
+    if hasattr(update, 'callback_query'):
+        query = update.callback_query 
+        if hasattr(query, 'id'):
+           context.bot.answer_callback_query(query.id)
 
 
 # for test purposes
@@ -233,6 +293,7 @@ def error_callback(update, context):
         pass
         # handle all other telegram related errors
 
+@metacallback(pattern=r'help_')
 def help_button(update, context):
     '''#TODO
 
@@ -252,47 +313,59 @@ def help_button(update, context):
     try:
         if mod_match:
             module = mod_match.group(1)
+            help_list = HELPABLE[module].get_help(update.effective_chat.id)
+            if isinstance(help_list, list):
+                help_text = help_list[0]
+                help_buttons = help_list[1:]
+            elif isinstance(help_list, str):
+                help_text = help_list
+                help_buttons = []
             text = (
                 "Here is the help for the *{}* module:\n".format(
                     HELPABLE[module].__mod_name__
                 )
-                + HELPABLE[module].get_help(update.effective_chat.id)
+                + help_text
+            )
+            help_buttons.append(
+                [InlineKeyboardButton(text="Back", callback_data="help_back"),
+                InlineKeyboardButton(text='Support', url='https://t.me/MetaButler')]
             )
             query.message.edit_text(
                 text=text,
                 parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton(text="Back", callback_data="help_back")]]
-                ),
+                reply_markup=InlineKeyboardMarkup(help_buttons),
             )
 
         elif prev_match:
             curr_page = int(prev_match.group(1))
+            kb = paginate_modules(curr_page - 1, HELPABLE, "help")
+            kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
+            InlineKeyboardButton(text='Back', callback_data='start_back'), InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
             query.message.edit_text(
-                text=mb(chat.id, "pm_help_text"),
+                text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(curr_page - 1, HELPABLE, "help")
-                ),
+                reply_markup=InlineKeyboardMarkup(kb),
             )
 
         elif next_match:
             next_page = int(next_match.group(1))
+            kb = paginate_modules(next_page + 1, HELPABLE, "help")
+            kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
+            InlineKeyboardButton(text='Back', callback_data='start_back'), InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
             query.message.edit_text(
-                text=mb(chat.id, "pm_help_text"),
+                text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(next_page + 1, HELPABLE, "help")
-                ),
+                reply_markup=InlineKeyboardMarkup(kb),
             )
 
         elif back_match:
+            kb = paginate_modules(0, HELPABLE, "help")
+            kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
+            InlineKeyboardButton(text='Back', callback_data='start_back'), InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
             query.message.edit_text(
-                text=mb(chat.id, "pm_help_text"),
+                text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(0, HELPABLE, "help")
-                ),
+                reply_markup=InlineKeyboardMarkup(kb),
             )
 
         # ensure no spinny white circle
@@ -302,6 +375,7 @@ def help_button(update, context):
     except BadRequest:
         pass
 
+@metacmd(command='help')
 def get_help(update, context):
     '''#TODO
 
@@ -348,7 +422,8 @@ def get_help(update, context):
         )
 
     else:
-        send_help(chat.id, (mb(chat.id, "pm_help_text")))
+        send_help(chat.id, (gs(chat.id, "pm_help_text")))
+
 
 def send_settings(chat_id, user_id, user=False):
     '''#TODO
@@ -398,7 +473,7 @@ def send_settings(chat_id, user_id, user=False):
                 parse_mode=ParseMode.MARKDOWN,
             )
 
-
+@metacallback(pattern=r"stngs_")
 def settings_button(update: Update, context: CallbackContext):
     '''#TODO
 
@@ -490,6 +565,7 @@ def settings_button(update: Update, context: CallbackContext):
         else:
             log.exception("Exception in settings buttons. %s", str(query.data))
 
+@metacmd(command='settings')
 def get_settings(update: Update, context: CallbackContext):
     '''#TODO
 
@@ -527,6 +603,7 @@ def get_settings(update: Update, context: CallbackContext):
     else:
         send_settings(chat.id, user.id, True)
 
+@metacmd(command='donate')
 def donate(update: Update, context: CallbackContext):
     '''#TODO
 
@@ -537,6 +614,7 @@ def donate(update: Update, context: CallbackContext):
 
     update.effective_message.reply_text("I'm free for everyone! >_<")
 
+@metamsg((Filters.status_update.migrate))
 def migrate_chats(update: Update, context: CallbackContext):
     '''#TODO
 
@@ -564,34 +642,6 @@ def migrate_chats(update: Update, context: CallbackContext):
 
 
 def main():
-    '''#TODO'''
-
-    test_handler = CommandHandler("test", test, run_async=True)
-    start_handler = CommandHandler("start", start, pass_args=True, run_async=True)
-
-    help_handler = CommandHandler("help", get_help, run_async=True)
-    help_callback_handler = CallbackQueryHandler(
-        help_button, pattern=r"help_", run_async=True
-    )
-
-    settings_handler = CommandHandler("settings", get_settings, run_async=True)
-    settings_callback_handler = CallbackQueryHandler(
-        settings_button, pattern=r"stngs_", run_async=True
-    )
-
-    donate_handler = DisableAbleCommandHandler("donate", donate, run_async=True)
-    migrate_handler = MessageHandler(
-        Filters.status_update.migrate, migrate_chats, run_async=True
-    )
-
-    # dispatcher.add_handler(test_handler)
-    dispatcher.add_handler(start_handler)
-    dispatcher.add_handler(help_handler)
-    dispatcher.add_handler(settings_handler)
-    dispatcher.add_handler(help_callback_handler)
-    dispatcher.add_handler(settings_callback_handler)
-    dispatcher.add_handler(migrate_handler)
-    dispatcher.add_handler(donate_handler)
     dispatcher.add_error_handler(error_callback)
     # dispatcher.add_error_handler(error_handler)
 
@@ -605,18 +655,20 @@ def main():
             updater.bot.set_webhook(url=URL + TOKEN)
 
     else:
-        log.info("MetaButler Started, Using long polling.")
+        log.info("MetaButler started, Using long polling. | BOT: [@{dispatcher.bot.username}]")
+        MetaINIT.bot_id = dispatcher.bot.id
+        MetaINIT.bot_username = dispatcher.bot.username
+        MetaINIT.bot_name = dispatcher.bot.first_name
         updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
     if len(argv) not in (1, 3, 4):
         telethn.disconnect()
     else:
         telethn.run_until_disconnected()
     updater.idle()
-    _message_queue.stop()
 
 if __name__ == "__main__":
     kp.start()
-    log.info("[MetaButler] Successfully loaded modules: " + str(ALL_MODULES))
+    log.info("[META] Successfully loaded modules: " + str(ALL_MODULES))
     telethn.start(bot_token=TOKEN)
     main()
     idle()

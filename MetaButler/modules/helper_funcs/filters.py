@@ -1,15 +1,27 @@
 from telegram import Message
 from telegram.ext import MessageFilter
 
-from MetaButler import SUDO_USERS
+from MetaButler import SUPPORT_USERS, SUDO_USERS, DEV_USERS
+
 
 class CustomFilters(object):
+    class _Supporters(MessageFilter):
+        def filter(self, message: Message):
+            return bool(message.from_user and message.from_user.id in SUPPORT_USERS)
+
+    support_filter = _Supporters()
+
     class _Sudoers(MessageFilter):
         def filter(self, message: Message):
             return bool(message.from_user and message.from_user.id in SUDO_USERS)
 
     sudo_filter = _Sudoers()
 
+    class _Developers(MessageFilter):
+        def filter(self, message: Message):
+            return bool(message.from_user and message.from_user.id in DEV_USERS)
+
+    dev_filter = _Developers()
 
     class _MimeType(MessageFilter):
         def __init__(self, mimetype):

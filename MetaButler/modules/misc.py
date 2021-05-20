@@ -1,38 +1,45 @@
 import html
 import re, os
 import time
-from typing import Optional, List
-from datetime import datetime
-import wikipedia
-
+from typing import List
+import git
 import requests
-from telegram import Update, MessageEntity, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
+import wikipedia
+from io import BytesIO
+from telegram import Update, MessageEntity, ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, Filters, CallbackContext
 from telegram.utils.helpers import mention_html, escape_markdown
 from subprocess import Popen, PIPE
-
 from requests import get
-
 from MetaButler import (
     dispatcher,
     OWNER_ID,
     SUDO_USERS,
+    SUPPORT_USERS,
+    DEV_USERS,
     WHITELIST_USERS,
     INFOPIC,
     sw,
+    StartTime
 )
 from MetaButler.__main__ import STATS, USER_INFO, TOKEN
+from MetaButler.modules.sql import SESSION
 from MetaButler.modules.disable import DisableAbleCommandHandler
 from MetaButler.modules.helper_funcs.chat_status import user_admin, sudo_plus
 from MetaButler.modules.helper_funcs.extraction import extract_user
 import MetaButler.modules.sql.users_sql as sql
-from MetaButler.modules.language import mb
-from telegram import __version__
+from MetaButler.modules.language import gs
+from telegram import __version__ as ptbver, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import __version__ as pyrover
 from psutil import cpu_percent, virtual_memory, disk_usage, boot_time
 import datetime
 import platform
 from platform import python_version
+from spamprotection.sync import SPBClient
+from spamprotection.errors import HostDownError
+from MetaButler.modules.helper_funcs.decorators import metacmd
+client = SPBClient()
 
 MARKDOWN_HELP = f"""
 Markdown is a very powerful formatting tool supported by telegram. {dispatcher.bot.first_name} has some enhancements, to make sure that \
@@ -58,7 +65,7 @@ This will create two buttons on a single line, instead of one button per line.
 Keep in mind that your message <b>MUST</b> contain some text other than just a button!
 """
 
-
+@metacmd(command='id', pass_args=True)
 def get_id(update: Update, context: CallbackContext):
     bot, args = context.bot, context.args
     message = update.effective_message
@@ -100,7 +107,7 @@ def get_id(update: Update, context: CallbackContext):
                 f"This group's id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML
             )
 
-
+@metacmd(command='gifid')
 def gifid(update: Update, _):
     msg = update.effective_message
     if msg.reply_to_message and msg.reply_to_message.animation:
@@ -111,7 +118,7 @@ def gifid(update: Update, _):
     else:
         update.effective_message.reply_text("Please reply to a gif to get its ID.")
 
-
+@metacmd(command='info', pass_args=True)
 def info(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -141,7 +148,7 @@ def info(update: Update, context: CallbackContext):
         return
 
     text = (
-        f"<b>Characteristics:</b>\n"
+        f"<b>General:</b>\n"
         f"ID: <code>{user.id}</code>\n"
         f"First Name: {html.escape(user.first_name)}"
     )
@@ -157,11 +164,53 @@ def info(update: Update, context: CallbackContext):
     try:
         spamwtc = sw.get_ban(int(user.id))
         if spamwtc:
-            text += "\n\n<b>Banned in Spamwatch!</b>"
+            text += "<b>\n\nSpamWatch:\n</b>"
+            text += "<b>This person is banned in Spamwatch!</b>"
+            text += f"\nReason: <pre>{spamwtc.reason}</pre>"
+            text += "\nAppeal at @SpamWatchSupport"
         else:
-            pass
+            text += "<b>\n\nSpamWatch:</b>\n Not banned"
     except:
         pass  # don't crash if api is down somehow...
+
+    apst = requests.get(f'https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}')
+    api_status = apst.status_code
+    if (api_status == 200):
+        try:
+            status = client.raw_output(int(user.id))
+            ptid = status["results"]["private_telegram_id"]
+            op = status["results"]["attributes"]["is_operator"]
+            ag = status["results"]["attributes"]["is_agent"]
+            wl = status["results"]["attributes"]["is_whitelisted"]
+            ps = status["results"]["attributes"]["is_potential_spammer"]
+            sp = status["results"]["spam_prediction"]["spam_prediction"]
+            hamp = status["results"]["spam_prediction"]["ham_prediction"]
+            blc = status["results"]["attributes"]["is_blacklisted"]
+            if blc:
+                blres = status["results"]["attributes"]["blacklist_reason"]
+            else:
+                blres = None
+            text += "\n\n<b>SpamProtection:</b>"
+            text += f"<b>\nPrivate Telegram ID:</b> <code>{ptid}</code>\n"
+            if op:
+                text += f"<b>Operator:</b> <code>{op}</code>\n"
+            if ag:
+                text += f"<b>Agent:</b> <code>{ag}</code>\n"
+            if wl:
+                text += f"<b>Whitelisted:</b> <code>{wl}</code>\n"
+            text += f"<b>Spam Prediction:</b> <code>{sp}</code>\n"
+            text += f"<b>Ham Prediction:</b> <code>{hamp}</code>\n"
+            if ps:
+                text += f"<b>Potential Spammer:</b> <code>{ps}</code>\n"
+            if blc:
+                text += f"<b>Blacklisted:</b> <code>{blc}</code>\n"
+                text += f"<b>Blacklist Reason:</b> <code>{blres}</code>\n"
+        except HostDownError:
+            text += "\n\n<b>SpamProtection:</b>"
+            text += "\nCan't connect to Intellivoid SpamProtection API\n"
+    else:
+        text += "\n\n<b>SpamProtection:</b>"
+        text += f"\n<code>API RETURNED: {api_status}</code>\n"
 
     num_chats = sql.get_user_num_chats(user.id)
     text += f"\nChat count: <code>{num_chats}</code>"
@@ -179,29 +228,24 @@ def info(update: Update, context: CallbackContext):
     except BadRequest:
         pass
 
+
     if user.id == OWNER_ID:
-        text += f"\nOwner here!"
+        text += f"\nOwner Here"
+    elif user.id in DEV_USERS:
+        text += f"\nDev User"
     elif user.id in SUDO_USERS:
-        text += f"\nSUPPORT"
+        text += f"\nSudo User"
+    elif user.id in SUPPORT_USERS:
+        text += f"\nSupport User"
     elif user.id in WHITELIST_USERS:
-        text += f"\nWhitelisted AF!"
-
-    for mod in USER_INFO:
-        if mod.__mod_name__ == "Users":
-            continue
-
-        try:
-            mod_info = mod.__user_info__(user.id)
-        except TypeError:
-            mod_info = mod.__user_info__(user.id, chat.id)
-        if mod_info:
-            text += "\n" + mod_info
+        text += f"\nWhitelisted AF"
 
     if INFOPIC:
         try:
             profile = bot.get_user_profile_photos(user.id).photos[0][-1]
             _file = bot.get_file(profile["file_id"])
             _file.download(f"{user.id}.png")
+            #_file.seek(0)
 
             message.reply_photo(
                 photo=open(f"{user.id}.png", "rb"),
@@ -209,7 +253,6 @@ def info(update: Update, context: CallbackContext):
                 parse_mode=ParseMode.HTML,
             )
 
-            os.remove(f"{user.id}.png")
         # Incase user don't have profile pic, send normal text
         except IndexError:
             message.reply_text(
@@ -221,7 +264,7 @@ def info(update: Update, context: CallbackContext):
             text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
         )
 
-
+@metacmd(command='echo', pass_args=True, filters=Filters.chat_type.groups)
 @user_admin
 def echo(update: Update, _):
     args = update.effective_message.text.split(None, 1)
@@ -234,8 +277,8 @@ def echo(update: Update, _):
 
     message.delete()
 
-
-def github(update: Update, context: CallbackContext):
+@metacmd(command='git', pass_args=True, filters=Filters.chat_type.groups)
+def github(update: Update, _):
     message = update.effective_message
     text = message.text[len('/git '):]
     usr = get(f'https://api.github.com/users/{text}').json()
@@ -283,10 +326,10 @@ def github(update: Update, context: CallbackContext):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
-
+@metacmd(command='markdownhelp', filters=Filters.chat_type.private)
 def markdown_help(update: Update, _):
     chat = update.effective_chat
-    update.effective_message.reply_text((mb(chat.id, "markdown_help_text")), parse_mode=ParseMode.HTML)
+    update.effective_message.reply_text((gs(chat.id, "markdown_help_text")), parse_mode=ParseMode.HTML)
     update.effective_message.reply_text(
         "Try forwarding the following message to me, and you'll see!"
     )
@@ -296,25 +339,94 @@ def markdown_help(update: Update, _):
         "[button2](buttonurl://google.com:same)"
     )
 
+def get_readable_time(seconds: int) -> str:
+    count = 0
+    ping_time = ""
+    time_list = []
+    time_suffix_list = ["s", "m", "h", "days"]
 
+    while count < 4:
+        count += 1
+        if count < 3:
+            remainder, result = divmod(seconds, 60)
+        else:
+            remainder, result = divmod(seconds, 24)
+        if seconds == 0 and remainder == 0:
+            break
+        time_list.append(int(result))
+        seconds = int(remainder)
+
+    for x in range(len(time_list)):
+        time_list[x] = str(time_list[x]) + time_suffix_list[x]
+    if len(time_list) == 4:
+        ping_time += time_list.pop() + ", "
+
+    time_list.reverse()
+    ping_time += ":".join(time_list)
+
+    return ping_time
+
+stats_str = '''
+'''
+@metacmd(command='stats', can_disable=False)
 @sudo_plus
 def stats(update, context):
+    db_size = SESSION.execute("SELECT pg_size_pretty(pg_database_size(current_database()))").scalar_one_or_none()
+    uptime = datetime.datetime.fromtimestamp(boot_time()).strftime("%Y-%m-%d %H:%M:%S")
+    botuptime = get_readable_time((time.time() - StartTime))
+    status = "*════「 System statistics: 」════*\n\n"
+    status += "*• System Start time:* " + str(uptime) + "\n"
+    uname = platform.uname()
+    status += "*• System:* " + str(uname.system) + "\n"
+    status += "*• Node name:* " + escape_markdown(str(uname.node)) + "\n"
+    status += "*• Release:* " + escape_markdown(str(uname.release)) + "\n"
+    status += "*• Machine:* " + escape_markdown(str(uname.machine)) + "\n"
+
+    mem = virtual_memory()
+    cpu = cpu_percent()
+    disk = disk_usage("/")
+    status += "*• CPU:* " + str(cpu) + " %\n"
+    status += "*• RAM:* " + str(mem[2]) + " %\n"
+    status += "*• Storage:* " + str(disk[3]) + " %\n\n"
+    status += "*• Python version:* " + python_version() + "\n"
+    status += "*• python-telegram-bot:* " + str(ptbver) + "\n"
+    status += "*• Pyrogram:* " + str(pyrover) + "\n"
+    status += "*• Uptime:* " + str(botuptime) + "\n"
+    status += "*• Database size:* " + str(db_size) + "\n"
+    kb = [
+          [
+           InlineKeyboardButton('Channel', url='t.me/metabutlernews'),
+           InlineKeyboardButton('Support', url='t.me/MetaButler')
+          ]
+    ]
+
+    try:
+        update.effective_message.reply_text(status +
+            "\n*Bot statistics*:\n"
+            + "\n".join([mod.__stats__() for mod in STATS]) +
+            "\n\n[⍙ GitHub](https://github.com/destroyer19991/MetaButler)",
+        parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(kb), disable_web_page_preview=True)
+    except BaseException:
         update.effective_message.reply_text(
-            "\n*Current Stats*:\n" + "\n".join([mod.__stats__() for mod in STATS]),
-        parse_mode=ParseMode.MARKDOWN)
+        "\n*Bot statistics*:\n"
+        + "\n".join([mod.__stats__() for mod in STATS]) +
+        "\n\n⍙ [GitHub](https://github.com/destroyer19991/MetaButler)",
+        parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(kb), disable_web_page_preview=True)
 
+@metacmd(command='uptime')
+def uptime(update: Update, _):
+    msg = update.effective_message
+    start_time = time.time()
+    message = msg.reply_text("Pinging...")
+    end_time = time.time()
+    ping_time = round((end_time - start_time) * 1000, 3)
+    uptime = get_readable_time((time.time() - StartTime))
+    message.edit_text(
+        "*Ping*: `{} ms`\n"
+        "*Bot Uptime*: `{}`".format(ping_time, uptime), parse_mode=ParseMode.MARKDOWN
+    )
 
-def repo(update: Update):
-    message = update.effective_message
-    text = message.text[len('/repo '):]
-    usr = get(f'https://api.github.com/users/{text}/repos?per_page=40').json()
-    reply_text = "*Repo*\n"
-    for i in range(len(usr)):
-        reply_text += f"[{usr[i]['name']}]({usr[i]['html_url']})\n"
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
-
+@metacmd(command='wiki', pass_args=True)
 def wiki(update: Update, context: CallbackContext):
     bot = context.bot
     kueri = re.split(pattern="wiki", string=update.effective_message.text)
@@ -341,126 +453,9 @@ def wiki(update: Update, context: CallbackContext):
                 "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}"
                 .format(eet))
 
-def paste(update: Update, context:CallbackContext):
-    args = context.args    
-    chat = update.effective_chat  # type: Optional[Chat]
-    BURL = 'https://del.dog'
-    message = update.effective_message
-    if message.reply_to_message:
-        data = message.reply_to_message.text
-    elif len(args) >= 1:
-        data = message.text.split(None, 1)[1]
-    else:
-        message.reply_text(mb(chat.id, "misc_paste_invalid"))
-        return
-
-    r = requests.post(f'{BURL}/documents', data=data.encode('utf-8'))
-
-    if r.status_code == 404:
-        update.effective_message.reply_text(mb(chat.id, "misc_paste_404"))
-        r.raise_for_status()
-
-    res = r.json()
-
-    if r.status_code != 200:
-        update.effective_message.reply_text(res['message'])
-        r.raise_for_status()
-
-    key = res['key']
-    if res['isUrl']:
-        reply = mb(chat.id, "misc_paste_success").format(BURL, key, BURL, key)
-    else:
-        reply = f'{BURL}/{key}'
-    update.effective_message.reply_text(reply,
-                                        parse_mode=ParseMode.MARKDOWN,
-                                        disable_web_page_preview=True)
-
-
-def get_paste_content(update: Update, context: CallbackContext):
-    args = context.args
-    BURL = 'https://del.dog'
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    if len(args) >= 1:
-        key = args[0]
-    else:
-        message.reply_text(mb(chat.id, "misc_get_pasted_invalid"))
-        return
-
-    format_normal = f'{BURL}/'
-    format_view = f'{BURL}/v/'
-
-    if key.startswith(format_view):
-        key = key[len(format_view):]
-    elif key.startswith(format_normal):
-        key = key[len(format_normal):]
-
-    r = requests.get(f'{BURL}/raw/{key}')
-
-    if r.status_code != 200:
-        try:
-            res = r.json()
-            update.effective_message.reply_text(res['message'])
-        except Exception:
-            if r.status_code == 404:
-                update.effective_message.reply_text(
-                    mb(chat.id, "misc_paste_404"))
-            else:
-                update.effective_message.reply_text(
-                    mb(chat.id, "misc_get_pasted_unknown"))
-        r.raise_for_status()
-
-    update.effective_message.reply_text('```' + escape_markdown(r.text) +
-                                        '```',
-                                        parse_mode=ParseMode.MARKDOWN)
-
-
 def get_help(chat):
-    return mb(chat, "misc_help")
+    return gs(chat, "misc_help")
 
 
-
-ID_HANDLER = DisableAbleCommandHandler("id", get_id, pass_args=True, run_async=True)
-GITHUB_HANDLER = DisableAbleCommandHandler("git", github, admin_ok=True, run_async=True)
-GIFID_HANDLER = DisableAbleCommandHandler("gifid", gifid, run_async=True)
-INFO_HANDLER = DisableAbleCommandHandler("info", info, pass_args=True, run_async=True)
-ECHO_HANDLER = DisableAbleCommandHandler(
-    "echo", echo, filters=Filters.chat_type.groups, run_async=True
-)
-MD_HELP_HANDLER = CommandHandler(
-    "markdownhelp", markdown_help, filters=Filters.chat_type.private, run_async=True
-)
-STATS_HANDLER = CommandHandler("botstats", stats, run_async=True)
-REPO_HANDLER = DisableAbleCommandHandler("repo", repo, pass_args=True, admin_ok=True, run_async=True)
-WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki)
-PASTE_HANDLER = DisableAbleCommandHandler("paste", paste, pass_args=True, run_async=True)
-GET_PASTE_HANDLER = DisableAbleCommandHandler("getpaste", get_paste_content, pass_args=True, run_async=True)
-
-dispatcher.add_handler(ID_HANDLER)
-dispatcher.add_handler(GIFID_HANDLER)
-dispatcher.add_handler(INFO_HANDLER)
-dispatcher.add_handler(ECHO_HANDLER)
-dispatcher.add_handler(MD_HELP_HANDLER)
-dispatcher.add_handler(STATS_HANDLER)
-dispatcher.add_handler(GITHUB_HANDLER)
-dispatcher.add_handler(REPO_HANDLER)
-dispatcher.add_handler(WIKI_HANDLER)
-dispatcher.add_handler(PASTE_HANDLER)
-dispatcher.add_handler(GET_PASTE_HANDLER)
 
 __mod_name__ = "Misc"
-__command_list__ = ["id", "info", "echo"]
-__handlers__ = [
-    ID_HANDLER,
-    GIFID_HANDLER,
-    INFO_HANDLER,
-    ECHO_HANDLER,
-    MD_HELP_HANDLER,
-    STATS_HANDLER,
-    GITHUB_HANDLER,
-    REPO_HANDLER,
-    WIKI_HANDLER,
-    PASTE_HANDLER,
-    GET_PASTE_HANDLER,
-]

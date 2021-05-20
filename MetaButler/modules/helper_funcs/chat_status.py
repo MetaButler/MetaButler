@@ -2,7 +2,9 @@ from functools import wraps
 
 from MetaButler import (
     DEL_CMDS,
+    DEV_USERS,
     SUDO_USERS,
+    SUPPORT_USERS,
     WHITELIST_USERS,
     dispatcher,
 )
@@ -19,18 +21,26 @@ def is_whitelist_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bo
         user_id in user
         for user in [
             WHITELIST_USERS,
+            SUPPORT_USERS,
             SUDO_USERS,
+            DEV_USERS,
         ]
     )
 
+
+def is_support_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+    return user_id in SUPPORT_USERS or user_id in SUDO_USERS or user_id in DEV_USERS
+
+
 def is_sudo_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
-    return user_id in SUDO_USERS
+    return user_id in SUDO_USERS or user_id in DEV_USERS
 
 
 def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
     if (
         chat.type == "private"
         or user_id in SUDO_USERS
+        or user_id in DEV_USERS
         or chat.all_members_are_administrators
         or user_id in [777000, 1087968824]
     ):  # Count telegram and Group Anonymous as admin
@@ -71,6 +81,7 @@ def is_user_ban_protected(chat: Chat, user_id: int, member: ChatMember = None) -
     if (
         chat.type == "private"
         or user_id in SUDO_USERS
+        or user_id in DEV_USERS
         or user_id in WHITELIST_USERS
         or chat.all_members_are_administrators
         or user_id in [777000, 1087968824]
@@ -86,6 +97,30 @@ def is_user_ban_protected(chat: Chat, user_id: int, member: ChatMember = None) -
 def is_user_in_chat(chat: Chat, user_id: int) -> bool:
     member = chat.get_member(user_id)
     return member.status not in ("left", "kicked")
+
+
+def dev_plus(func):
+    @wraps(func)
+    def is_dev_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
+        user = update.effective_user
+
+        if user.id in DEV_USERS:
+            return func(update, context, *args, **kwargs)
+        elif not user:
+            pass
+        elif DEL_CMDS and " " not in update.effective_message.text:
+            try:
+                update.effective_message.delete()
+            except:
+                pass
+        else:
+            update.effective_message.reply_text(
+                "This is a developer restricted command."
+                " You do not have permissions to run this."
+            )
+
+    return is_dev_plus_func
 
 
 def sudo_plus(func):
@@ -112,6 +147,24 @@ def sudo_plus(func):
     return is_sudo_plus_func
 
 
+def support_plus(func):
+    @wraps(func)
+    def is_support_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
+        user = update.effective_user
+        chat = update.effective_chat
+
+        if user and is_support_plus(chat, user.id):
+            return func(update, context, *args, **kwargs)
+        elif DEL_CMDS and " " not in update.effective_message.text:
+            try:
+                update.effective_message.delete()
+            except:
+                pass
+
+    return is_support_plus_func
+
+
 def whitelist_plus(func):
     @wraps(func)
     def is_whitelist_plus_func(
@@ -125,7 +178,7 @@ def whitelist_plus(func):
             return func(update, context, *args, **kwargs)
         else:
             update.effective_message.reply_text(
-                f"You don't have access to use this.\nVisit @YorkTownEagleUnion"
+                f"You don't have access to use this.\nVisit @MetaButler"
             )
 
     return is_whitelist_plus_func

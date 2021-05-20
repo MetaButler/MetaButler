@@ -9,17 +9,15 @@ from telegram.error import BadRequest, Unauthorized
 from telegram.ext import (
     CallbackContext,
     CallbackQueryHandler,
-    CommandHandler,
     Filters,
-    MessageHandler,
-    run_async,
 )
 from telegram.utils.helpers import mention_html
+from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg, metacallback
 
 REPORT_GROUP = 12
 REPORT_IMMUNE_USERS = SUDO_USERS + WHITELIST_USERS
 
-
+@metacmd(command='reports')
 @user_admin
 def report_setting(update: Update, context: CallbackContext):
     bot, args = context.bot, context.args
@@ -66,6 +64,8 @@ def report_setting(update: Update, context: CallbackContext):
 
 @user_not_admin
 @loggable
+@metacmd(command='report', filters=Filters.chat_type.groups, group=REPORT_GROUP)
+@metamsg((Filters.regex(r"(?i)@admin(s)?")), group=REPORT_GROUP)
 def report(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -92,7 +92,7 @@ def report(update: Update, context: CallbackContext) -> str:
             return ""
 
         if reported_user.id in REPORT_IMMUNE_USERS:
-            message.reply_text("Uh? You reporting a Sudo?")
+            message.reply_text("Uh? You reporting a Friend of me?")
             return ""
 
         if chat.username and chat.type == Chat.SUPERGROUP:
@@ -221,7 +221,7 @@ def __user_settings__(user_id):
         text = "You will *not* receive reports from chats you're admin."
     return text
 
-
+@metacallback(pattern=r"report_")
 def buttons(update: Update, context: CallbackContext):
     bot = context.bot
     query = update.callback_query
@@ -265,31 +265,10 @@ def buttons(update: Update, context: CallbackContext):
             query.answer("🛑 Failed to delete message!")
 
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "reports_help")
+    return gs(chat, "reports_help")
 
-SETTING_HANDLER = CommandHandler("reports", report_setting, run_async=True)
-REPORT_HANDLER = CommandHandler(
-    "report", report, filters=Filters.chat_type.groups, run_async=True
-)
-ADMIN_REPORT_HANDLER = MessageHandler(
-    Filters.regex(r"(?i)@admin(s)?"), report, run_async=True
-)
-
-REPORT_BUTTON_USER_HANDLER = CallbackQueryHandler(
-    buttons, pattern=r"report_", run_async=True
-)
-dispatcher.add_handler(REPORT_BUTTON_USER_HANDLER)
-
-dispatcher.add_handler(SETTING_HANDLER)
-dispatcher.add_handler(REPORT_HANDLER, REPORT_GROUP)
-dispatcher.add_handler(ADMIN_REPORT_HANDLER, REPORT_GROUP)
 
 __mod_name__ = "Reporting"
-__handlers__ = [
-    (REPORT_HANDLER, REPORT_GROUP),
-    (ADMIN_REPORT_HANDLER, REPORT_GROUP),
-    (SETTING_HANDLER),
-]

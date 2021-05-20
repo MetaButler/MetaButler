@@ -6,7 +6,7 @@ import random
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackContext, CommandHandler
 
-from MetaButler import dispatcher, OWNER_ID, WHITELIST_USERS
+from MetaButler import dispatcher, DEV_USERS, OWNER_ID
 
 
 class ErrorsDict(dict):
@@ -77,7 +77,7 @@ def error_callback(update: Update, context: CallbackContext):
 
 
 def list_errors(update: Update, context: CallbackContext):
-    if update.effective_user.id not in WHITELIST_USERS:
+    if update.effective_user.id not in DEV_USERS:
         return
     e = dict(sorted(errors.items(), key=lambda item: item[1], reverse=True))
     msg = "<b>Errors List:</b>\n"

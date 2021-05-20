@@ -9,7 +9,9 @@ from telegram.utils.helpers import mention_html
 from MetaButler import (
     dispatcher,
     log,
+    DEV_USERS,
     SUDO_USERS,
+    SUPPORT_USERS,
     OWNER_ID,
     WHITELIST_USERS,
 )
@@ -27,10 +29,11 @@ from MetaButler.modules.helper_funcs.chat_status import (
 from MetaButler.modules.helper_funcs.extraction import extract_user_and_text
 from MetaButler.modules.helper_funcs.string_handling import extract_time
 from MetaButler.modules.log_channel import loggable, gloggable
-
+from MetaButler.modules.helper_funcs.decorators import metacmd
 
 @connection_status
 @bot_admin
+@metacmd(command='ban', pass_args=True)
 @can_restrict
 @user_admin
 @loggable
@@ -59,15 +62,21 @@ def ban(update, context):
         message.reply_text("Oh yeah, ban myself, noob!")
         return log_message
 
-    if is_user_ban_protected(chat, user_id, member):
+    if is_user_ban_protected(chat, user_id, member) and user not in DEV_USERS:
         if user_id == OWNER_ID:
             message.reply_text("I'd never ban my owner.")
+            return log_message
+        elif user_id in DEV_USERS:
+            message.reply_text("I can't act against our own.")
             return log_message
         elif user_id in SUDO_USERS:
             message.reply_text("My sudos are ban immune")
             return log_message
+        elif user_id in SUPPORT_USERS:
+            message.reply_text("My support users are ban immune")
+            return log_message
         elif user_id in WHITELIST_USERS:
-            message.reply_text("Not gonna BAN them!")
+            message.reply_text("WhiteListed users are ban immune!")
             return log_message
         else:
             message.reply_text("This user has immunity and cannot be banned.")
@@ -114,6 +123,7 @@ def ban(update, context):
 
 
 @connection_status
+@metacmd(command='tban', pass_args=True)
 @bot_admin
 @can_restrict
 @user_admin
@@ -207,6 +217,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
 
 
 @connection_status
+@metacmd(command='kick', pass_args=True)
 @bot_admin
 @can_restrict
 @user_admin
@@ -267,6 +278,7 @@ def kick(update: Update, context: CallbackContext) -> str:
 
 @bot_admin
 @can_restrict
+@metacmd(command='kickme', pass_args=True, filters=Filters.chat_type.groups)
 def kickme(update: Update, context: CallbackContext):
     user_id = update.effective_message.from_user.id
     if is_user_admin(update.effective_chat, user_id):
@@ -281,6 +293,7 @@ def kickme(update: Update, context: CallbackContext):
 
 
 @connection_status
+@metacmd(command='unban', pass_args=True)
 @bot_admin
 @can_restrict
 @user_admin
@@ -330,6 +343,7 @@ def unban(update: Update, context: CallbackContext) -> str:
 
 
 @connection_status
+@metacmd(command='selfunban', pass_args=True)
 @bot_admin
 @can_restrict
 @gloggable
@@ -372,40 +386,11 @@ def selfunban(context: CallbackContext, update: Update) -> str:
 
     return log
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "bans_help")
+    return gs(chat, "bans_help")
 
 
-BAN_HANDLER = CommandHandler("ban", ban, pass_args=True, run_async=True)
-TEMPBAN_HANDLER = CommandHandler(
-    ["tban", "tempban"], temp_ban, pass_args=True, run_async=True
-)
-PUNCH_HANDLER = CommandHandler(
-    ["punch", "kick", "gtfo"], kick, pass_args=True, run_async=True
-)
-UNBAN_HANDLER = CommandHandler("unban", unban, pass_args=True, run_async=True)
-ROAR_HANDLER = CommandHandler(
-    ["roar", "selfunban"], selfunban, pass_args=True, run_async=True
-)
-PUNCHME_HANDLER = DisableAbleCommandHandler(
-    ["punchme", "kickme"], kickme, filters=Filters.chat_type.groups, run_async=True
-)
-
-dispatcher.add_handler(BAN_HANDLER)
-dispatcher.add_handler(TEMPBAN_HANDLER)
-dispatcher.add_handler(PUNCH_HANDLER)
-dispatcher.add_handler(UNBAN_HANDLER)
-dispatcher.add_handler(ROAR_HANDLER)
-dispatcher.add_handler(PUNCHME_HANDLER)
 
 __mod_name__ = "Bans"
-__handlers__ = [
-    BAN_HANDLER,
-    TEMPBAN_HANDLER,
-    PUNCH_HANDLER,
-    UNBAN_HANDLER,
-    ROAR_HANDLER,
-    PUNCHME_HANDLER,
-]

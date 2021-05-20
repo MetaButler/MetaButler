@@ -3,9 +3,9 @@ import html
 from telegram import Message, Chat, ParseMode, MessageEntity
 from telegram import TelegramError, ChatPermissions
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, MessageHandler, Filters
+from telegram.ext import Filters
 from telegram.utils.helpers import mention_html
-
+from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
 from alphabet_detector import AlphabetDetector
 from MetaButler.modules.sql.approve_sql import is_approved
 import MetaButler.modules.sql.locks_sql as sql
@@ -129,7 +129,7 @@ def unrestr_members(
         except TelegramError:
             pass
 
-
+@metacmd(command='locktypes')
 def locktypes(update, context):
     update.effective_message.reply_text(
         "\n • ".join(
@@ -142,6 +142,7 @@ def locktypes(update, context):
 @user_admin
 @loggable
 @typing_action
+@metacmd(command='lock', pass_args=True)
 def lock(update, context) -> str:
     args = context.args
     chat = update.effective_chat
@@ -249,6 +250,7 @@ def lock(update, context) -> str:
 @user_admin
 @loggable
 @typing_action
+@metacmd(command='unlock', pass_args=True)
 def unlock(update, context) -> str:
     args = context.args
     chat = update.effective_chat
@@ -343,6 +345,7 @@ def unlock(update, context) -> str:
 
 
 @user_not_admin
+@metamsg((Filters.all & Filters.chat_type.groups), group=PERM_GROUP)
 def del_lockables(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
@@ -483,6 +486,7 @@ def build_lock_message(chat_id):
 
 @user_admin
 @typing_action
+@metacmd(command='locks')
 def list_locks(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user
@@ -546,29 +550,9 @@ def __chat_settings__(chat_id, user_id):
     return build_lock_message(chat_id)
 
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "locks_help")
+    return gs(chat, "locks_help")
 
 __mod_name__ = "Locks"
-
-LOCKTYPES_HANDLER = DisableAbleCommandHandler("locktypes", locktypes, run_async=True)
-LOCK_HANDLER = CommandHandler(
-    "lock", lock, pass_args=True, run_async=True
-)  # , filters=Filters.chat_type.groups)
-UNLOCK_HANDLER = CommandHandler(
-    "unlock", unlock, pass_args=True, run_async=True
-)  # , filters=Filters.chat_type.groups)
-LOCKED_HANDLER = CommandHandler(
-    "locks", list_locks, run_async=True
-)  # , filters=Filters.chat_type.groups)
-
-dispatcher.add_handler(LOCK_HANDLER)
-dispatcher.add_handler(UNLOCK_HANDLER)
-dispatcher.add_handler(LOCKTYPES_HANDLER)
-dispatcher.add_handler(LOCKED_HANDLER)
-
-dispatcher.add_handler(
-    MessageHandler(Filters.all & Filters.chat_type.groups, del_lockables), PERM_GROUP
-)

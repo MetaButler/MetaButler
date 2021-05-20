@@ -13,10 +13,12 @@ from telegram import (
     User,
 )
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, CommandHandler, Filters, run_async
+from telegram.ext import CallbackContext, Filters
 from telegram.utils.helpers import escape_markdown
+from MetaButler.modules.helper_funcs.decorators import metacmd
 
 
+@metacmd(command='rules', filters=Filters.chat_type.groups)
 def get_rules(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     send_rules(update, chat_id)
@@ -71,7 +73,7 @@ def send_rules(update, chat_id, from_pm=False):
             "This probably doesn't mean it's lawless though...!"
         )
 
-
+@metacmd(command='setrules', filters=Filters.chat_type.groups)
 @user_admin
 def set_rules(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
@@ -88,7 +90,7 @@ def set_rules(update: Update, context: CallbackContext):
         sql.set_rules(chat_id, markdown_rules)
         update.effective_message.reply_text("Successfully set rules for this group.")
 
-
+@metacmd(command='clearrules', filters=Filters.chat_type.groups)
 @user_admin
 def clear_rules(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
@@ -113,24 +115,10 @@ def __migrate__(old_chat_id, new_chat_id):
 def __chat_settings__(chat_id, user_id):
     return f"This chat has had it's rules set: `{bool(sql.get_rules(chat_id))}`"
 
-from MetaButler.modules.language import mb
+from MetaButler.modules.language import gs
 
 def get_help(chat):
-    return mb(chat, "rules_help")
+    return gs(chat, "rules_help")
 
 
 __mod_name__ = "Rules"
-
-GET_RULES_HANDLER = CommandHandler(
-    "rules", get_rules, filters=Filters.chat_type.groups, run_async=True
-)
-SET_RULES_HANDLER = CommandHandler(
-    "setrules", set_rules, filters=Filters.chat_type.groups, run_async=True
-)
-RESET_RULES_HANDLER = CommandHandler(
-    "clearrules", clear_rules, filters=Filters.chat_type.groups, run_async=True
-)
-
-dispatcher.add_handler(GET_RULES_HANDLER)
-dispatcher.add_handler(SET_RULES_HANDLER)
-dispatcher.add_handler(RESET_RULES_HANDLER)
