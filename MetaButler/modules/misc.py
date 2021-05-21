@@ -414,6 +414,7 @@ def stats(update, context):
         parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(kb), disable_web_page_preview=True)
 
 @metacmd(command='uptime')
+@dev_plus
 def uptime(update: Update, _):
     msg = update.effective_message
     start_time = time.time()

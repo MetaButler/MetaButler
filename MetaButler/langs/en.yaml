@@ -24,6 +24,7 @@ pm_help_text: |
 add_bot_to_group_btn: "Add MetaButler"
 support_chat_link_btn: "Support"
 updates_channel_link_btn: "Updates"
+src_btn: "Source"
 
 admin_help: |
    • `/admins`*:* list of admins in the chat
