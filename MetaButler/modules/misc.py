@@ -26,7 +26,7 @@ from MetaButler import (
 from MetaButler.__main__ import STATS, USER_INFO, TOKEN
 from MetaButler.modules.sql import SESSION
 from MetaButler.modules.disable import DisableAbleCommandHandler
-from MetaButler.modules.helper_funcs.chat_status import user_admin, sudo_plus
+from MetaButler.modules.helper_funcs.chat_status import user_admin, dev_plus
 from MetaButler.modules.helper_funcs.extraction import extract_user
 import MetaButler.modules.sql.users_sql as sql
 from MetaButler.modules.language import gs
@@ -369,7 +369,7 @@ def get_readable_time(seconds: int) -> str:
 stats_str = '''
 '''
 @metacmd(command='botstats', can_disable=False)
-@sudo_plus
+@dev_plus
 def stats(update, context):
     db_size = SESSION.execute("SELECT pg_size_pretty(pg_database_size(current_database()))").scalar_one_or_none()
     uptime = datetime.datetime.fromtimestamp(boot_time()).strftime("%Y-%m-%d %H:%M:%S")
