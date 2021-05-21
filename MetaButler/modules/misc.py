@@ -368,7 +368,7 @@ def get_readable_time(seconds: int) -> str:
 
 stats_str = '''
 '''
-@metacmd(command='stats', can_disable=False)
+@metacmd(command='botstats', can_disable=False)
 @sudo_plus
 def stats(update, context):
     db_size = SESSION.execute("SELECT pg_size_pretty(pg_database_size(current_database()))").scalar_one_or_none()
