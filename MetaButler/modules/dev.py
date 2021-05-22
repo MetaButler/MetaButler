@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 from time import sleep
-from MetaButler import dispatcher, telethn, OWNER_ID
+from MetaButler import dispatcher, telethn, OWNER_ID, DEV_USERS
 from MetaButler.modules.helper_funcs.chat_status import dev_plus
 from telegram import TelegramError, Update
 from telegram.ext import CallbackContext, CommandHandler
@@ -62,8 +62,7 @@ telethn.add_event_handler(inline_queries, events.InlineQuery())
 telethn.add_event_handler(callback_queries, events.CallbackQuery())
 
 
-@telethn.on(events.NewMessage(pattern=r"/getstats", from_users=OWNER_ID))
-@dev_plus
+@telethn.on(events.NewMessage(pattern=r"/getstats", from_users=DEV_USERS))
 async def getstats(event):
     await event.reply(
         f"**__META EVENT STATISTICS__**\n**Average messages:** {messages.average()}/s\n**Average Callback Queries:** {callback_queries.average()}/s\n**Average Inline Queries:** {inline_queries.average()}/s", parse_mode='md'
