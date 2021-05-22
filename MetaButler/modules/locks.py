@@ -138,11 +138,10 @@ def locktypes(update, context):
         )
     )
 
-
+@metacmd(command='lock', pass_args=True)
 @user_admin
 @loggable
 @typing_action
-@metacmd(command='lock', pass_args=True)
 def lock(update, context) -> str:
     args = context.args
     chat = update.effective_chat
@@ -246,11 +245,10 @@ def lock(update, context) -> str:
 
     return ""
 
-
+@metacmd(command='unlock', pass_args=True)
 @user_admin
 @loggable
 @typing_action
-@metacmd(command='unlock', pass_args=True)
 def unlock(update, context) -> str:
     args = context.args
     chat = update.effective_chat
@@ -344,8 +342,8 @@ def unlock(update, context) -> str:
     return ""
 
 
-@user_not_admin
 @metamsg((Filters.all & Filters.chat_type.groups), group=PERM_GROUP)
+@user_not_admin
 def del_lockables(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
@@ -483,10 +481,9 @@ def build_lock_message(chat_id):
         res += "\n • {}".format(x)
     return res
 
-
+@metacmd(command='locks')
 @user_admin
 @typing_action
-@metacmd(command='locks')
 def list_locks(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user
