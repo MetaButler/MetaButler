@@ -1061,13 +1061,13 @@ def unfban(update, context):
             "\n<b>Federation:</b> {}"
             "\n<b>Federation Admin:</b> {}"
             "\n<b>User:</b> {}"
-            "\n<b>Initiated From:</b> {}"
-            "\n<b>User ID:</b> <code>{}</code>".format(
+            "\n<b>User ID:</b> <code>{}</code>"
+            "\n<b>Initiated From:</b> {}".format(
                 info["fname"],
                 mention_html(user.id, user.first_name),
                 user_target,
-                message.chat.title,
                 fban_user_id,
+                message.chat.title,
             ),
             parse_mode="HTML",
         )
@@ -1081,13 +1081,13 @@ def unfban(update, context):
                 "\n<b>Federation:</b> {}"
                 "\n<b>Federation Admin:</b> {}"
                 "\n<b>User:</b> {}"
-                "\n<b>Initiated From:</b> {}"
-                "\n<b>User ID:</b> <code>{}</code>".format(
+                "\n<b>User ID:</b> <code>{}</code>"
+                "\n<b>Initiated From:</b> {}".format(
                     info["fname"],
                     mention_html(user.id, user.first_name),
                     user_target,
-                    message.chat.title,
                     fban_user_id,
+                    message.chat.title,
                 ),
                 parse_mode="HTML",
             )
