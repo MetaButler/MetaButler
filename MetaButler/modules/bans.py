@@ -14,6 +14,7 @@ from MetaButler import (
     SUPPORT_USERS,
     OWNER_ID,
     WHITELIST_USERS,
+    BAN_STICKER,
 )
 from MetaButler.modules.disable import DisableAbleCommandHandler
 from MetaButler.modules.helper_funcs.chat_status import (
@@ -94,7 +95,7 @@ def ban(update, context):
 
     try:
         chat.kick_member(user_id)
-        # context.bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
+        context.bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
         context.bot.sendMessage(
             chat.id,
             "{} was hit by Thunder Shock by {}in <b>{}</b>\n<b>Reason</b>: <code>{}</code>".format(
