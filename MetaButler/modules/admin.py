@@ -2,10 +2,10 @@ import html
 
 from telegram import ParseMode, Update
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, Filters
-from telegram.utils.helpers import mention_html, mention_markdown
+from telegram.ext import CallbackContext
+from telegram.utils.helpers import escape_markdown, mention_html
 
-from MetaButler import SUDO_USERS, dispatcher
+from MetaButler import SUDO_USERS
 from MetaButler.modules.helper_funcs.chat_status import (
     bot_admin,
     can_pin,
@@ -17,10 +17,6 @@ from MetaButler.modules.helper_funcs.chat_status import (
 
 from MetaButler.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from MetaButler.modules.log_channel import loggable
-from MetaButler.modules.helper_funcs.alternate import send_message
-from MetaButler import kp, get_entity
-from pyrogram import Client, filters
-from pyrogram.types import Chat, User
 from MetaButler.modules.language import gs
 from MetaButler.modules.helper_funcs.decorators import metacmd
 
@@ -342,58 +338,18 @@ def invite(update: Update, context: CallbackContext):
             "I can only give you invite links for supergroups and channels, sorry!"
         )
 
+@metacmd(command=["admin", "admins"])
+def adminlist(update, context):
+    administrators = update.effective_chat.get_administrators()
+    text = "Admins in *{}*:".format(update.effective_chat.title or "this chat")
+    for admin in administrators:
+        user = admin.user
+        name = "[{}](tg://user?id={})".format(user.first_name + (user.last_name or ""), user.id)
+        if user.username:
+            name = escape_markdown("@" + user.username)
+        text += "\n - {}".format(name)
 
-ZWS = "\u200B"
-
-
-def _generate_sexy(entity, ping):
-    text = entity.first_name
-    if entity.last_name:
-        text += f" {entity.last_name}"
-    sexy_text = (
-        "<code>[DELETED]</code>"
-        if entity.is_deleted
-        else html.escape(text or "Empty???")
-    )
-    if not entity.is_deleted:
-        if ping:
-            sexy_text = f'<a href="tg://user?id={entity.id}">{sexy_text}</a>'
-        elif entity.username:
-            sexy_text = f'<a href="https://t.me/{entity.username}">{sexy_text}</a>'
-        elif not ping:
-            sexy_text = sexy_text.replace("@", f"@{ZWS}")
-    if entity.is_bot:
-        sexy_text += " <code>[BOT]</code>"
-    if entity.is_verified:
-        sexy_text += " <code>[VERIFIED]</code>"
-    if entity.is_support:
-        sexy_text += " <code>[SUPPORT]</code>"
-    if entity.is_scam:
-        sexy_text += " <code>[SCAM]</code>"
-    return sexy_text
-
-
-@kp.on_message(filters.command(["admin", "admins"], prefixes=["/", "!"]))
-async def admins(client, message):
-    chat, entity_client = message.chat, client
-    command = message.command
-    command.pop(0)
-    if command:
-        chat = " ".join(command)
-        try:
-            chat = int(chat)
-        except ValueError:
-            pass
-        chat, entity_client = await get_entity(client, chat)
-    text_unping = text_ping = ""
-    async for i in entity_client.iter_chat_members(chat.id, filter="administrators"):
-        text_unping += f"\n[<code>{i.user.id}</code>] {_generate_sexy(i.user, False)}"
-        text_ping += f"\n[<code>{i.user.id}</code>] {_generate_sexy(i.user, True)}"
-        if i.title:
-            text_unping += f' // {html.escape(i.title.replace("@", "@" + ZWS))}'
-            text_ping += f" // {html.escape(i.title)}"
-    reply = await message.reply_text(text_unping, disable_web_page_preview=True)
-    await reply.edit_text(text_ping, disable_web_page_preview=True)
+    update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
 
 def get_help(chat):
     return gs(chat, "admin_help")
