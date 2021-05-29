@@ -12,6 +12,6 @@ env
 env/
 *.session-journal
 config.ini
-log.txt
+*.log
 shell_output.txt
 .vs
