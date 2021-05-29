@@ -11,7 +11,7 @@ future
 geopy
 git+https://github.com/python-telegram-bot/ptbcontrib.git
 gitpython
-gpytranslate
+google_trans_new
 hurry.filesize
 intellivoid-SPB
 markdown2
@@ -22,7 +22,6 @@ psutil
 psycopg2-binary
 pyYAML>=5.1.2
 pyrate-limiter
-pyrogram
 python-telegram-bot==13.5
 requests
 rich
