@@ -7,17 +7,17 @@ import telegram.ext as tg
 from telethon import TelegramClient
 from telethon.sessions import MemorySession
 from configparser import ConfigParser
-from rich.logging import RichHandler
 from ptbcontrib.postgres_persistence import PostgresPersistence
+from logging.config import fileConfig
 
 StartTime = time.time()
 
 # enable logging
-FORMAT = "[MetaButler] %(message)s"
-logging.basicConfig(handlers=[RichHandler()], level=logging.INFO, format=FORMAT, datefmt="[%X]")
-log = logging.getLogger("rich")
+fileConfig('logging.ini')
 
-log.info("[META] Meta is starting. | Licensed under GPLv3.")
+log = logging.getLogger('[MetaButler]')
+logging.getLogger('ptbcontrib.postgres_persistence.postgrespersistence').setLevel(logging.WARNING)
+log.info("[META] METABUTLER is starting.")
 
 # if version < 3.6, stop bot.
 if sys.version_info[0] < 3 or sys.version_info[1] < 7:
@@ -126,9 +126,12 @@ sw = MInit.init_sw()
 
 from MetaButler.modules.sql import SESSION
 
+
 updater = tg.Updater(TOKEN, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10}, persistence=PostgresPersistence(SESSION))
 telethn = TelegramClient(MemorySession(), APP_ID, API_HASH)
 dispatcher = updater.dispatcher
+
+
 
 # Load at end to ensure all prev variables have been set
 from MetaButler.modules.helper_funcs.handlers import CustomCommandHandler
