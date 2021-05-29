@@ -1,6 +1,6 @@
 import speedtest
 from MetaButler import SUDO_USERS, dispatcher
-from MetaButler.modules.helper_funcs.chat_status import sudo_plus
+from MetaButler.modules.helper_funcs.chat_status import dev_plus
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
 from telegram.ext import CallbackContext
 from MetaButler.modules.helper_funcs.decorators import metacmd, metacallback
@@ -10,8 +10,8 @@ def convert(speed):
     return round(int(speed) / 1048576, 2)
 
 
-@sudo_plus
 @metacmd(command='speedtest')
+@dev_plus
 def speedtestxyz(update: Update, context: CallbackContext):
     buttons = [
         [
