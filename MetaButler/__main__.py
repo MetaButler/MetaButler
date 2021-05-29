@@ -7,7 +7,6 @@ import importlib
 import re
 from typing import Optional
 from sys import argv
-from pyrogram import idle
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import (TelegramError, Unauthorized, BadRequest,
                             TimedOut, ChatMigrated, NetworkError)
@@ -28,7 +27,6 @@ from MetaButler import (
     URL,
     log,
     telethn,
-    kp,
     MetaINIT
 )
 
@@ -667,8 +665,6 @@ def main():
     updater.idle()
 
 if __name__ == "__main__":
-    kp.start()
     log.info("[META] Successfully loaded modules: " + str(ALL_MODULES))
     telethn.start(bot_token=TOKEN)
     main()
-    idle()
