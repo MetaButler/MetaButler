@@ -2312,13 +2312,13 @@ def __user_info__(user_id, chat_id):
 
         if int(info["owner"]) == user_id:
             text = (
-                "This user is the owner of the current Federation: <b>{}</b>.".format(
+                "Owner of Fed: <b>{}</b>.".format(
                     infoname
                 )
             )
         elif is_user_fed_admin(fed_id, user_id):
             text = (
-                "This user is the admin of the current Federation: <b>{}</b>.".format(
+                "Admin of Fed: <b>{}</b>.".format(
                     infoname
                 )
             )
