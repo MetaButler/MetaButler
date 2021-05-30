@@ -229,7 +229,7 @@ def info(update: Update, context: CallbackContext):
 
 
     if user.id == OWNER_ID:
-        text += f"\nOwner Here"
+        text += f"\nThis Person is my Owner"
     elif user.id in DEV_USERS:
         text += f"\nDev User"
     elif user.id in SUDO_USERS:
