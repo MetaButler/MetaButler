@@ -327,6 +327,7 @@ misc_help: |
       • /tr (language code) as reply to a long message.
       • /getid : get IDs of chat, user and chat message.
       • /spbinfo : get info about a user from @Intellivoid's SpamProtection API
+      • /swinfo : show spamwatch info along with fedinfo of a user
       • /weather <city name>: Get weather info from openweather.
 
 muting_help: |
