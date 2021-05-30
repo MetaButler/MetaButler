@@ -160,56 +160,56 @@ def info(update: Update, context: CallbackContext):
 
     text += f"\nPermanent user link: {mention_html(user.id, 'link')}"
 
-    try:
-        spamwtc = sw.get_ban(int(user.id))
-        if spamwtc:
-            text += "<b>\n\nSpamWatch:\n</b>"
-            text += "<b>This person is banned in Spamwatch!</b>"
-            text += f"\nReason: <pre>{spamwtc.reason}</pre>"
-            text += "\nAppeal at @SpamWatchSupport"
-        else:
-            text += "<b>\n\nSpamWatch:</b>\n Not banned"
-    except:
-        pass  # don't crash if api is down somehow...
+    #try:
+    #    spamwtc = sw.get_ban(int(user.id))
+    #    if spamwtc:
+    #        text += "<b>\n\nSpamWatch:\n</b>"
+    #        text += "<b>This person is banned in Spamwatch!</b>"
+    #        text += f"\nReason: <pre>{spamwtc.reason}</pre>"
+    #        text += "\nAppeal at @SpamWatchSupport"
+    #    else:
+    #        text += "<b>\n\nSpamWatch:</b>\n Not banned"
+    #except:
+    #    pass  # don't crash if api is down somehow...
 
-    apst = requests.get(f'https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}')
-    api_status = apst.status_code
-    if (api_status == 200):
-        try:
-            status = client.raw_output(int(user.id))
-            ptid = status["results"]["private_telegram_id"]
-            op = status["results"]["attributes"]["is_operator"]
-            ag = status["results"]["attributes"]["is_agent"]
-            wl = status["results"]["attributes"]["is_whitelisted"]
-            ps = status["results"]["attributes"]["is_potential_spammer"]
-            sp = status["results"]["spam_prediction"]["spam_prediction"]
-            hamp = status["results"]["spam_prediction"]["ham_prediction"]
-            blc = status["results"]["attributes"]["is_blacklisted"]
-            if blc:
-                blres = status["results"]["attributes"]["blacklist_reason"]
-            else:
-                blres = None
-            text += "\n\n<b>SpamProtection:</b>"
-            text += f"<b>\nPrivate Telegram ID:</b> <code>{ptid}</code>\n"
-            if op:
-                text += f"<b>Operator:</b> <code>{op}</code>\n"
-            if ag:
-                text += f"<b>Agent:</b> <code>{ag}</code>\n"
-            if wl:
-                text += f"<b>Whitelisted:</b> <code>{wl}</code>\n"
-            text += f"<b>Spam Prediction:</b> <code>{sp}</code>\n"
-            text += f"<b>Ham Prediction:</b> <code>{hamp}</code>\n"
-            if ps:
-                text += f"<b>Potential Spammer:</b> <code>{ps}</code>\n"
-            if blc:
-                text += f"<b>Blacklisted:</b> <code>{blc}</code>\n"
-                text += f"<b>Blacklist Reason:</b> <code>{blres}</code>\n"
-        except HostDownError:
-            text += "\n\n<b>SpamProtection:</b>"
-            text += "\nCan't connect to Intellivoid SpamProtection API\n"
-    else:
-        text += "\n\n<b>SpamProtection:</b>"
-        text += f"\n<code>API RETURNED: {api_status}</code>\n"
+    #apst = requests.get(f'https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}')
+    #api_status = apst.status_code
+    #if (api_status == 200):
+    #    try:
+    #        status = client.raw_output(int(user.id))
+    #        ptid = status["results"]["private_telegram_id"]
+    #        op = status["results"]["attributes"]["is_operator"]
+    #        ag = status["results"]["attributes"]["is_agent"]
+    #        wl = status["results"]["attributes"]["is_whitelisted"]
+    #        ps = status["results"]["attributes"]["is_potential_spammer"]
+    #        sp = status["results"]["spam_prediction"]["spam_prediction"]
+    #        hamp = status["results"]["spam_prediction"]["ham_prediction"]
+    #        blc = status["results"]["attributes"]["is_blacklisted"]
+    #        if blc:
+    #            blres = status["results"]["attributes"]["blacklist_reason"]
+    #        else:
+    #            blres = None
+    #        text += "\n\n<b>SpamProtection:</b>"
+    #        text += f"<b>\nPrivate Telegram ID:</b> <code>{ptid}</code>\n"
+    #        if op:
+    #            text += f"<b>Operator:</b> <code>{op}</code>\n"
+    #        if ag:
+    #            text += f"<b>Agent:</b> <code>{ag}</code>\n"
+    #        if wl:
+    #            text += f"<b>Whitelisted:</b> <code>{wl}</code>\n"
+    #        text += f"<b>Spam Prediction:</b> <code>{sp}</code>\n"
+    #        text += f"<b>Ham Prediction:</b> <code>{hamp}</code>\n"
+    #        if ps:
+    #            text += f"<b>Potential Spammer:</b> <code>{ps}</code>\n"
+    #        if blc:
+    #            text += f"<b>Blacklisted:</b> <code>{blc}</code>\n"
+    #            text += f"<b>Blacklist Reason:</b> <code>{blres}</code>\n"
+    #    except HostDownError:
+    #        text += "\n\n<b>SpamProtection:</b>"
+    #        text += "\nCan't connect to Intellivoid SpamProtection API\n"
+    #else:
+    #    text += "\n\n<b>SpamProtection:</b>"
+    #    text += f"\n<code>API RETURNED: {api_status}</code>\n"
 
     num_chats = sql.get_user_num_chats(user.id)
     text += f"\nChat count: <code>{num_chats}</code>"
@@ -223,7 +223,7 @@ def info(update: Update, context: CallbackContext):
             result = result.json()["result"]
             if "custom_title" in result.keys():
                 custom_title = result["custom_title"]
-                text += f"\nTitle: <b>{custom_title}</b>"
+                text += f"\nAdmin Title: <b>{custom_title}</b>"
     except BadRequest:
         pass
 
