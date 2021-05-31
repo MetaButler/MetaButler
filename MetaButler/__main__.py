@@ -157,7 +157,7 @@ def start(update: Update, context: CallbackContext):
                             ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "src_btn"),
-                                url="https://github.com/destroyer19991/MetaButler",
+                                url="https://github.com/DESTROYER-32/MetaButler",
                             ),
                             
                         ],
@@ -226,7 +226,7 @@ def start(update: Update, context: CallbackContext):
                             ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "src_btn"),
-                                url="https://github.com/destroyer19991/MetaButler",
+                                url="https://github.com/DESTROYER-32/MetaButler",
                             ),
                             
                         ],

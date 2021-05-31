@@ -242,7 +242,7 @@ def about(query: str, update: Update, context: CallbackContext) -> None:
             [
                 InlineKeyboardButton(
                     text="GitHub",
-                    url="https://www.github.com/destroyer19991/MetaButler",
+                    url="https://www.github.com/DESTROYER-32/MetaButler",
                 ),
             ],
         ])
