@@ -4,7 +4,7 @@
 '''
 
 import importlib
-import re
+import re, ast
 from typing import Optional
 from sys import argv
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
@@ -116,7 +116,7 @@ def test(update: Update, context: CallbackContext):
         context: CallbackContext -
     '''
 
-    # pprint(eval(str(update)))
+    # pprint(ast.literal_eval(str(update)))
     # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
     update.effective_message.reply_text("This person edited a message")
     print(update.effective_message)
