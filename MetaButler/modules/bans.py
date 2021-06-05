@@ -260,7 +260,7 @@ def kick(update: Update, context: CallbackContext) -> str:
         # bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
         bot.sendMessage(
             chat.id,
-            f"{mention_html(member.user.id, member.user.first_name)} was kicked by {mention_html(user.id, uswe.first_name)} in {message.chat.title}\n<b>Reason</b>: <code>{reason}</code>",
+            f"{mention_html(member.user.id, member.user.first_name)} was kicked by {mention_html(user.id, user.first_name)} in {message.chat.title}\n<b>Reason</b>: <code>{reason}</code>",
             parse_mode=ParseMode.HTML,
         )
         log = (
