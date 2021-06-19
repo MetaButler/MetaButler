@@ -98,7 +98,7 @@ def ban(update, context):
         context.bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
         context.bot.sendMessage(
             chat.id,
-            "{} was hit by Thunder Shock by {}in <b>{}</b>\n<b>Reason</b>: <code>{}</code>".format(
+            "{} was hit by Thunder Shock by {} in <b>{}</b>\n<b>Reason</b>: <code>{}</code>".format(
                 mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name), message.chat.title, reason
             ),
             parse_mode=ParseMode.HTML,
