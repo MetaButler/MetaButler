@@ -22,6 +22,7 @@ psutil
 psycopg2-binary
 pyYAML>=5.1.2
 pyrate-limiter
+python-rapidjson
 python-telegram-bot==13.5
 requests
 spamwatch
