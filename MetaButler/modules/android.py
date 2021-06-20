@@ -214,39 +214,30 @@ async def magisk(event):
     if event.sender_id is None:
         return
 
-    chat_id = event.chat_id
+    magisk_dict = {
+        "Stable":
+        "https://raw.githubusercontent.com/topjohnwu/magisk-files/master/stable.json",
+        "Beta":
+        "https://raw.githubusercontent.com/topjohnwu/magisk-files/master/beta.json",
+        "Canary":
+        "https://raw.githubusercontent.com/topjohnwu/magisk-files/master/canary.json",
+    }
 
-    url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
-    releases = '**Latest Magisk Releases:**\n'
-    variant = ['master/stable', 'master/beta', 'canary/canary']
-    for variants in variant:
-        fetch = get(url + variants + '.json')
+    releases = "**Latest Magisk Releases:**\n"
+
+    for name, release_url in magisk_dict.items():
+        try:
+            fetch = get(release_url, timeout=5)
+        except Timeout:
+            await event.reply(
+                "Haruka Aya have been trying to connect to Github User Content, It seem like Github User Content is down"
+            )
+            return
+
         data = json.loads(fetch.content)
-        if variants == "master/stable":
-            name = "**Stable**"
-            cc = 0
-            branch = "master"
-        elif variants == "master/beta":
-            name = "**Beta**"
-            cc = 0
-            branch = "master"
-        elif variants == "canary/canary":
-            name = "**Canary**"
-            cc = 1
-            branch = "canary"
-
-        if variants == "canary/canary":
-            releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({url}{branch}/{data["magisk"]["link"]}) | ' \
-                        f'[APK v{data["app"]["version"]}]({url}{branch}/{data["app"]["link"]}) | '
-        else:
-            releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
-                        f'[APK v{data["app"]["version"]}]({data["app"]["link"]}) | '
-        if cc == 1:
-            releases += f'[Uninstaller]({data["uninstaller"]["link"]}) | ' \
-                        f'[Changelog]({url}{branch}/notes.md)\n'
-        else:
-            releases += f'[Uninstaller]({data["uninstaller"]["link"]})\n'
-
+        releases += (
+            f'**{name}:** [APK {data["magisk"]["version"]}]({data["magisk"]["link"]}) | '
+            f'[Changelog]({data["magisk"]["note"]})\n')
     await event.reply(releases, link_preview=False)
 
 def get_help(chat):
