@@ -230,7 +230,7 @@ async def magisk(event):
             fetch = get(release_url, timeout=5)
         except Timeout:
             await event.reply(
-                "Haruka Aya have been trying to connect to Github User Content, It seem like Github User Content is down"
+                "MetaButler have been trying to connect to Github User Content, It seem like Github User Content is down"
             )
             return
 
