@@ -8,7 +8,7 @@ from MetaButler.modules.sql import afk_sql as sql
 from MetaButler.modules.users import get_user_id
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
 
-@metamsg(Filters.regex("(?i)brb"), friendly="afk", group=3)
+@metamsg(Filters.regex("(?i)^brb"), friendly="afk", group=3)
 @metacmd(command="afk", group=3)
 def afk(update: Update, context: CallbackContext):
     args = update.effective_message.text.split(None, 1)
