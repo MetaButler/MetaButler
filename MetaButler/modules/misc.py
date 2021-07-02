@@ -8,7 +8,7 @@ import wikipedia
 from io import BytesIO
 from telegram import Update, MessageEntity, ParseMode
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, Filters, CallbackContext
+from telegram.ext import Filters, CallbackContext
 from telegram.utils.helpers import mention_html, escape_markdown
 from subprocess import Popen, PIPE
 from requests import get
@@ -25,7 +25,6 @@ from MetaButler import (
 )
 from MetaButler.__main__ import STATS, USER_INFO, TOKEN
 from MetaButler.modules.sql import SESSION
-from MetaButler.modules.disable import DisableAbleCommandHandler
 from MetaButler.modules.helper_funcs.chat_status import user_admin, dev_plus
 from MetaButler.modules.helper_funcs.extraction import extract_user
 import MetaButler.modules.sql.users_sql as sql
@@ -35,10 +34,7 @@ from psutil import cpu_percent, virtual_memory, disk_usage, boot_time
 import datetime
 import platform
 from platform import python_version
-from spamprotection.sync import SPBClient
-from spamprotection.errors import HostDownError
-from MetaButler.modules.helper_funcs.decorators import metacmd
-client = SPBClient()
+from MetaButler.modules.helper_funcs.decorators import metacmd, metacallback
 
 MARKDOWN_HELP = f"""
 Markdown is a very powerful formatting tool supported by telegram. {dispatcher.bot.first_name} has some enhancements, to make sure that \
@@ -160,45 +156,6 @@ def swinfo(update: Update, context: CallbackContext):
             text += "<b>\nSpamWatch:</b> Not Banned"
     except:
         pass  # don't crash if api is down somehow...
-
-    apst = requests.get(f'https://api.intellivoid.net/spamprotection/v1/lookup?query={context.bot.username}')
-    api_status = apst.status_code
-    if (api_status == 200):
-        try:
-            status = client.raw_output(int(user.id))
-            ptid = status["results"]["private_telegram_id"]
-            op = status["results"]["attributes"]["is_operator"]
-            ag = status["results"]["attributes"]["is_agent"]
-            wl = status["results"]["attributes"]["is_whitelisted"]
-            ps = status["results"]["attributes"]["is_potential_spammer"]
-            sp = status["results"]["spam_prediction"]["spam_prediction"]
-            hamp = status["results"]["spam_prediction"]["ham_prediction"]
-            blc = status["results"]["attributes"]["is_blacklisted"]
-            if blc:
-                blres = status["results"]["attributes"]["blacklist_reason"]
-            else:
-                blres = None
-            text += "\n\n<b>SpamProtection:</b>"
-            text += f"<b>\nPrivate Telegram ID:</b> <code>{ptid}</code>\n"
-            if op:
-                text += f"<b>Operator:</b> <code>{op}</code>\n"
-            if ag:
-                text += f"<b>Agent:</b> <code>{ag}</code>\n"
-            if wl:
-                text += f"<b>Whitelisted:</b> <code>{wl}</code>\n"
-            text += f"<b>Spam Prediction:</b> <code>{sp}</code>\n"
-            text += f"<b>Ham Prediction:</b> <code>{hamp}</code>\n"
-            if ps:
-                text += f"<b>Potential Spammer:</b> <code>{ps}</code>\n"
-            if blc:
-                text += f"<b>Blacklisted:</b> <code>{blc}</code>\n"
-                text += f"<b>Blacklist Reason:</b> <code>{blres}</code>\n"
-        except HostDownError:
-            text += "\n\n<b>SpamProtection:</b>"
-            text += "\nCan't connect to Intellivoid SpamProtection API\n"
-    else:
-        text += "\n\n<b>SpamProtection:</b>"
-        text += f"\n<code>API RETURNED: {api_status}</code>\n"
 
     text += ""
     for mod in USER_INFO:
@@ -400,10 +357,7 @@ def get_readable_time(seconds: int) -> str:
 
     while count < 4:
         count += 1
-        if count < 3:
-            remainder, result = divmod(seconds, 60)
-        else:
-            remainder, result = divmod(seconds, 24)
+        remainder, result = divmod(seconds, 60) if count < 3 else divmod(seconds, 24)
         if seconds == 0 and remainder == 0:
             break
         time_list.append(int(result))
@@ -447,26 +401,37 @@ def stats(update, context):
     status += "*• Database size:* " + str(db_size) + "\n"
     kb = [
           [
-           InlineKeyboardButton('Channel', url='t.me/metabutlernews'),
-           InlineKeyboardButton('Support', url='t.me/MetaButler')
+            InlineKeyboardButton('Ping', callback_data='pingCB')
           ]
     ]
-
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    status += f"*• Commit*: `{sha[0:9]}`\n"
     try:
         update.effective_message.reply_text(status +
             "\n*Bot statistics*:\n"
             + "\n".join([mod.__stats__() for mod in STATS]) +
-            "\n\n[⍙ GitHub](https://github.com/DESTROYER-32/MetaButler)",
+            "\n\n[⍙ GitHub](https://github.com/DESTROYER-32/MetaButler)\n\n" +
+            "╘══「 by [DESTROYER-32](github.com/DESTROYER-32) 」\n",
         parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(kb), disable_web_page_preview=True)
     except BaseException:
         update.effective_message.reply_text(
-        "\n*Bot statistics*:\n"
-        + "\n".join([mod.__stats__() for mod in STATS]) +
-        "\n\n⍙ [GitHub](https://github.com/DESTROYER-32/MetaButler)",
-        parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(kb), disable_web_page_preview=True)
+            (
+                (
+                    (
+                        "\n*Bot statistics*:\n"
+                        + "\n".join(mod.__stats__() for mod in STATS)
+                    )
+                    + "\n\n⍙ [GitHub](https://github.com/DESTROYER-32/MetaButler)\n\n"
+                )
+                + "╘══「 by [DESTROYER-32](github.com/DESTROYER-32) 」\n"
+            ),
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=InlineKeyboardMarkup(kb),
+            disable_web_page_preview=True,
+        )
 
 @metacmd(command='uptime')
-@dev_plus
 def uptime(update: Update, _):
     msg = update.effective_message
     start_time = time.time()
@@ -478,6 +443,15 @@ def uptime(update: Update, _):
         "*Ping*: `{} ms`\n"
         "*Bot Uptime*: `{}`".format(ping_time, uptime), parse_mode=ParseMode.MARKDOWN
     )
+
+@metacallback(pattern=r'^pingCB')
+def pingCallback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    start_time = time.time()
+    requests.get('https://api.telegram.org')
+    end_time = time.time()
+    ping_time = round((end_time - start_time) * 1000, 3)
+    query.answer('Pong! {}ms'.format(ping_time))
 
 @metacmd(command='wiki', pass_args=True)
 def wiki(update: Update, context: CallbackContext):
