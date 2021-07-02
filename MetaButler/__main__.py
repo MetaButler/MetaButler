@@ -1,8 +1,3 @@
-'''#TODO
-
-2020-12-29
-'''
-
 import importlib
 import re, ast
 from typing import Optional
@@ -55,7 +50,7 @@ for module_name in ALL_MODULES:
     if not hasattr(imported_module, "__mod_name__"):
         imported_module.__mod_name__ = imported_module.__name__
 
-    if not imported_module.__mod_name__.lower() in IMPORTED:
+    if imported_module.__mod_name__.lower() not in IMPORTED:
         IMPORTED[imported_module.__mod_name__.lower()] = imported_module
     else:
         raise Exception("Can't have two modules with the same name! Please change one")
@@ -123,7 +118,7 @@ def test(update: Update, context: CallbackContext):
 
 @metacallback(pattern=r'start_back')
 @metacmd(command='start', pass_args=True)
-def start(update: Update, context: CallbackContext):
+def start(update: Update, context: CallbackContext):  # sourcery no-metrics
     '''#TODO
 
     Params:
@@ -192,6 +187,8 @@ def start(update: Update, context: CallbackContext):
                 send_help(update.effective_chat.id, (gs(chat.id, "pm_help_text")))
             elif args[0].lower() == "markdownhelp":
                 IMPORTED["extras"].markdown_help_sender(update)
+            elif args[0].lower() == "nations":
+                IMPORTED["nations"].send_nations(update)
             elif args[0].lower().startswith("stngs_"):
                 match = re.match("stngs_(.*)", args[0].lower())
                 chat = dispatcher.bot.getChat(match.group(1))
@@ -451,25 +448,24 @@ def send_settings(chat_id, user_id, user=False):
                 parse_mode=ParseMode.MARKDOWN,
             )
 
+    elif CHAT_SETTINGS:
+        chat_name = dispatcher.bot.getChat(chat_id).title
+        dispatcher.bot.send_message(
+            user_id,
+            text="Which module would you like to check {}'s settings for?".format(
+                chat_name
+            ),
+            reply_markup=InlineKeyboardMarkup(
+                paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id)
+            ),
+        )
     else:
-        if CHAT_SETTINGS:
-            chat_name = dispatcher.bot.getChat(chat_id).title
-            dispatcher.bot.send_message(
-                user_id,
-                text="Which module would you like to check {}'s settings for?".format(
-                    chat_name
-                ),
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id)
-                ),
-            )
-        else:
-            dispatcher.bot.send_message(
-                user_id,
-                "Seems like there aren't any chat settings available :'(\nSend this "
-                "in a group chat you're admin in to find its current settings!",
-                parse_mode=ParseMode.MARKDOWN,
-            )
+        dispatcher.bot.send_message(
+            user_id,
+            "Seems like there aren't any chat settings available :'(\nSend this "
+            "in a group chat you're admin in to find its current settings!",
+            parse_mode=ParseMode.MARKDOWN,
+        )
 
 @metacallback(pattern=r"stngs_")
 def settings_button(update: Update, context: CallbackContext):
@@ -554,14 +550,12 @@ def settings_button(update: Update, context: CallbackContext):
         bot.answer_callback_query(query.id)
         query.message.delete()
     except BadRequest as excp:
-        if excp.message == "Message is not modified":
-            pass
-        elif excp.message == "Query_id_invalid":
-            pass
-        elif excp.message == "Message can't be deleted":
-            pass
-        else:
-            log.exception("Exception in settings buttons. %s", str(query.data))
+        if excp.message not in [
+            'Message is not modified',
+            'Query_id_invalid',
+            "Message can't be deleted",
+        ]:
+            log.exception('Exception in settings buttons. %s', str(query.data))
 
 @metacmd(command='settings')
 def get_settings(update: Update, context: CallbackContext):
@@ -577,29 +571,28 @@ def get_settings(update: Update, context: CallbackContext):
     msg = update.effective_message  # type: Optional[Message]
 
     # ONLY send settings in PM
-    if chat.type != chat.PRIVATE:
-        if is_user_admin(chat, user.id):
-            text = "Click here to get this chat's settings, as well as yours."
-            msg.reply_text(
-                text,
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                text="Settings",
-                                url="t.me/{}?start=stngs_{}".format(
-                                    context.bot.username, chat.id
-                                ),
-                            )
-                        ]
-                    ]
-                ),
-            )
-        else:
-            text = "Click here to check your settings."
-
-    else:
+    if chat.type == chat.PRIVATE:
         send_settings(chat.id, user.id, True)
+
+    elif is_user_admin(chat, user.id):
+        text = "Click here to get this chat's settings, as well as yours."
+        msg.reply_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text="Settings",
+                            url="t.me/{}?start=stngs_{}".format(
+                                context.bot.username, chat.id
+                            ),
+                        )
+                    ]
+                ]
+            ),
+        )
+    else:
+        text = "Click here to check your settings."
 
 @metacmd(command='donate')
 def donate(update: Update, context: CallbackContext):
@@ -653,7 +646,7 @@ def main():
             updater.bot.set_webhook(url=URL + TOKEN)
 
     else:
-        log.info("MetaButler started, Using long polling. | BOT: [@{dispatcher.bot.username}]")
+        log.info(f"MetaButler started, Using long polling. | BOT: [@{dispatcher.bot.username}]")
         MetaINIT.bot_id = dispatcher.bot.id
         MetaINIT.bot_username = dispatcher.bot.username
         MetaINIT.bot_name = dispatcher.bot.first_name
