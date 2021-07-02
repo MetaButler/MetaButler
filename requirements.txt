@@ -11,9 +11,8 @@ future
 geopy
 git+https://github.com/python-telegram-bot/ptbcontrib.git#egg=ptbcontrib
 gitpython
-google_trans_new
+gpytranslate
 hurry.filesize
-intellivoid-SPB
 markdown2
 multicolorcaptcha
 nltk
