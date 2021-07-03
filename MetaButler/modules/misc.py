@@ -432,6 +432,7 @@ def stats(update, context):
         )
 
 @metacmd(command='uptime')
+@dev_plus
 def uptime(update: Update, _):
     msg = update.effective_message
     start_time = time.time()
