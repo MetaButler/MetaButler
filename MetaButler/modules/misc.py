@@ -1,7 +1,5 @@
 import html
-import re, os
 import time
-from typing import List
 import git
 import requests
 import wikipedia
@@ -444,6 +442,23 @@ def uptime(update: Update, _):
         "*Ping*: `{} ms`\n"
         "*Bot Uptime*: `{}`".format(ping_time, uptime), parse_mode=ParseMode.MARKDOWN
     )
+
+@metacmd(command='repo', pass_args=True, filters=Filters.chat_type.groups)
+def repo(update: Update, _):
+    update.effective_message.reply_text(
+        "Get Source Here",
+            reply_markup=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text="GitHub",
+                            url="https://github.com/DESTROYER-32/MetaButler", disable_web_page_preview=True,
+                        )
+                    ]
+                ]
+            ),
+        )
+
 
 @metacallback(pattern=r'^pingCB')
 def pingCallback(update: Update, context: CallbackContext):
