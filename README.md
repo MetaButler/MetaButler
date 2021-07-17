@@ -51,7 +51,7 @@ In the case of postgres, this is how you would set up a the database on a debian
 
 - install postgresql:
 
-`sudo apt-get update & & sudo apt-get install postgresql`
+`sudo apt-get update && sudo apt-get install postgresql`
 
 - change to the postgres user:
 
