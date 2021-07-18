@@ -1,6 +1,4 @@
 import requests
-from MetaButler import dispatcher
-from MetaButler.modules.disable import DisableAbleCommandHandler
 from telegram import ParseMode, Update
 from telegram.ext import CallbackContext
 from MetaButler.modules.helper_funcs.decorators import metacmd
