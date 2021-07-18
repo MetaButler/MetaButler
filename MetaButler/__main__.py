@@ -1,5 +1,5 @@
 import importlib
-import re, ast
+import re
 from typing import Optional
 from sys import argv
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
