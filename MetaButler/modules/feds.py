@@ -1621,13 +1621,13 @@ def fed_chats(update, context):
                 )
             )
             continue
-        text += " • {} (`{}`)\n".format(str(chat_name), int(chats))
+        text += f" • {str(chat_name)} (<code>{int(chats)}</code>)\n"
 
     try:
         update.effective_message.reply_text(
-            text, parse_mode=ParseMode.MARKDOWN_V2, allow_sending_without_reply=True)
+            text, parse_mode=ParseMode.HTML, allow_sending_without_reply=True)
     except BadRequest as err:
-        print(err)
+        log.info(f'{err} in feds.py while doing /fedchats for fed ID {fed_id}')
         cleanr = re.compile("<.*?>")
         cleantext = re.sub(cleanr, "", text)
         with BytesIO(str.encode(cleantext)) as output:
