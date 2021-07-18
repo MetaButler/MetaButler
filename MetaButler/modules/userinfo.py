@@ -1,12 +1,11 @@
 import html
-from typing import List
 
 from telegram import Update, ParseMode, MAX_MESSAGE_LENGTH
 from telegram.ext.dispatcher import CallbackContext
 from telegram.utils.helpers import escape_markdown
 
 import MetaButler.modules.sql.userinfo_sql as sql
-from MetaButler import dispatcher, SUDO_USERS, DEV_USERS
+from MetaButler import SUDO_USERS, DEV_USERS
 from MetaButler.modules.helper_funcs.extraction import extract_user
 from MetaButler.modules.helper_funcs.decorators import metacmd
 
