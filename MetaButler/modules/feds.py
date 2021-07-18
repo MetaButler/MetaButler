@@ -539,9 +539,18 @@ def fed_admin(update, context):
     else:
         text += "\n🔱 Admin:\n"
         for x in members:
-            user = context.bot.get_chat(x)
-            name = user.first_name or 'Deleted'
-            text += " • {}\n".format(mention_html(user.id, user.first_name))
+            if x is not None:
+                user = context.bot.get_chat(x)
+                # Telegram name cannot be ''. Deleted Accounts always have their first name as ''.
+                # Fix by Deadpool [@CoolDude69_420 on Telegram], don't remove these two comments if you respect my work :)
+                user_full_name = user.full_name or f'Meta{user.id}Deleted'
+                if user_full_name == f'Meta{user.id}Deleted':
+                    res = sql.user_demote_fed(fed_id, user.id)
+                    log.info(f'Removed {user.id} from fed-id {fed_id} administration, possible deleted account') if res else log.info(f'Failed to remove {user.id} from {fed_id} administration, possible deleted account')
+                else:
+                    text += " • {}\n".format(mention_html(user.id, user.full_name))
+            elif x is None:
+                sql.user_demote_fed(fed_id, None)
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
 
