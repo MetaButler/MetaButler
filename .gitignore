@@ -15,3 +15,5 @@ config.ini
 *.log
 shell_output.txt
 .vs
+Pipfile
+Pipfile.lock
