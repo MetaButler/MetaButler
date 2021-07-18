@@ -1,14 +1,11 @@
 import html
-from typing import List
 
 from telegram import Update, ParseMode
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, Filters, CallbackContext
+from telegram.ext import Filters, CallbackContext
 from telegram.utils.helpers import mention_html
 
 from MetaButler import (
-    dispatcher,
-    log,
     DEV_USERS,
     SUDO_USERS,
     SUPPORT_USERS,
@@ -16,7 +13,6 @@ from MetaButler import (
     WHITELIST_USERS,
     BAN_STICKER,
 )
-from MetaButler.modules.disable import DisableAbleCommandHandler
 from MetaButler.modules.helper_funcs.chat_status import (
     bot_admin,
     can_restrict,
@@ -25,7 +21,6 @@ from MetaButler.modules.helper_funcs.chat_status import (
     is_user_ban_protected,
     is_user_in_chat,
     user_admin,
-    user_can_ban,
 )
 from MetaButler.modules.helper_funcs.extraction import extract_user_and_text
 from MetaButler.modules.helper_funcs.string_handling import extract_time
@@ -54,12 +49,11 @@ def ban(update, context):
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:
-        if excp.message == "User not found":
-            message.reply_text("Can't seem to find this person.")
-            return log_message
-        else:
+        if excp.message != "User not found":
             raise
 
+        message.reply_text("Can't seem to find this person.")
+        return log_message
     if user_id == context.bot.id:
         message.reply_text("Oh yeah, ban myself, noob!")
         return log_message
@@ -67,23 +61,17 @@ def ban(update, context):
     if is_user_ban_protected(chat, user_id, member) and user not in DEV_USERS:
         if user_id == OWNER_ID:
             message.reply_text("I'd never ban my owner.")
-            return log_message
         elif user_id in DEV_USERS:
             message.reply_text("I can't act against our own.")
-            return log_message
         elif user_id in SUDO_USERS:
             message.reply_text("My sudos are ban immune")
-            return log_message
         elif user_id in SUPPORT_USERS:
             message.reply_text("My support users are ban immune")
-            return log_message
         elif user_id in WHITELIST_USERS:
             message.reply_text("WhiteListed users are ban immune!")
-            return log_message
         else:
             message.reply_text("This user has immunity and cannot be banned.")
-            return log_message
-
+        return log_message
     log = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#BANNED\n"
@@ -145,12 +133,10 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:
-        if excp.message == "User not found":
-            message.reply_text("I can't seem to find this user.")
-            return log_message
-        else:
+        if excp.message != 'User not found':
             raise
-
+        message.reply_text("I can't seem to find this user.")
+        return log_message
     if user_id == bot.id:
         message.reply_text("I'm not gonna BAN myself, are you crazy?")
         return log_message
@@ -166,10 +152,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
     split_reason = reason.split(None, 1)
 
     time_val = split_reason[0].lower()
-    if len(split_reason) > 1:
-        reason = split_reason[1]
-    else:
-        reason = ""
+    reason = split_reason[1] if len(split_reason) > 1 else ""
 
     bantime = extract_time(message, time_val)
 
@@ -237,12 +220,10 @@ def kick(update: Update, context: CallbackContext) -> str:
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:
-        if excp.message == "User not found":
-            message.reply_text("I can't seem to find this user.")
-            return log_message
-        else:
+        if excp.message != 'User not found':
             raise
-
+        message.reply_text("I can't seem to find this user.")
+        return log_message
     if user_id == bot.id:
         message.reply_text("Yeahhh I'm not gonna do that.")
         return log_message
@@ -313,12 +294,10 @@ def unban(update: Update, context: CallbackContext) -> str:
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:
-        if excp.message == "User not found":
-            message.reply_text("I can't seem to find this user.")
-            return log_message
-        else:
+        if excp.message != 'User not found':
             raise
-
+        message.reply_text("I can't seem to find this user.")
+        return log_message
     if user_id == bot.id:
         message.reply_text("How would I unban myself if I wasn't here...?")
         return log_message
