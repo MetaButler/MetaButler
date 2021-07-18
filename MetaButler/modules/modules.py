@@ -14,7 +14,7 @@ from MetaButler.__main__ import (
 )
 from MetaButler.modules.helper_funcs.chat_status import dev_plus, sudo_plus
 from telegram import ParseMode, Update
-from telegram.ext import CallbackContext, CommandHandler
+from telegram.ext import CallbackContext
 from MetaButler.modules.helper_funcs.decorators import metacmd
 
 
@@ -36,7 +36,7 @@ def load(update: Update, context: CallbackContext):
     if not hasattr(imported_module, "__mod_name__"):
         imported_module.__mod_name__ = imported_module.__name__
 
-    if not imported_module.__mod_name__.lower() in IMPORTED:
+    if imported_module.__mod_name__.lower() not in IMPORTED:
         IMPORTED[imported_module.__mod_name__.lower()] = imported_module
     else:
         load_messasge.edit_text("Module already loaded.")
