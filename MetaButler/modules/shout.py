@@ -7,8 +7,7 @@ from MetaButler.modules.helper_funcs.decorators import metacmd
 def shout(update: Update, context: CallbackContext):
     args = context.args
     text = " ".join(args)
-    result = []
-    result.append(" ".join(list(text)))
+    result = [" ".join(list(text))]
     for pos, symbol in enumerate(text[1:]):
         result.append(symbol + " " + "  " * pos + symbol)
     result = list("\n".join(result))
