@@ -1626,7 +1626,8 @@ def fed_chats(update, context):
     try:
         update.effective_message.reply_text(
             text, parse_mode=ParseMode.HTML, allow_sending_without_reply=True)
-    except BadRequest:
+    except (BadRequest, TelegramError) as err:
+        print(err)
         cleanr = re.compile("<.*?>")
         cleantext = re.sub(cleanr, "", text)
         with BytesIO(str.encode(cleantext)) as output:
