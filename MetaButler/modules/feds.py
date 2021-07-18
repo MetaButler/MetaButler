@@ -454,7 +454,6 @@ def fed_info(update, context):
     args = context.args
     if args:
         fed_id = args[0]
-        info = sql.get_fed_info(fed_id)
     else:
         fed_id = sql.get_fed_id(chat.id)
         if not fed_id:
@@ -463,8 +462,7 @@ def fed_info(update, context):
                 "This group is not in any federation!",
             )
             return
-        info = sql.get_fed_info(fed_id)
-
+    info = sql.get_fed_info(fed_id)
     if is_user_fed_admin(fed_id, user.id) is False:
         update.effective_message.reply_text("Only a federation admin can do this!")
         return
@@ -1393,9 +1391,8 @@ def fed_ban_list(update, context):
                 else:
                     if user.id not in SUDO_USERS:
                         put_chat(chat.id, new_jam, chat_data)
-            else:
-                if user.id not in SUDO_USERS:
-                    put_chat(chat.id, new_jam, chat_data)
+            elif user.id not in SUDO_USERS:
+                put_chat(chat.id, new_jam, chat_data)
             backups = ""
             for users in getfban:
                 getuserinfo = sql.get_all_fban_users_target(fed_id, users)
@@ -1437,9 +1434,8 @@ def fed_ban_list(update, context):
                 else:
                     if user.id not in SUDO_USERS:
                         put_chat(chat.id, new_jam, chat_data)
-            else:
-                if user.id not in SUDO_USERS:
-                    put_chat(chat.id, new_jam, chat_data)
+            elif user.id not in SUDO_USERS:
+                put_chat(chat.id, new_jam, chat_data)
             backups = "id,firstname,lastname,username,reason\n"
             for users in getfban:
                 getuserinfo = sql.get_all_fban_users_target(fed_id, users)
@@ -1502,9 +1498,8 @@ def fed_ban_list(update, context):
             else:
                 if user.id not in SUDO_USERS:
                     put_chat(chat.id, new_jam, chat_data)
-        else:
-            if user.id not in SUDO_USERS:
-                put_chat(chat.id, new_jam, chat_data)
+        elif user.id not in SUDO_USERS:
+            put_chat(chat.id, new_jam, chat_data)
         cleanr = re.compile("<.*?>")
         cleantext = re.sub(cleanr, "", text)
         with BytesIO(str.encode(cleantext)) as output:
