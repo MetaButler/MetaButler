@@ -5,8 +5,10 @@ import re
 import json
 import time
 import csv
+import multiprocessing
 import os
 import ast
+from sqlalchemy.sql.sqltypes import Time
 from telegram.ext import CallbackContext
 from telegram.error import BadRequest, TelegramError, Unauthorized
 from telegram import (
@@ -1596,11 +1598,11 @@ def fed_chats(update, context):
     text = "<b>New chat joined the federation {}:</b>\n".format(info["fname"])
     for chats in getlist:
         try:
-            chat_name = dispatcher.bot.getChat(chats).title
-        except Unauthorized:
+            chat_name = dispatcher.bot.getChat(chats, timeout=2).title
+        except (BadRequest, Unauthorized, TimeoutError):
             sql.chat_leave_fed(chats)
             log.info(
-                "Chat {} has leave fed {} because I was kicked".format(
+                "Chat {} has left fed \"{}\" because I was kicked".format(
                     chats, info["fname"]
                 )
             )
