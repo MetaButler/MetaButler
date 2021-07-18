@@ -4,13 +4,10 @@ import random
 import time
 import urllib.request
 import urllib.parse
-import requests
 from telegram import ParseMode, Update, ChatPermissions
 from telegram.ext import CallbackContext
-from telegram.error import BadRequest
 
 import MetaButler.modules.fun_strings as fun_strings
-from MetaButler import dispatcher
 from MetaButler.modules.helper_funcs.chat_status import is_user_admin
 from MetaButler.modules.helper_funcs.extraction import extract_user
 from MetaButler.modules.helper_funcs.decorators import metacmd
