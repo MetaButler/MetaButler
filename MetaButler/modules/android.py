@@ -1,13 +1,79 @@
 import urllib
 
-from hurry.filesize import size as sizee
+from hurry.filesize import size as sizee, alternative
 from telethon import custom
 from MetaButler.events import register
 from MetaButler.modules.language import gs
+from datetime import datetime
+from typing import Tuple
 
 from requests import get
 import rapidjson as json
 
+def sanitize_data(data: dict, chat_id: int) -> Tuple[str, str, str]:
+    for k, v in data.items():
+        device_build = k
+        device_data = v
+        msg = gs(chat_id, "rom_type").format(str(device_build).capitalize())
+        download_url = None
+        if len(device_data.keys()) == 1 and list(device_data.keys())[0] == 'msg':
+            msg += f'**Message:** __{device_data["msg"]}__\n\n'
+        else:
+            build_date = datetime.utcfromtimestamp(int(device_data['datetime'])).strftime('%Y-%m-%d %H:%M:%S') or None
+            file_name = device_data['filename'] or None
+            md5_url = device_data['md5url'] or None
+            build_size = sizee(int(device_data['size']), system=alternative) or None
+            download_url = device_data['url']
+            build_version = device_data['version']
+            msg += f'**Build Date:** {build_date}\n**Build Size:** {build_size}\n**Build Version:** {build_version}\n**File Name:** [{file_name}]({download_url})\n**File MD5:** {md5_url}\n\n'
+    return device_build, msg, download_url
+
+@register(pattern=r'^/bliss(?: |$)(\S*)')
+async def bliss(event):
+    if event.sender_id is None:
+        return
+    
+    chat_id = event.chat_id
+    try:
+        device_code__ = event.pattern_match.group(1)
+        device_code = urllib.parse.quote_plus(device_code__)
+    except Exception:
+        device_code = ''
+    
+    if device_code == '':
+        reply_text = gs(chat_id, "cmd_example").format('bliss')
+        return await event.reply(reply_text, link_preview=False)
+    
+    url = 'https://downloads.blissroms.org/api/v1/updater/los/{device_code}/{build}/'
+    device_data = list()
+    for build in ['vanilla', 'gapps']:
+        build_url = url.format(device_code=device_code, build=build)
+        req = get(build_url)
+        response = {}
+        if req.status_code == 404:
+            msg = {'msg': req.json()['message']}
+            response[build] = msg
+        elif req.status_code >= 500:
+            msg = {'msg': 'Server error occurred, please retry later!'}
+            response[build] = msg
+        elif req.status_code == 200:
+            response[build] = req.json()['response'][-1] # Get latest build
+        else:
+            msg = {'msg': f'Unexpected response {req.data}\nPlease report this to bot developers!'}
+            response[build] = msg
+        device_data.append(response)
+
+    base_msg = ""
+    keyboard = []
+    for build in device_data:
+        device_build, msg, download_url = sanitize_data(build, chat_id)
+        base_msg += msg
+        if download_url is not None:
+            keyboard.append([custom.Button.url(f'Download {str(device_build).capitalize()} build', download_url)])
+    base_msg = str(base_msg).strip()
+    if len(keyboard) == 0:
+        return await event.reply(base_msg)
+    return await event.reply(base_msg, buttons=keyboard, link_preview=False)
 
 @register(pattern=r"^/los(?: |$)(\S*)")
 async def los(event):
