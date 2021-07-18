@@ -80,7 +80,7 @@ def new_fed(update, context):
     message = update.effective_message
     if chat.type != "private":
         update.effective_message.reply_text(
-            "You can your federation in my PM, not in a group."
+            "You can create your federation in my PM, not in a group."
         )
         return
     fednam = message.text.split(None, 1)
@@ -1609,7 +1609,7 @@ def fed_chats(update, context):
         )
         return
 
-    text = "<b>New chat joined the federation {}:</b>\n".format(info["fname"])
+    text = "<b>Chats under federation {}:</b>\n".format(info["fname"])
     for chats in getlist:
         try:
             chat_name = dispatcher.bot.getChat(chats, timeout=2).title
@@ -1621,12 +1621,12 @@ def fed_chats(update, context):
                 )
             )
             continue
-        text += " • {} (<code>{}</code>)\n".format(chat_name, chats)
+        text += " • {} (`{}`)\n".format(str(chat_name), int(chats))
 
     try:
         update.effective_message.reply_text(
-            text, parse_mode=ParseMode.HTML, allow_sending_without_reply=True)
-    except (BadRequest, TelegramError) as err:
+            text, parse_mode=ParseMode.MARKDOWN_V2, allow_sending_without_reply=True)
+    except BadRequest as err:
         print(err)
         cleanr = re.compile("<.*?>")
         cleantext = re.sub(cleanr, "", text)
