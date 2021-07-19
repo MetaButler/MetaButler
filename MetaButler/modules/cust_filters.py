@@ -110,7 +110,7 @@ def filters(update, context):
         chat_name = dispatcher.bot.getChat(conn).title
     else:
         chat_id = update.effective_chat.id
-        chat_name = "local filters" if chat.type == "private" else chat.titl
+        chat_name = "local filters" if chat.type == "private" else chat.title
 
     if not msg.reply_to_message and len(args) < 2:
         send_message(
@@ -370,6 +370,7 @@ def reply_filter(update, context):
                         reply_to_message_id=message.message_id,
                         reply_markup=keyboard,
                     )
+                else:
                     ENUM_FUNC_MAP[filt.file_type](
                         chat.id,
                         filt.file_id,
