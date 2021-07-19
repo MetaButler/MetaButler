@@ -35,7 +35,7 @@ def get_note_type(msg: Message):
             entities=msg.parse_entities() or msg.parse_caption_entities(),
             offset=offset,
         )
-        data_type = Types.BUTTON_TEXT if buttons else Types.TEXTT
+        data_type = Types.BUTTON_TEXT if buttons else Types.TEXT
 
     elif msg.reply_to_message:
         entities = msg.reply_to_message.parse_entities()
