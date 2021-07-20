@@ -111,7 +111,6 @@ def filters(update, context):
     else:
         chat_id = update.effective_chat.id
         chat_name = "local filters" if chat.type == "private" else chat.title
-
     if not msg.reply_to_message and len(args) < 2:
         send_message(
             update.effective_message,
@@ -233,7 +232,6 @@ def stop_filter(update, context):
     else:
         chat_id = update.effective_chat.id
         chat_name = "Local filters" if chat.type == "private" else chat.title
-
     if len(args) < 2:
         send_message(update.effective_message, "What should i stop?")
         return
