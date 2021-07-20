@@ -400,6 +400,7 @@ greetings_help: |
        • `/welcome <on/off>`*:* enable/disable welcome messages.
        • `/welcome`*:* shows current welcome settings.
        • `/welcome noformat`*:* shows current welcome settings, without the formatting - useful to recycle your welcome messages!
+       • `/welcome simulate`*:* shows current welcome settings, with the message and the formatting - useful to test your welcome messages!
        • `/goodbye`*:* same usage and args as `/welcome`.
        • `/setwelcome <sometext>`*:* set a custom welcome message. If used replying to media, uses that media.
        • `/setgoodbye <sometext>`*:* set a custom goodbye message. If used replying to media, uses that media.
