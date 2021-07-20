@@ -659,44 +659,128 @@ def left_member(update: Update, context: CallbackContext):
 def welcome(update: Update, context: CallbackContext):
     args = context.args
     chat = update.effective_chat
+    user = update.effective_user
     # if no args, show current replies.
-    if not args or args[0].lower() == "noformat":
-        noformat = True
+    if not args or args[0].lower() == "noformat" or args[0].lower() == 'simulate':
+        if len(args) == 0:
+            noformat = False
+            simulate = False
+        else:
+            if args[0].lower() == 'noformat':
+                noformat = True
+                simulate = False
+            elif args[0].lower() == 'simulate':
+                noformat = False
+                simulate = True
+
         pref, welcome_m, cust_content, welcome_type = sql.get_welc_pref(chat.id)
-        update.effective_message.reply_text(
+        if simulate:
+            update.effective_message.reply_text(
             f"This chat has it's welcome setting set to: `{pref}`.\n"
-            f"*The welcome message (not filling the {{}}) is:*",
+            f"*The welcome message (simulating the {{}}) is:*",
             parse_mode=ParseMode.MARKDOWN,
         )
+        else:
+            update.effective_message.reply_text(
+                f"This chat has it's welcome setting set to: `{pref}`.\n"
+                f"*The welcome message (not filling the {{}}) is:*",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+
+        if simulate:
+            first_name = (
+                user.first_name or "PersonWithNoName"
+            )
+
+            if welcome_m:
+                if welcome_m == sql.DEFAULT_WELCOME:
+                    welcome_m = random.choice(
+                        sql.DEFAULT_WELCOME_MESSAGES
+                    ).format(first=escape_markdown(first_name))
+
+                if user.last_name:
+                    fullname = escape_markdown(f"{first_name} {user.last_name}")
+                else:
+                    fullname = escape_markdown(first_name)
+                count = chat.get_members_count()
+                mention = mention_markdown(user.id, escape_markdown(first_name))
+                if user.username:
+                    username = "@" + escape_markdown(user.username)
+                else:
+                    username = mention
+
+                valid_format = escape_invalid_curly_brackets(
+                    welcome_m, VALID_WELCOME_FORMATTERS
+                )
+                res = valid_format.format(
+                    first=escape_markdown(first_name),
+                    last=escape_markdown(user.last_name or first_name),
+                    fullname=escape_markdown(fullname),
+                    username=username,
+                    mention=mention,
+                    count=count,
+                    chatname=escape_markdown(chat.title),
+                    id=user.id,
+                )
 
         if welcome_type in [sql.Types.BUTTON_TEXT, sql.Types.TEXT]:
             buttons = sql.get_welc_buttons(chat.id)
-            if noformat:
+            if not noformat and not simulate:
+                keyb = build_keyboard(buttons)
+                keyboard = InlineKeyboardMarkup(keyb)
+                send(update, welcome_m, keyboard, sql.DEFAULT_WELCOME)
+
+            elif noformat:
                 welcome_m += revert_buttons(buttons)
                 update.effective_message.reply_text(welcome_m)
 
-            else:
+            elif simulate:
+                keyb = build_keyboard(buttons)
+                keyboard = InlineKeyboardMarkup(keyb)
+                send(update, res, keyboard, sql.DEFAULT_WELCOME)
+        else:
+            buttons = sql.get_welc_buttons(chat.id)
+            if not noformat and not simulate:
                 keyb = build_keyboard(buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
 
-                send(update, welcome_m, keyboard, sql.DEFAULT_WELCOME)
-        else:
-            buttons = sql.get_welc_buttons(chat.id)
-            if noformat:
+                if ENUM_FUNC_MAP[welcome_type] == dispatcher.bot.send_sticker:
+                    ENUM_FUNC_MAP[welcome_type](
+                        chat.id,
+                        cust_content,
+                        reply_markup=keyboard,
+                    )
+                else:
+                    ENUM_FUNC_MAP[welcome_type](
+                        chat.id,
+                        cust_content,
+                        caption=welcome_m,
+                        reply_markup=keyboard,
+                        parse_mode="markdown",
+                    )
+
+            elif noformat:
                 welcome_m += revert_buttons(buttons)
                 ENUM_FUNC_MAP[welcome_type](chat.id, cust_content, caption=welcome_m)
 
-            else:
+            elif simulate:
                 keyb = build_keyboard(buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
-                ENUM_FUNC_MAP[welcome_type](
-                    chat.id,
-                    cust_content,
-                    caption=welcome_m,
-                    reply_markup=keyboard,
-                    parse_mode=ParseMode.MARKDOWN,
-                    disable_web_page_preview=True,
-                )
+
+                if ENUM_FUNC_MAP[welcome_type] == dispatcher.bot.send_sticker:
+                    ENUM_FUNC_MAP[welcome_type](
+                        chat.id,
+                        cust_content,
+                        reply_markup=keyboard,
+                    )
+                else:
+                    ENUM_FUNC_MAP[welcome_type](
+                        chat.id,
+                        cust_content,
+                        caption=res,
+                        reply_markup=keyboard,
+                        parse_mode="markdown",
+                    )
 
     elif len(args) >= 1:
         if args[0].lower() in ("on", "yes"):
