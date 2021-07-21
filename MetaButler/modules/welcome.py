@@ -86,7 +86,7 @@ def send(update, message, keyboard, backup_message):
     try:
         msg = update.effective_message.reply_text(
             message,
-            parse_mode=ParseMode.MARKDOWN,
+            parse_mode=ParseMode.HTML,
             reply_markup=keyboard,
             reply_to_message_id=reply,
         )
@@ -260,16 +260,16 @@ def new_member(update: Update, context: CallbackContext):
                     if cust_welcome == sql.DEFAULT_WELCOME:
                         cust_welcome = random.choice(
                             sql.DEFAULT_WELCOME_MESSAGES
-                        ).format(first=escape_markdown(first_name))
+                        ).format(first=first_name)
 
                     if new_mem.last_name:
-                        fullname = escape_markdown(f"{first_name} {new_mem.last_name}")
+                        fullname = new_mem.full_name
                     else:
-                        fullname = escape_markdown(first_name)
+                        fullname = first_name
                     count = chat.get_members_count()
-                    mention = mention_markdown(new_mem.id, escape_markdown(first_name))
+                    mention = new_mem.mention_html()
                     if new_mem.username:
-                        username = "@" + escape_markdown(new_mem.username)
+                        username = f"@{new_mem.username}"
                     else:
                         username = mention
 
@@ -277,13 +277,13 @@ def new_member(update: Update, context: CallbackContext):
                         cust_welcome, VALID_WELCOME_FORMATTERS
                     )
                     res = valid_format.format(
-                        first=escape_markdown(first_name),
-                        last=escape_markdown(new_mem.last_name or first_name),
-                        fullname=escape_markdown(fullname),
+                        first=first_name,
+                        last=new_mem.last_name or first_name,
+                        fullname=fullname,
                         username=username,
                         mention=mention,
                         count=count,
-                        chatname=escape_markdown(chat.title),
+                        chatname=chat.title,
                         id=new_mem.id,
                     )
 
@@ -498,7 +498,7 @@ def new_member(update: Update, context: CallbackContext):
                         caption=res,
                         reply_markup=keyboard,
                         reply_to_message_id=reply,
-                        parse_mode="markdown",
+                        parse_mode=ParseMode.HTML,
                     )
             else:
                 sent = send(update, res, keyboard, backup_message)
@@ -696,16 +696,16 @@ def welcome(update: Update, context: CallbackContext):
                 if welcome_m == sql.DEFAULT_WELCOME:
                     welcome_m = random.choice(
                         sql.DEFAULT_WELCOME_MESSAGES
-                    ).format(first=escape_markdown(first_name))
+                    ).format(first=first_name)
 
                 if user.last_name:
-                    fullname = escape_markdown(f"{first_name} {user.last_name}")
+                    fullname = user.full_name
                 else:
-                    fullname = escape_markdown(first_name)
+                    fullname = first_name
                 count = chat.get_members_count()
-                mention = mention_markdown(user.id, escape_markdown(first_name))
+                mention = user.mention_html()
                 if user.username:
-                    username = "@" + escape_markdown(user.username)
+                    username = f'@{user.username}'
                 else:
                     username = mention
 
@@ -713,13 +713,13 @@ def welcome(update: Update, context: CallbackContext):
                     welcome_m, VALID_WELCOME_FORMATTERS
                 )
                 res = valid_format.format(
-                    first=escape_markdown(first_name),
-                    last=escape_markdown(user.last_name or first_name),
-                    fullname=escape_markdown(fullname),
+                    first=first_name,
+                    last=user.last_name or first_name,
+                    fullname=fullname,
                     username=username,
                     mention=mention,
                     count=count,
-                    chatname=escape_markdown(chat.title),
+                    chatname=chat.title,
                     id=user.id,
                 )
 
@@ -756,7 +756,7 @@ def welcome(update: Update, context: CallbackContext):
                         cust_content,
                         caption=welcome_m,
                         reply_markup=keyboard,
-                        parse_mode="markdown",
+                        parse_mode=ParseMode.HTML,
                     )
 
             elif noformat:
@@ -779,7 +779,7 @@ def welcome(update: Update, context: CallbackContext):
                         cust_content,
                         caption=res,
                         reply_markup=keyboard,
-                        parse_mode="markdown",
+                        parse_mode=ParseMode.HTML,
                     )
 
     elif len(args) >= 1:
@@ -1116,7 +1116,7 @@ def user_button(update: Update, context: CallbackContext):
                     member_dict["cust_content"],
                     caption=member_dict["res"],
                     reply_markup=member_dict["keyboard"],
-                    parse_mode="markdown",
+                    parse_mode=ParseMode.MARKDOWN_V2,
                 )
             else:
                 sent = send(
@@ -1185,7 +1185,7 @@ def user_captcha_button(update: Update, context: CallbackContext):
                         member_dict["cust_content"],
                         caption=member_dict["res"],
                         reply_markup=member_dict["keyboard"],
-                        parse_mode="markdown",
+                        parse_mode=ParseMode.MARKDOWN_V2,
                     )
                 else:
                     sent = send(
