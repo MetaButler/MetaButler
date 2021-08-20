@@ -1,58 +1,45 @@
-from telegram import ParseMode, Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackContext
-from MetaButler.modules.helper_funcs.decorators import metacmd
-from MetaButler.modules.language import gs
 from gpytranslate import SyncTranslator
+from MetaButler.modules.language import gs
 
 def get_help(chat):
     return gs(chat, "gtranslate_help")
 
 __mod_name__ = "Translator"
-trans = SyncTranslator()
 
-@metacmd(command=['tr', 'tl'])
-def translate(update: Update, context: CallbackContext) -> None:
+from telegram import ParseMode, Update
+from telegram.ext import CallbackContext
+from MetaButler.modules.helper_funcs.decorators import metacmd
+
+@metacmd(command=["tr", "tl"])
+def translate(update: Update, context: CallbackContext):
     message = update.effective_message
-    reply_msg = message.reply_to_message
-    if not reply_msg:
-        message.reply_text("Reply to a message to translate it!")
-        return
-    if reply_msg.caption:
-        to_translate = reply_msg.caption
-    elif reply_msg.text:
-        to_translate = reply_msg.text
-    try:
-        args = message.text.split()[1].lower()
-        if "//" in args:
-            source = args.split("//")[0]
-            dest = args.split("//")[1]
+    trl = SyncTranslator()
+    if message.reply_to_message and (message.reply_to_message.text or message.reply_to_message.caption):
+        if len(message.text.split()) == 1:
+            message.delete()
+            return
+        target = message.text.split()[1]
+        if message.reply_to_message.text:
+            text = message.reply_to_message.text
         else:
-            source = trans.detect(to_translate)
-            dest = args
-    except IndexError:
-        source = trans.detect(to_translate)
-        dest = "en"
-    translation = trans(to_translate,
-                              sourcelang=source, targetlang=dest)
-    reply = f"<b>Translated from {source} to {dest}</b>:\n" \
-        f"<code>{translation.text}</code>"
+            text = message.reply_to_message.caption
+        detectlang = trl.detect(text)
+        try:
+            tekstr = trl(text, targetlang=target)
+        except ValueError as err:
+            message.reply_text(f"Error: `{str(err)}`", parse_mode=ParseMode.MARKDOWN)
+            return
+    else:
+        if len(message.text.split()) <= 2:
+            message.delete()
+            return
+        target = message.text.split(None, 2)[1]
+        text = message.text.split(None, 2)[2]
+        detectlang = trl.detect(text)
+        try:
+            tekstr = trl(text, targetlang=target)
+        except ValueError as err:
+            message.reply_text("Error: `{}`".format(str(err)), parse_mode=ParseMode.MARKDOWN)
+            return
 
-    message.reply_text(reply, parse_mode=ParseMode.HTML)
-
-
-@metacmd(command='langs')
-def languages(update: Update, context: CallbackContext) -> None:
-    update.effective_message.reply_text(
-        "Click on the button below to see the list of supported language codes.",
-        reply_markup=InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        text="Language codes",
-                        url="https://telegra.ph/Lang-Codes-03-19-3"
-                        ),
-                ],
-            ],
-        disable_web_page_preview=True
-    )
-        )
+    message.reply_text(f"*Translated from {detectlang}:*\n```{tekstr.text}```", parse_mode=ParseMode.MARKDOWN)
