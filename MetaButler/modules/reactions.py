@@ -1,4 +1,3 @@
-
 import random
 
 from telegram import Update

@@ -11,7 +11,6 @@ from telegram.ext import (
 from telegram.utils.helpers import mention_html, escape_markdown
 
 from MetaButler import dispatcher, log, SUDO_USERS
-from MetaButler.modules.helper_funcs.chat_status import user_admin
 from MetaButler.modules.helper_funcs.extraction import extract_text
 from MetaButler.modules.helper_funcs.filters import CustomFilters
 from MetaButler.modules.helper_funcs.misc import build_keyboard_parser
@@ -29,6 +28,7 @@ from MetaButler.modules.connection import connected
 from MetaButler.modules.helper_funcs.alternate import send_message, typing_action
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg, metacallback
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 HANDLER_GROUP = 10
 
@@ -94,9 +94,9 @@ def list_handlers(update, context):
 
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @metacmd(command='filter', run_async=False)
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @typing_action
-def filters(update, context):
+def filters(update, context):  # sourcery no-metrics
     chat = update.effective_chat
     user = update.effective_user
     msg = update.effective_message
@@ -218,7 +218,7 @@ def filters(update, context):
 
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @metacmd(command='stop', run_async=False)
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @typing_action
 def stop_filter(update, context):
     chat = update.effective_chat
@@ -258,7 +258,7 @@ def stop_filter(update, context):
     )
 
 @metamsg((CustomFilters.has_text & ~Filters.update.edited_message))
-def reply_filter(update, context):
+def reply_filter(update, context):  # sourcery no-metrics
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
 
@@ -393,6 +393,7 @@ def reply_filter(update, context):
                 buttons = sql.get_buttons(chat.id, filt.keyword)
                 keyb = build_keyboard_parser(context.bot, chat.id, buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
+
                 try:
                     send_message(
                         update.effective_message,

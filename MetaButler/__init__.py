@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import time
+from typing import List
 import spamwatch
 import telegram.ext as tg
 from telethon import TelegramClient
@@ -12,9 +13,17 @@ from logging.config import fileConfig
 
 StartTime = time.time()
 
+def get_user_list(key):
+    # Import here to evade a circular import
+    from MetaButler.modules.sql import metas_sql
+    metas = metas_sql.get_metas(key)
+    return [a.user_id for a in metas]
+
 # enable logging
+
 fileConfig('logging.ini')
 
+#print(flag)
 log = logging.getLogger('[MetaButler]')
 logging.getLogger('ptbcontrib.postgres_persistence.postgrespersistence').setLevel(logging.WARNING)
 log.info("[META] METABUTLER is starting.")
@@ -31,47 +40,42 @@ parser.read("config.ini")
 metaconfig = parser["metaconfig"]
 
 class MetaINIT:
-    def __init__(self, parser):
+    def __init__(self, parser: ConfigParser):
         self.parser = parser
-        self.OWNER_ID = self.parser.getint('OWNER_ID')
-        self.OWNER_USERNAME = self.parser.get('OWNER_USERNAME', None)
-        self.APP_ID = self.parser.getint("APP_ID")
-        self.API_HASH = self.parser.get("API_HASH")
-        self.WEBHOOK = self.parser.getboolean('WEBHOOK', False)
-        self.URL = self.parser.get('URL', None)
-        self.CERT_PATH = self.parser.get('CERT_PATH', None)
-        self.PORT = self.parser.getint('PORT', None)
-        self.INFOPIC = self.parser.getboolean('INFOPIC', False)
-        self.DEL_CMDS = self.parser.getboolean("DEL_CMDS", False)
-        self.STRICT_GBAN = self.parser.getboolean("STRICT_GBAN", False)
-        self.ALLOW_EXCL = self.parser.getboolean("ALLOW_EXCL", False)
-        self.CUSTOM_CMD = ['/', '!']
-        self.BAN_STICKER = self.parser.get("BAN_STICKER", None)
-        self.TOKEN = self.parser.get("TOKEN")
-        self.DB_URI = self.parser.get("SQLALCHEMY_DATABASE_URI")
+        self.OWNER_ID: int = self.parser.getint('OWNER_ID')
+        self.OWNER_USERNAME: str = self.parser.get('OWNER_USERNAME', None)
+        self.APP_ID: str = self.parser.getint("APP_ID")
+        self.API_HASH: str = self.parser.get("API_HASH")
+        self.WEBHOOK: bool = self.parser.getboolean('WEBHOOK', False)
+        self.URL: str = self.parser.get('URL', None)
+        self.CERT_PATH: str = self.parser.get('CERT_PATH', None)
+        self.PORT: int = self.parser.getint('PORT', None)
+        self.INFOPIC: bool = self.parser.getboolean('INFOPIC', False)
+        self.DEL_CMDS: bool = self.parser.getboolean("DEL_CMDS", False)
+        self.STRICT_GBAN: bool = self.parser.getboolean("STRICT_GBAN", False)
+        self.ALLOW_EXCL: bool = self.parser.getboolean("ALLOW_EXCL", False)
+        self.CUSTOM_CMD: List[str] = ['/', '!']
+        self.BAN_STICKER: str = self.parser.get("BAN_STICKER", None)
+        self.TOKEN: str = self.parser.get("TOKEN")
+        self.DB_URI: str = self.parser.get("SQLALCHEMY_DATABASE_URI")
         self.LOAD = self.parser.get("LOAD").split()
-        self.LOAD = list(map(str, self.LOAD))
-        self.MESSAGE_DUMP = self.parser.getint('MESSAGE_DUMP', None)
-        self.GBAN_LOGS = self.parser.getint('GBAN_LOGS', None)
+        self.LOAD: List[str] = list(map(str, self.LOAD))
+        self.MESSAGE_DUMP: int = self.parser.getint('MESSAGE_DUMP', None)
+        self.GBAN_LOGS: int = self.parser.getint('GBAN_LOGS', None)
         self.NO_LOAD = self.parser.get("NO_LOAD").split()
-        self.NO_LOAD = list(map(str, self.NO_LOAD))
-        self.SUDO_USERS = self.parser.get("SUDO_USERS").split()
-        self.SUDO_USERS = list(map(int, self.SUDO_USERS))
-        self.SUPPORT_USERS = self.parser.get("SUPPORT_USERS").split()
-        self.SUPPORT_USERS = list(map(int, self.SUPPORT_USERS))
-        self.SPAMMERS = self.parser.get("SPAMMERS").split()
-        self.SPAMMERS = list(map(int, self.SPAMMERS))
-        self.DEV_USERS = self.parser.get("DEV_USERS").split()
-        self.DEV_USERS = list(map(int, self.DEV_USERS))
-        self.WHITELIST_USERS = self.parser.get("WHITELIST_USERS").split()
-        self.WHITELIST_USERS =list(map(int, self.WHITELIST_USERS))
-        self.spamwatch_api = self.parser.get('spamwatch_api', None)
-        self.TIME_API_KEY = self.parser.get('TIME_API_KEY', None)
-        self.CF_API_KEY =  self.parser.get("CF_API_KEY", None)
-        self.WEATHER_API = self.parser.get("WEATHER_API", None)
+        self.NO_LOAD: List[str] = list(map(str, self.NO_LOAD))
+        self.spamwatch_api: str = self.parser.get('spamwatch_api', None)
+        self.CASH_API_KEY: str = self.parser.get('CASH_API_KEY', None)
+        self.TIME_API_KEY: str = self.parser.get('TIME_API_KEY', None)
+        self.CF_API_KEY: str =  self.parser.get("CF_API_KEY", None)
         self.bot_id = 0 #placeholder
+        self.WEATHER_API = self.parser.get("WEATHER_API", None)
         self.bot_name = "MetaButler" #placeholder
         self.bot_username = "MetaButlerbot" #placeholder
+        self.DEBUG: bool = self.parser.getboolean("IS_DEBUG", False)
+        self.DROP_UPDATES: bool = self.parser.getboolean("DROP_UPDATES", True)
+        self.BOT_API_URL: str = self.parser.get('BOT_API_URL', "https://api.telegram.org/bot")
+        self.BOT_API_FILE_URL: str = self.parser.get('BOT_API_FILE_URL', "https://api.telegram.org/file/bot")
 
 
     def init_sw(self):
@@ -109,25 +113,28 @@ LOAD = MInit.LOAD
 MESSAGE_DUMP = MInit.MESSAGE_DUMP
 GBAN_LOGS = MInit.GBAN_LOGS
 NO_LOAD = MInit.NO_LOAD
-SUDO_USERS = MInit.SUDO_USERS + [OWNER_ID]
-DEV_USERS = MInit.DEV_USERS + [OWNER_ID]
-SUPPORT_USERS = MInit.SUPPORT_USERS
-WHITELIST_USERS = MInit.WHITELIST_USERS
-SPAMMERS = MInit.SPAMMERS
+SUDO_USERS = [OWNER_ID] + get_user_list("sudos")
+DEV_USERS = [OWNER_ID] + get_user_list("devs")
+SUPPORT_USERS = get_user_list("supports")
+SARDEGNA_USERS = get_user_list("sardegnas")
+WHITELIST_USERS = get_user_list("whitelists")
+SPAMMERS = get_user_list("spammers")
 spamwatch_api = MInit.spamwatch_api
 WEATHER_API = MInit.WEATHER_API
 TIME_API_KEY = MInit.TIME_API_KEY
 CF_API_KEY = MInit.CF_API_KEY
-
-SPB_MODE = metaconfig.getboolean('SPB_MODE', False)
 
 # SpamWatch
 sw = MInit.init_sw()
 
 from MetaButler.modules.sql import SESSION
 
-
-updater = tg.Updater(TOKEN, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10})
+if not MInit.DROP_UPDATES:
+    updater = tg.Updater(token=TOKEN, base_url=MInit.BOT_API_URL, base_file_url=MInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10}, persistence=PostgresPersistence(session=SESSION))
+    
+else:
+    updater = tg.Updater(token=TOKEN, base_url=MInit.BOT_API_URL, base_file_url=MInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10})
+    
 telethn = TelegramClient(MemorySession(), APP_ID, API_HASH)
 dispatcher = updater.dispatcher
 
@@ -144,6 +151,6 @@ def spamfilters(text, user_id, chat_id):
     # print("{} | {} | {}".format(text, user_id, chat_id))
     if int(user_id) not in SPAMMERS:
         return False
-        
+
     print("This user is a spammer!")
-    return False
+    return True

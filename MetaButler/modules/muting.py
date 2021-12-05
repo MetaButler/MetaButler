@@ -1,12 +1,12 @@
 import html
 from typing import Optional
 
+from MetaButler import SARDEGNA_USERS
 from MetaButler.modules.helper_funcs.chat_status import (
     bot_admin,
     can_restrict,
     connection_status,
     is_user_admin,
-    user_admin,
 )
 from MetaButler.modules.helper_funcs.extraction import extract_user_and_text
 from MetaButler.modules.helper_funcs.string_handling import extract_time
@@ -18,10 +18,12 @@ from telegram.utils.helpers import mention_html
 from MetaButler.modules.language import gs
 from MetaButler.modules.helper_funcs.decorators import metacmd
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 def check_user(user_id: int, bot: Bot, chat: Chat) -> Optional[str]:
     if not user_id:
         return "You don't seem to be referring to a user or the ID specified is incorrect.."
+
 
     try:
         member = chat.get_member(user_id)
@@ -30,11 +32,10 @@ def check_user(user_id: int, bot: Bot, chat: Chat) -> Optional[str]:
             return "I can't seem to find this user"
         else:
             raise
-
     if user_id == bot.id:
         return "I'm not gonna MUTE myself, How high are you?"
 
-    if is_user_admin(chat, user_id, member):
+    if is_user_admin(chat, user_id, member) or user_id in SARDEGNA_USERS:
         return "Can't. Find someone else to mute but not this one."
 
     return None
@@ -42,7 +43,8 @@ def check_user(user_id: int, bot: Bot, chat: Chat) -> Optional[str]:
 @metacmd(command='mute')
 @connection_status
 @bot_admin
-@user_admin
+@can_restrict
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
 def mute(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -91,7 +93,8 @@ def mute(update: Update, context: CallbackContext) -> str:
 @metacmd(command='unmute')
 @connection_status
 @bot_admin
-@user_admin
+@can_restrict
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
 def unmute(update: Update, context: CallbackContext) -> str:
     bot, args = context.bot, context.args
@@ -155,7 +158,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
 @connection_status
 @bot_admin
 @can_restrict
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
 def temp_mute(update: Update, context: CallbackContext) -> str:
     bot, args = context.bot, context.args
@@ -180,7 +183,6 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
 
     time_val = split_reason[0].lower()
     reason = split_reason[1] if len(split_reason) > 1 else ""
-
     mutetime = extract_time(message, time_val)
 
     if not mutetime:

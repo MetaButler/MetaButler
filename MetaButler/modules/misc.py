@@ -1,6 +1,7 @@
 import html
 import time
 import git
+import re
 import requests
 import wikipedia
 from io import BytesIO
@@ -10,6 +11,7 @@ from telegram.ext import Filters, CallbackContext
 from telegram.utils.helpers import mention_html, escape_markdown
 from subprocess import Popen, PIPE
 from requests import get
+
 from MetaButler import (
     dispatcher,
     OWNER_ID,
@@ -19,11 +21,12 @@ from MetaButler import (
     WHITELIST_USERS,
     INFOPIC,
     sw,
-    StartTime
+    StartTime,
+    MInit
 )
 from MetaButler.__main__ import STATS, USER_INFO, TOKEN
 from MetaButler.modules.sql import SESSION
-from MetaButler.modules.helper_funcs.chat_status import user_admin, dev_plus
+from MetaButler.modules.helper_funcs.chat_status import user_admin, dev_plus, sudo_plus
 from MetaButler.modules.helper_funcs.extraction import extract_user
 import MetaButler.modules.sql.users_sql as sql
 from MetaButler.modules.language import gs
@@ -111,74 +114,8 @@ def gifid(update: Update, _):
     else:
         update.effective_message.reply_text("Please reply to a gif to get its ID.")
 
-@metacmd(command='swinfo', pass_args=True)
-def swinfo(update: Update, context: CallbackContext):
-    bot = context.bot
-    args = context.args
-    message = update.effective_message
-    chat = update.effective_chat
-    user_id = extract_user(update.effective_message, args)
-
-    if user_id:
-        user = bot.get_chat(user_id)
-
-    elif not message.reply_to_message and not args:
-        user = message.from_user
-
-    elif not message.reply_to_message and (
-        not args
-        or (
-            len(args) >= 1
-            and not args[0].startswith("@")
-            and not args[0].isdigit()
-            and not message.parse_entities([MessageEntity.TEXT_MENTION])
-        )
-    ):
-        message.reply_text("I can't extract a user from this.")
-        return
-
-    else:
-        return
-
-    text = (
-        f"User ID: <code>{user.id}</code>\n"
-    )
-    text += f"Permanent Link: {mention_html(user.id, 'link')}"
-    try:
-        spamwtc = sw.get_ban(int(user.id))
-        if spamwtc:
-            text += "<b>\nSpamWatch:</b> Banned"
-            text += f"\nReason: <pre>{spamwtc.reason}</pre>"
-            text += "\nAppeal at @SpamWatchSupport"
-        else:
-            text += "<b>\nSpamWatch:</b> Not Banned"
-    except:
-        pass  # don't crash if api is down somehow...
-
-    text += ""
-    for mod in USER_INFO:
-        if mod.__mod_name__ == "Users":
-            continue
-
-        try:
-            mod_info = mod.__user_info__(user.id)
-        except TypeError:
-            mod_info = mod.__user_info__(user.id, chat.id)
-        if mod_info:
-            text += "" + mod_info
-
-    if IndexError:
-            message.reply_text(
-                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-            )
-
-    else:
-        message.reply_text(
-            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-        )
-
 @metacmd(command='info', pass_args=True)
-def info(update: Update, context: CallbackContext):
+def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     bot = context.bot
     args = context.args
     message = update.effective_message
@@ -221,32 +158,28 @@ def info(update: Update, context: CallbackContext):
     text += f"\nPermanent user link: {mention_html(user.id, 'link')}"
 
     num_chats = sql.get_user_num_chats(user.id)
-    text += f"\nChat count: <code>{num_chats}</code>"
+    text += f"\n<b>Chat count</b>: <code>{num_chats}</code>"
 
     try:
         user_member = chat.get_member(user.id)
-        if user_member.status == "administrator" or user_member.status == "creator":
-            result = requests.post(
-                f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={chat.id}&user_id={user.id}"
-            )
-            result = result.json()["result"]
-            if "custom_title" in result.keys():
-                custom_title = result["custom_title"]
-                text += f"\nAdmin Title: <b>{custom_title}</b>"
+        if user_member.status == "administrator":
+            result = bot.get_chat_member(chat.id, user.id)
+            if result.custom_title:
+                text += f"\nAdmin Title: <b>{result.custom_title}</b>"
     except BadRequest:
         pass
 
 
     if user.id == OWNER_ID:
-        text += f"\nThis Person is my Owner"
+        text += '\nOwner'
     elif user.id in DEV_USERS:
-        text += f"\nDev User"
+        text += '\nDev User'
     elif user.id in SUDO_USERS:
-        text += f"\nSudo User"
+        text += '\nSudo User'
     elif user.id in SUPPORT_USERS:
-        text += f"\nSupport User"
+        text += '\nSupport User'
     elif user.id in WHITELIST_USERS:
-        text += f"\nWhitelisted AF"
+        text += '\nWhiteListed'
 
     if INFOPIC:
         try:
@@ -260,6 +193,7 @@ def info(update: Update, context: CallbackContext):
                 caption=(text),
                 parse_mode=ParseMode.HTML,
             )
+
 
         # Incase user don't have profile pic, send normal text
         except IndexError:
@@ -374,7 +308,7 @@ def get_readable_time(seconds: int) -> str:
 stats_str = '''
 '''
 @metacmd(command='botstats', can_disable=False)
-@dev_plus
+@sudo_plus
 def stats(update, context):
     db_size = SESSION.execute("SELECT pg_size_pretty(pg_database_size(current_database()))").scalar_one_or_none()
     uptime = datetime.datetime.fromtimestamp(boot_time()).strftime("%Y-%m-%d %H:%M:%S")
@@ -399,7 +333,7 @@ def stats(update, context):
     status += "*• Database size:* " + str(db_size) + "\n"
     kb = [
           [
-            InlineKeyboardButton('Ping', callback_data='pingCB')
+           InlineKeyboardButton('Ping', callback_data='pingCB')
           ]
     ]
     repo = git.Repo(search_parent_directories=True)
@@ -459,7 +393,6 @@ def repo(update: Update, _):
             ),
         )
 
-
 @metacallback(pattern=r'^pingCB')
 def pingCallback(update: Update, context: CallbackContext):
     query = update.callback_query
@@ -495,7 +428,7 @@ def wiki(update: Update, context: CallbackContext):
             update.effective_message.reply_text(
                 "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}"
                 .format(eet))
-
+                
 def get_help(chat):
     return gs(chat, "misc_help")
 

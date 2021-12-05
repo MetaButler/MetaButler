@@ -28,6 +28,7 @@ def debug(update: Update, context: CallbackContext):
     else:
         message.reply_text("Debug mode is currently off.")
 
+
 @telethn.on(events.NewMessage(pattern="[/!].*"))
 async def i_do_nothing_yes(event):
     global DEBUG_MODE

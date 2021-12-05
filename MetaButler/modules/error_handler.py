@@ -5,8 +5,8 @@ import random
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackContext, CommandHandler
-
-from MetaButler import dispatcher, DEV_USERS, OWNER_ID
+from psycopg2 import errors as sqlerrors
+from MetaButler import MInit, dispatcher, DEV_USERS, OWNER_ID, log
 
 
 class ErrorsDict(dict):
@@ -31,6 +31,19 @@ errors = ErrorsDict()
 def error_callback(update: Update, context: CallbackContext):
     if not update:
         return
+
+    e = html.escape(f"{context.error}")
+    if e.find(MInit.TOKEN) != -1:
+        e = e.replace(MInit.TOKEN, "TOKEN")
+
+    if update.effective_chat.type != "channel" and MInit.DEBUG:
+        try:
+            context.bot.send_message(update.effective_chat.id, 
+            f"<b>Sorry I ran into an error!</b>\n<b>Error</b>: <code>{e}</code>\n<i>This incident has been logged. No further action is required.</i>",
+            parse_mode="html")
+        except BaseException as e:
+            log.exception(e)
+
     if context.error in errors:
         return
     tb_list = traceback.format_exception(
@@ -55,7 +68,8 @@ def error_callback(update: Update, context: CallbackContext):
     key = requests.post(
         "https://nekobin.com/api/documents", json={"content": pretty_message}
     ).json()
-    e = html.escape(f"{context.error}")
+
+
     if not key.get("result", {}).get("key"):
         with open("error.txt", "w+") as f:
             f.write(pretty_message)
@@ -74,17 +88,32 @@ def error_callback(update: Update, context: CallbackContext):
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Nekobin", url=url)]]),
         parse_mode="html",
     )
+    
 
 
 def list_errors(update: Update, context: CallbackContext):
     if update.effective_user.id not in DEV_USERS:
         return
-    e = dict(sorted(errors.items(), key=lambda item: item[1], reverse=True))
+    e = {
+        k: v for k, v in sorted(errors.items(), key=lambda item: item[1], reverse=True)
+    }
     msg = "<b>Errors List:</b>\n"
     for x, value in e.items():
-        msg += f'• <code>f"• <code>{x}:</code> <b>{e[x]}</b> #{x.identifier}\n":</code> <b>{value}</b> #f"• <code>{x}:</code> <b>{e[x]}</b> #{x.identifier}\n"\n'
-    update.effective_message.reply_text(msg, parse_mode="html")
+        msg += f"• <code>{x}:</code> <b>{e[x]}</b> #{x.identifier}\n"
 
+    msg += f"{len(errors)} have occurred since startup."
+    if len(msg) > 4096:
+        with open("errors_msg.txt", "w+") as f:
+            f.write(msg)
+        context.bot.send_document(
+            update.effective_chat.id,
+            open("errors_msg.txt", "rb"),
+            caption='Too many errors have occured..',
+            parse_mode="html",
+        )
+
+        return
+    update.effective_message.reply_text(msg, parse_mode="html")
 
 dispatcher.add_error_handler(error_callback)
 dispatcher.add_handler(CommandHandler("errors", list_errors))

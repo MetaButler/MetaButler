@@ -4,7 +4,7 @@ from typing import Optional
 
 import MetaButler.modules.sql.notes_sql as sql
 from MetaButler import log, dispatcher, SUDO_USERS
-from MetaButler.modules.helper_funcs.chat_status import user_admin, connection_status
+from MetaButler.modules.helper_funcs.chat_status import connection_status
 from MetaButler.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from MetaButler.modules.helper_funcs.msg_types import get_note_type
 from MetaButler.modules.helper_funcs.handlers import MessageHandlerChecker
@@ -25,6 +25,8 @@ from telegram.ext import (
 )
 
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg, metacallback
+
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 JOIN_LOGGER = None
 FILE_MATCHER = re.compile(r"^###file_id(!photo)?###:(.*?)(?:\s|$)")
@@ -51,6 +53,7 @@ ENUM_FUNC_MAP = {
 
 # Do not async
 def get(update, context, notename, show_none=True, no_format=False):
+    # sourcery no-metrics
     bot = context.bot
     chat_id = update.effective_message.chat.id
     note_chat_id = update.effective_chat.id
@@ -93,7 +96,7 @@ def get(update, context, notename, show_none=True, no_format=False):
                         "message dump to avoid this. I'll remove this note from "
                         "your saved notes.",
                     )
-                    sql.rm_note(note_chat_id, notename)                    
+                    sql.rm_note(note_chat_id, notename)
         else:
             VALID_NOTE_FORMATTERS = [
                 "first",
@@ -113,7 +116,7 @@ def get(update, context, notename, show_none=True, no_format=False):
                     text = random.choice(split) if all(split) else valid_format
                 else:
                     text = valid_format
-                text = text.format(                    
+                text = text.format(
                     first=escape_markdown(message.from_user.first_name),
                     last=escape_markdown(
                         message.from_user.last_name or message.from_user.first_name,
@@ -221,6 +224,7 @@ def cmd_get(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Get rekt")
 
 
+
 @metamsg((Filters.regex(r"^#[^\s]+")), group=-14)
 @connection_status
 def hash_get(update: Update, context: CallbackContext):
@@ -228,6 +232,7 @@ def hash_get(update: Update, context: CallbackContext):
     fst_word = message.split()[0]
     no_hash = fst_word[1:].lower()
     get(update, context, no_hash, show_none=False)
+
 
 
 @metamsg((Filters.regex(r"^/\d+$")), group=-16)
@@ -245,7 +250,7 @@ def slash_get(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Wrong Note ID 😾")
 
 @metacmd(command='save')
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @connection_status
 def save(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
@@ -287,7 +292,7 @@ def save(update: Update, context: CallbackContext):
         return
 
 @metacmd(command='clear')
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @connection_status
 def clear(update: Update, context: CallbackContext):
     args = context.args
@@ -386,7 +391,7 @@ def list_notes(update: Update, context: CallbackContext):
         update.effective_message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 
-def __import_data__(chat_id, data):
+def __import_data__(chat_id, data):  # sourcery no-metrics
     failures = []
     for notename, notedata in data.get("extra", {}).items():
         match = FILE_MATCHER.match(notedata)

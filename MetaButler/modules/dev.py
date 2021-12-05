@@ -1,16 +1,20 @@
 import html
 import os
+import re
 import subprocess
 import sys
 from time import sleep
-from MetaButler import dispatcher, telethn, OWNER_ID, DEV_USERS
+
+from telegram.ext.callbackqueryhandler import CallbackQueryHandler
+from MetaButler import DEV_USERS, dispatcher, telethn, OWNER_ID
 from MetaButler.modules.helper_funcs.chat_status import dev_plus
-from telegram import TelegramError, Update, ParseMode
+from telegram import TelegramError, Update, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, CommandHandler
 import asyncio
 from statistics import mean
 from time import monotonic as time
 from telethon import events
+
 
 @dev_plus
 def leave(update: Update, context: CallbackContext):
@@ -18,13 +22,33 @@ def leave(update: Update, context: CallbackContext):
     args = context.args
     if args:
         chat_id = str(args[0])
+        leave_msg = " ".join(args[1:])
         try:
+            context.bot.send_message(chat_id, leave_msg)
             bot.leave_chat(int(chat_id))
             update.effective_message.reply_text("Left chat.")
         except TelegramError:
             update.effective_message.reply_text("Failed to leave chat for some reason.")
     else:
-        update.effective_message.reply_text("Send a valid chat ID")
+        chat = update.effective_chat
+        # user = update.effective_user
+        kb = [[
+            InlineKeyboardButton(text="I am sure of this action.", callback_data="leavechat_cb_({})".format(chat.id))
+        ]]
+        update.effective_message.reply_text("I'm going to leave {}, press the button below to confirm".format(chat.title), reply_markup=InlineKeyboardMarkup(kb))
+
+
+def leave_cb(update: Update, context: CallbackContext):
+    bot = context.bot
+    callback = update.callback_query
+    if callback.from_user.id not in DEV_USERS:
+        callback.answer(text="This isn't for you", show_alert=True)
+        return
+    
+    match = re.match(r"leavechat_cb_\((.+?)\)", callback.data)
+    chat = int(match.group(1))
+    bot.leave_chat(chat_id=chat)
+    callback.answer(text="Left chat")
 
 class Store:
     def __init__(self, func):
@@ -50,6 +74,7 @@ class Store:
                 self.calls[-1] += 1
         await self.func(event)
 
+
 async def nothing(event):
     pass
 
@@ -66,8 +91,9 @@ telethn.add_event_handler(callback_queries, events.CallbackQuery())
 @telethn.on(events.NewMessage(pattern=r"/getstats", from_users=DEV_USERS))
 async def getstats(event):
     await event.reply(
-        f"**__META EVENT STATISTICS__**\n**Average messages:** {messages.average()}/s\n**Average Callback Queries:** {callback_queries.average()}/s\n**Average Inline Queries:** {inline_queries.average()}/s", parse_mode='md'
-        )
+        f"**__META EVENT STATISTICS__**\n**Average messages:** {messages.average()}/s\n**Average Callback Queries:** {callback_queries.average()}/s\n**Average Inline Queries:** {inline_queries.average()}/s",
+        parse_mode='md'
+    )
 
 @dev_plus      
 def get_chat_by_id(update: Update, context: CallbackContext):
@@ -97,11 +123,16 @@ def get_chat_by_id(update: Update, context: CallbackContext):
         
         msg.reply_text(text=m, parse_mode=ParseMode.HTML)
 
+
 LEAVE_HANDLER = CommandHandler("leave", leave, run_async=True)
 GET_CHAT_HANDLER = CommandHandler("getchat", get_chat_by_id, run_async=True)
+LEAVE_CALLBACK = CallbackQueryHandler(
+    leave_cb, pattern=r"leavechat_cb_", run_async=True
+)
 
 dispatcher.add_handler(LEAVE_HANDLER)
 dispatcher.add_handler(GET_CHAT_HANDLER)
+dispatcher.add_handler(LEAVE_CALLBACK)
 
 __mod_name__ = "Dev"
-__handlers__ = [LEAVE_HANDLER, GET_CHAT_HANDLER]
+__handlers__ = [LEAVE_HANDLER, GET_CHAT_HANDLER, LEAVE_CALLBACK]

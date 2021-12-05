@@ -2,7 +2,6 @@ from typing import Optional
 
 import MetaButler.modules.sql.rules_sql as sql
 from MetaButler import dispatcher
-from MetaButler.modules.helper_funcs.chat_status import user_admin
 from MetaButler.modules.helper_funcs.string_handling import markdown_parser
 from telegram import (
     InlineKeyboardButton,
@@ -17,6 +16,7 @@ from telegram.ext import CallbackContext, Filters
 from telegram.utils.helpers import escape_markdown
 from MetaButler.modules.helper_funcs.decorators import metacmd
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 @metacmd(command='rules', filters=Filters.chat_type.groups)
 def get_rules(update: Update, context: CallbackContext):
@@ -40,7 +40,6 @@ def send_rules(update, chat_id, from_pm=False):
             "fix this.\nMaybe they forgot the hyphen in ID",
         )
         return
-
     rules = sql.get_rules(chat_id)
     text = f"The rules for *{escape_markdown(chat.title)}* are:\n\n{rules}"
 
@@ -74,7 +73,7 @@ def send_rules(update, chat_id, from_pm=False):
         )
 
 @metacmd(command='setrules', filters=Filters.chat_type.groups)
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 def set_rules(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
@@ -91,7 +90,7 @@ def set_rules(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Successfully set rules for this group.")
 
 @metacmd(command='clearrules', filters=Filters.chat_type.groups)
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 def clear_rules(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     sql.set_rules(chat_id, "")

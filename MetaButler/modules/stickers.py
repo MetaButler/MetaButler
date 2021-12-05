@@ -358,11 +358,10 @@ def makepack_internal(
         elif (
             e.message
             == 'Internal Server Error: created sticker set not found (500)'
-        ):            
+        ):
             success = True
         else:
             success = False
-
     if success:
         msg.reply_text(
             f"Sticker pack successfully created. Get it [here](t.me/addstickers/{packname})",

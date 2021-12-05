@@ -15,12 +15,14 @@ from MetaButler.modules.helper_funcs.chat_status import (
     is_user_admin,
     user_not_admin,
     is_bot_admin,
-    user_admin,
+    user_admin as u_admin,
 )
 from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.connection import connected
 
 from MetaButler.modules.helper_funcs.alternate import send_message, typing_action
+
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 ad = AlphabetDetector()
 
@@ -136,10 +138,10 @@ def locktypes(update, context):
     )
 
 @metacmd(command='lock', pass_args=True)
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 @typing_action
-def lock(update, context) -> str:
+def lock(update, context) -> str:  # sourcery no-metrics
     args = context.args
     chat = update.effective_chat
     user = update.effective_user
@@ -243,10 +245,10 @@ def lock(update, context) -> str:
     return ""
 
 @metacmd(command='unlock', pass_args=True)
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 @typing_action
-def unlock(update, context) -> str:
+def unlock(update, context) -> str:  # sourcery no-metrics
     args = context.args
     chat = update.effective_chat
     user = update.effective_user
@@ -338,10 +340,9 @@ def unlock(update, context) -> str:
 
     return ""
 
-
 @metamsg((Filters.all & Filters.chat_type.groups), group=PERM_GROUP)
 @user_not_admin
-def del_lockables(update, context):
+def del_lockables(update, context):  # sourcery no-metrics
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
     user = update.effective_user
@@ -476,7 +477,7 @@ def build_lock_message(chat_id):
     return res
 
 @metacmd(command='locks')
-@user_admin
+@u_admin
 @typing_action
 def list_locks(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
@@ -528,7 +529,6 @@ def __import_data__(chat_id, data):
             sql.update_lock(chat_id, itemlock, locked=True)
         elif itemlock in LOCK_CHAT_RESTRICTION:
             sql.update_restriction(chat_id, itemlock, locked=True)
-
 
 
 def __migrate__(old_chat_id, new_chat_id):

@@ -198,6 +198,7 @@ if is_module_loaded(FILENAME):
                 " - `{}`\n".format(escape_markdown(str(cmd)))
                 for cmd in set(DISABLE_CMDS + DISABLE_OTHER)
             )
+
             update.effective_message.reply_text(
                 "The following commands are toggleable:\n{}".format(result),
                 parse_mode=ParseMode.MARKDOWN,

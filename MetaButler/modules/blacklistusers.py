@@ -121,7 +121,6 @@ def bl_users(update: Update, context: CallbackContext):
 
     message = "<b>Blacklisted Users</b>\n"
     message += "\n".join(users) if users else "Noone is being ignored as of yet."
-
     update.effective_message.reply_text(message, parse_mode=ParseMode.HTML)
 
 
@@ -132,7 +131,7 @@ def __user_info__(user_id):
 
     is_blacklisted = sql.is_user_blacklisted(user_id)
 
-    text = "\nBlacklisted: <b>{}</b>"
+    text = "Blacklisted: <b>{}</b>"
     if (
         user_id
         in [777000, 1087968824, dispatcher.bot.id]

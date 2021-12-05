@@ -7,7 +7,7 @@ from telegram.utils.helpers import mention_html
 from MetaButler.modules.sql.approve_sql import is_approved
 import MetaButler.modules.sql.blacklist_sql as sql
 from MetaButler import log, dispatcher
-from MetaButler.modules.helper_funcs.chat_status import user_admin, user_not_admin
+from MetaButler.modules.helper_funcs.chat_status import user_admin as u_admin, user_not_admin
 from MetaButler.modules.helper_funcs.extraction import extract_text
 from MetaButler.modules.helper_funcs.misc import split_message
 from MetaButler.modules.log_channel import loggable
@@ -17,10 +17,12 @@ from MetaButler.modules.connection import connected
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
 from MetaButler.modules.helper_funcs.alternate import send_message, typing_action
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 BLACKLIST_GROUP = -3
 
 @metacmd(command="blacklist", pass_args=True, admin_ok=True)
-@user_admin
+@u_admin
 @typing_action
 def blacklist(update, context):
     chat = update.effective_chat
@@ -64,7 +66,7 @@ def blacklist(update, context):
         send_message(update.effective_message, text, parse_mode=ParseMode.HTML)
 
 @metacmd(command="addblacklist", pass_args=True)
-@user_admin
+@user_admin(AdminPerms.CAN_DELETE_MESSAGES)
 @typing_action
 def add_blacklist(update, context):
     msg = update.effective_message
@@ -91,7 +93,7 @@ def add_blacklist(update, context):
                 trigger.strip()
                 for trigger in text.split("\n")
                 if trigger.strip()
-            }        
+            }
         )
 
         for trigger in to_blacklist:
@@ -122,7 +124,7 @@ def add_blacklist(update, context):
         )
 
 @metacmd(command="unblacklist", pass_args=True)
-@user_admin
+@user_admin(AdminPerms.CAN_DELETE_MESSAGES)
 @typing_action
 def unblacklist(update, context):
     msg = update.effective_message
@@ -149,8 +151,9 @@ def unblacklist(update, context):
                 trigger.strip()
                 for trigger in text.split("\n")
                 if trigger.strip()
-            }        
+            }
         )
+
         successful = 0
         for trigger in to_unblacklist:
             success = sql.rm_from_blacklist(chat_id, trigger.lower())
@@ -206,9 +209,9 @@ def unblacklist(update, context):
 
 @metacmd(command="blacklistmode", pass_args=True)
 @loggable
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @typing_action
-def blacklist_mode(update, context):
+def blacklist_mode(update, context):  # sourcery no-metrics
     chat = update.effective_chat
     user = update.effective_user
     msg = update.effective_message
@@ -340,7 +343,7 @@ def findall(p, s):
 
 @metamsg(((Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.chat_type.groups), group=BLACKLIST_GROUP)
 @user_not_admin
-def del_blacklist(update, context):
+def del_blacklist(update, context):  # sourcery no-metrics
     chat = update.effective_chat
     message = update.effective_message
     user = update.effective_user

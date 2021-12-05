@@ -4,16 +4,18 @@ from MetaButler import dispatcher, SUDO_USERS
 from MetaButler.modules.helper_funcs.extraction import extract_user
 from telegram.ext import CallbackContext, CallbackQueryHandler, Filters
 import MetaButler.modules.sql.approve_sql as sql
-from MetaButler.modules.helper_funcs.chat_status import user_admin
+from MetaButler.modules.helper_funcs.chat_status import user_admin as u_admin
 from MetaButler.modules.log_channel import loggable
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.utils.helpers import mention_html
 from telegram.error import BadRequest
 from MetaButler.modules.helper_funcs.decorators import metacmd, metacallback
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 @metacmd(command='approve', filters=Filters.chat_type.groups)
 @loggable
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 def approve(update, context):
     message = update.effective_message
     chat_title = message.chat.title
@@ -56,7 +58,7 @@ def approve(update, context):
 
 @metacmd(command='unapprove', filters=Filters.chat_type.groups)
 @loggable
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 def disapprove(update, context):
     message = update.effective_message
     chat_title = message.chat.title
@@ -91,7 +93,7 @@ def disapprove(update, context):
     return log_message
 
 @metacmd(command='approved', filters=Filters.chat_type.groups)
-@user_admin
+@u_admin
 def approved(update, context):
     message = update.effective_message
     chat_title = message.chat.title
@@ -109,18 +111,19 @@ def approved(update, context):
 
 
 @metacmd(command='approval', filters=Filters.chat_type.groups)
-@user_admin
+@u_admin
 def approval(update, context):
     message = update.effective_message
     chat = update.effective_chat
     args = context.args
     user_id = extract_user(message, args)
-    member = chat.get_member(int(user_id))
     if not user_id:
         message.reply_text(
             "I don't know who you're talking about, you're going to need to specify a user!"
         )
         return ""
+    member = chat.get_member(int(user_id))
+        
     if sql.is_approved(message.chat_id, user_id):
         message.reply_text(
             f"{member.user['first_name']} is an approved user. Locks, antiflood, and blocklists won't apply to them."

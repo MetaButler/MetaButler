@@ -5,7 +5,6 @@ from telegram.error import BadRequest
 import MetaButler.modules.sql.notes_sql as sql
 from MetaButler import dispatcher, log as LOGGER, OWNER_ID
 from MetaButler.__main__ import DATA_IMPORT
-from MetaButler.modules.helper_funcs.chat_status import user_admin
 from MetaButler.modules.helper_funcs.alternate import typing_action
 from MetaButler.modules.helper_funcs.decorators import metacmd
 # from MetaButler.modules.rules import get_rules
@@ -20,13 +19,15 @@ from MetaButler.modules.sql import disable_sql as disabledsql
 import MetaButler.modules.sql.locks_sql as locksql
 from MetaButler.modules.connection import connected
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 def get_help(chat):
     return gs(chat, "backup_help")
 
 __mod_name__ = "Backup"
 
 @metacmd(command='import')
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @typing_action
 def import_data(update, context):
     msg = update.effective_message
@@ -119,8 +120,8 @@ def import_data(update, context):
         msg.reply_text(text, parse_mode="markdown")
 
 @metacmd(command='export')
-@user_admin
-def export_data(update, context):
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
+def export_data(update, context):  # sourcery no-metrics
     chat_data = context.chat_data
     msg = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]

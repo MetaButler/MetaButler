@@ -20,20 +20,21 @@ from MetaButler.modules.helper_funcs.chat_status import (
     is_user_admin,
     is_user_ban_protected,
     is_user_in_chat,
-    user_admin,
 )
 from MetaButler.modules.helper_funcs.extraction import extract_user_and_text
 from MetaButler.modules.helper_funcs.string_handling import extract_time
 from MetaButler.modules.log_channel import loggable, gloggable
 from MetaButler.modules.helper_funcs.decorators import metacmd
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
+@metacmd(command='ban', pass_args=True)
 @connection_status
 @bot_admin
-@metacmd(command='ban', pass_args=True)
 @can_restrict
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
-def ban(update, context):
+def ban(update, context):  # sourcery no-metrics
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
@@ -83,7 +84,7 @@ def ban(update, context):
 
     try:
         chat.kick_member(user_id)
-        context.bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
+        context.bot.send_sticker(chat.id, BAN_STICKER)
         context.bot.sendMessage(
             chat.id,
             "{} was hit by Thunder Shock by {} in <b>{}</b>\n<b>Reason</b>: <code>{}</code>".format(
@@ -111,11 +112,12 @@ def ban(update, context):
 
     return ""
 
-@connection_status
+
 @metacmd(command='tban', pass_args=True)
+@connection_status
 @bot_admin
 @can_restrict
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
 def temp_ban(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat
@@ -153,7 +155,6 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
 
     time_val = split_reason[0].lower()
     reason = split_reason[1] if len(split_reason) > 1 else ""
-
     bantime = extract_time(message, time_val)
 
     if not bantime:
@@ -199,11 +200,12 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
 
     return log_message
 
-@connection_status
+
 @metacmd(command='kick', pass_args=True)
+@connection_status
 @bot_admin
 @can_restrict
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
 def kick(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat
@@ -257,9 +259,9 @@ def kick(update: Update, context: CallbackContext) -> str:
     return log_message
 
 
+@metacmd(command='kickme', pass_args=True, filters=Filters.chat_type.groups)
 @bot_admin
 @can_restrict
-@metacmd(command='kickme', pass_args=True, filters=Filters.chat_type.groups)
 def kickme(update: Update, context: CallbackContext):
     user_id = update.effective_message.from_user.id
     if is_user_admin(update.effective_chat, user_id):
@@ -273,11 +275,11 @@ def kickme(update: Update, context: CallbackContext):
         update.effective_message.reply_text("Huh? I can't :/")
 
 
-@connection_status
 @metacmd(command='unban', pass_args=True)
+@connection_status
 @bot_admin
 @can_restrict
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
 def unban(update: Update, context: CallbackContext) -> str:
     message = update.effective_message
@@ -314,6 +316,7 @@ def unban(update: Update, context: CallbackContext) -> str:
             ),
             parse_mode=ParseMode.HTML,
         )
+
     log = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#UNBANNED\n"
@@ -326,8 +329,8 @@ def unban(update: Update, context: CallbackContext) -> str:
     return log
 
 
-@connection_status
 @metacmd(command='selfunban', pass_args=True)
+@connection_status
 @bot_admin
 @can_restrict
 @gloggable

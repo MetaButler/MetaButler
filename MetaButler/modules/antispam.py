@@ -1,6 +1,5 @@
 import html
 import time
-import requests
 from datetime import datetime
 from io import BytesIO
 from MetaButler.modules.sql.users_sql import get_user_com_chats
@@ -19,7 +18,6 @@ from MetaButler import (
 from MetaButler.modules.helper_funcs.chat_status import (
     is_user_admin,
     support_plus,
-    user_admin,
 )
 from MetaButler.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from MetaButler.modules.helper_funcs.misc import send_to_list
@@ -27,9 +25,10 @@ from telegram import ParseMode, Update
 from telegram.error import BadRequest, TelegramError
 from telegram.ext import CallbackContext, Filters
 from telegram.utils.helpers import mention_html
-from MetaButler.modules.helper_funcs.chat_status import dev_plus
 from spamwatch.errors import SpamWatchError, Error, UnauthorizedError, NotFoundError, Forbidden, TooManyRequests
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
+
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 GBAN_ENFORCE_GROUP = -1
 
@@ -62,33 +61,9 @@ UNGBAN_ERRORS = {
 }
 
 
-
-
-SPB_MODE = True
-
-
-@metacmd(command="spb")
-@dev_plus
-def spbtoggle(update: Update, context: CallbackContext):
-    from MetaButler import SPB_MODE
-    args = update.effective_message.text.split(None, 1)
-    message = update.effective_message
-    print(SPB_MODE)
-    if len(args) > 1:
-        if args[1] in ("yes", "on"):
-            SPB_MODE = True
-            message.reply_animation("https://telegra.ph/file/a49e7bef1cc664eabcb26.mp4", caption="SpamProtection API bans are now enabled.\nAll hail @Intellivoid.")
-        elif args[1] in ("no", "off"):
-            SPB_MODE = False
-            message.reply_text("SpamProtection API bans are now disabled.")
-    elif SPB_MODE:
-        message.reply_text("SpamProtection API bans are currently enabled.")
-    else:
-        message.reply_text("SpamProtection API bans are currenty disabled.")
-        
 @metacmd(command="gban")
 @support_plus
-def gban(update: Update, context: CallbackContext):
+def gban(update: Update, context: CallbackContext):  # sourcery no-metrics
     bot, args = context.bot, context.args
     message = update.effective_message
     user = update.effective_user
@@ -141,7 +116,6 @@ def gban(update: Update, context: CallbackContext):
 
         message.reply_text("I can't seem to find this user.")
         return ""
-
     if user_chat.type != "private":
         message.reply_text("That's not a user!")
         return
@@ -267,7 +241,7 @@ def gban(update: Update, context: CallbackContext):
 
     if gban_time > 60:
         gban_time = round((gban_time / 60), 2)
-        message.reply_text("Done! Gbanned.", parse_mode=ParseMode.HTML)
+    message.reply_text("Done! Gbanned.", parse_mode=ParseMode.HTML)
     try:
         bot.send_message(
             user_id,
@@ -282,7 +256,7 @@ def gban(update: Update, context: CallbackContext):
 
 @metacmd(command="ungban")
 @support_plus
-def ungban(update: Update, context: CallbackContext):
+def ungban(update: Update, context: CallbackContext):  # sourcery no-metrics
     bot, args = context.bot, context.args
     message = update.effective_message
     user = update.effective_user
@@ -417,32 +391,7 @@ def gbanlist(update: Update, context: CallbackContext):
 
 
 def check_and_ban(update, user_id, should_message=True):
-    from MetaButler import SPB_MODE
     chat = update.effective_chat  # type: Optional[Chat]
-    if SPB_MODE:
-        try:
-            apst = requests.get(f'https://api.intellivoid.net/spamprotection/v1/lookup?query={user_id}')
-            api_status = apst.status_code
-            if api_status == 200:
-                try:
-                    status = apst.json()
-                    try:
-                        bl_check = (status.get("results").get("attributes").get("is_blacklisted"))
-                    except:
-                        bl_check = False
-
-                    if bl_check is True:
-                        bl_res = (status.get("results").get("attributes").get("blacklist_reason"))
-                        update.effective_chat.kick_member(user_id)
-                        if should_message:
-                            update.effective_message.reply_text(
-                            f"This person was blacklisted on @SpamProtectionBot and has been removed!\nReason: <code>{bl_res}</code>",
-                            parse_mode=ParseMode.HTML,
-                        )
-                except BaseException:
-                    log.warning("Spam Protection API is unreachable.")
-        except BaseException as e:
-            log.info(f'SpamProtection was disabled due to {e}')
     try:
         sw_ban = sw.get_ban(int(user_id))
     except AttributeError:
@@ -452,7 +401,7 @@ def check_and_ban(update, user_id, should_message=True):
         sw_ban = None
 
     if sw_ban:
-        update.effective_chat.kick_member(user_id)
+        chat.kick_member(user_id)
         if should_message:
             update.effective_message.reply_text(
                 f"This person has been detected as a spammer by @SpamWatch and has been removed!\nReason: <code>{sw_ban.reason}</code>",
@@ -501,7 +450,7 @@ def enforce_gban(update: Update, context: CallbackContext):
                 check_and_ban(update, user.id, should_message=False)
 
 @metacmd(command="antispam")
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 def gbanstat(update: Update, context: CallbackContext):
     args = context.args
     if len(args) > 0:
@@ -549,7 +498,7 @@ def __user_info__(user_id):
         user = sql.get_gbanned_user(user_id)
         if user.reason:
             text += f"\n<b>Reason:</b> <code>{html.escape(user.reason)}</code>"
-        text += f"\n<b>Appeal Chat:</b> @MetaButler"
+        text += '\n<b>Appeal Chat:</b> @MetaButler'
     else:
         text = text.format("No")
     return text

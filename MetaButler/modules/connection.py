@@ -89,7 +89,7 @@ def connection_chat(update, context):
 
 
 @typing_action
-def connect_chat(update, context):
+def connect_chat(update, context):  # sourcery no-metrics
 
     chat = update.effective_chat
     user = update.effective_user

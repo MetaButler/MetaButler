@@ -9,7 +9,6 @@ from MetaButler.modules.helper_funcs.chat_status import (
     bot_admin,
     can_restrict,
     is_user_admin,
-    user_admin,
     user_admin_no_reply,
 )
 from MetaButler.modules.helper_funcs.extraction import (
@@ -44,6 +43,8 @@ from telegram.ext import (
 )
 from telegram.utils.helpers import mention_html
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 WARN_HANDLER_GROUP = 9
 CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
 
@@ -51,9 +52,9 @@ CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
 # Not async
 def warn(
     user: User, chat: Chat, reason: str, message: Message, warner: User = None
-) -> str:
+) -> str:  # sourcery no-metrics
     if is_user_admin(chat, user.id):
-        message.reply_text("Damn admins, They are too far to be kicked!")
+        # message.reply_text("Damn admins, They are too far to be kicked!")
         return
 
     if user.id in WHITELIST_USERS:
@@ -176,7 +177,7 @@ def button(update: Update, context: CallbackContext) -> str:
     return ""
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @can_restrict
 @loggable
 def warn_user(update: Update, context: CallbackContext) -> str:
@@ -206,7 +207,7 @@ def warn_user(update: Update, context: CallbackContext) -> str:
     return ""
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @bot_admin
 @loggable
 def reset_warns(update: Update, context: CallbackContext) -> str:
@@ -262,7 +263,7 @@ def warns(update: Update, context: CallbackContext):
 
 
 # Dispatcher handler stop - do not async
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 def add_warn_filter(update: Update, context: CallbackContext):
     chat: Optional[Chat] = update.effective_chat
     msg: Optional[Message] = update.effective_message
@@ -294,7 +295,7 @@ def add_warn_filter(update: Update, context: CallbackContext):
     raise DispatcherHandlerStop
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 def remove_warn_filter(update: Update, context: CallbackContext):
     chat: Optional[Chat] = update.effective_chat
     msg: Optional[Message] = update.effective_message
@@ -379,7 +380,7 @@ def reply_filter(update: Update, context: CallbackContext) -> str:
     return ""
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 @loggable
 def set_warn_limit(update: Update, context: CallbackContext) -> str:
     args = context.args
@@ -409,7 +410,7 @@ def set_warn_limit(update: Update, context: CallbackContext) -> str:
     return ""
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
 def set_warn_strength(update: Update, context: CallbackContext):
     args = context.args
     chat: Optional[Chat] = update.effective_chat

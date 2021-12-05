@@ -1,5 +1,5 @@
 import speedtest
-from MetaButler import SUDO_USERS, dispatcher
+from MetaButler import DEV_USERS, dispatcher
 from MetaButler.modules.helper_funcs.chat_status import dev_plus
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
 from telegram.ext import CallbackContext
@@ -28,7 +28,7 @@ def speedtestxyz(update: Update, context: CallbackContext):
 def speedtestxyz_callback(update: Update, context: CallbackContext):
     query = update.callback_query
 
-    if query.from_user.id in SUDO_USERS:
+    if query.from_user.id in DEV_USERS:
         msg = update.effective_message.edit_text("Running a speedtest....")
         speed = speedtest.Speedtest()
         speed.get_best_server()
@@ -48,7 +48,7 @@ def speedtestxyz_callback(update: Update, context: CallbackContext):
             replymsg += f"\nDownload: `{convert(result['download'])}Mb/s`\nUpload: `{convert(result['upload'])}Mb/s`\nPing: `{result['ping']}`"
             update.effective_message.edit_text(replymsg, parse_mode=ParseMode.MARKDOWN)
     else:
-        query.answer("Not Owner")
+        query.answer("You are not a part of Eagle Union.")
 
 
 __mod_name__ = "SpeedTest"

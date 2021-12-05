@@ -188,6 +188,8 @@ def about(query: str, update: Update, context: CallbackContext) -> None:
     about_text = f"""
     MetaButler (@{context.bot.username})
     Maintained by [Destroyer32](t.me/destroyer32)
+    Built with ❤️ using python-telegram-bot v{str(__version__)}
+    Running on Python {python_version()}
     """
     results: list = []
     kb = InlineKeyboardMarkup(
@@ -205,6 +207,7 @@ def about(query: str, update: Update, context: CallbackContext) -> None:
                     text='Ping',
                     callback_data='pingCB'
                 ),
+
             ],
             [
                 InlineKeyboardButton(
@@ -244,7 +247,6 @@ def spb(query: str, update: Update, context: CallbackContext) -> None:
             search = user_id
 
         srdata = search or user_id
-
         url = f"https://api.intellivoid.net/spamprotection/v1/lookup?query={srdata}"
         r = requests.get(url)
         a = r.json()

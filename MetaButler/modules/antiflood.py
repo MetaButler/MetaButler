@@ -18,7 +18,6 @@ from MetaButler.modules.helper_funcs.chat_status import (
     can_restrict,
     connection_status,
     is_user_admin,
-    user_admin,
     user_admin_no_reply,
 )
 from MetaButler.modules.log_channel import loggable
@@ -30,17 +29,14 @@ from telegram.ext import (
 )
 from telegram.utils.helpers import mention_html, escape_markdown
 from MetaButler import dispatcher
-from MetaButler.modules.helper_funcs.chat_status import (
-    is_user_admin,
-    user_admin,
-    can_restrict,
-)
 from MetaButler.modules.helper_funcs.string_handling import extract_time
 from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.sql import antiflood_sql as sql
 from MetaButler.modules.connection import connected
 from MetaButler.modules.helper_funcs.alternate import send_message
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg, metacallback
+
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 FLOOD_GROUP = -5
 
@@ -160,10 +156,10 @@ def flood_button(update: Update, context: CallbackContext):
 
 @metacmd(command='setflood', pass_args=True, filters=Filters.chat_type.groups)
 @connection_status
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @can_restrict
 @loggable
-def set_flood(update, context) -> str:
+def set_flood(update, context) -> str:  # sourcery no-metrics
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
@@ -255,8 +251,8 @@ def set_flood(update, context) -> str:
     return ""
 
 
-@connection_status
 @metacmd(command="flood", filters=Filters.chat_type.groups)
+@connection_status
 def flood(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -294,12 +290,12 @@ def flood(update, context):
         text = msg.reply_text(
             "I'm currently restricting members after {} consecutive messages.".format(
                 limit
-                )
             )
+        )
 
 @metacmd(command="setfloodmode", pass_args=True, filters=Filters.chat_type.groups)
-@user_admin
-def set_flood_mode(update, context):
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
+def set_flood_mode(update, context):  # sourcery no-metrics
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     msg = update.effective_message  # type: Optional[Message]

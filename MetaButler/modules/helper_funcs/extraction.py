@@ -36,7 +36,6 @@ def extract_user_and_text(
 
     entities = list(message.parse_entities([MessageEntity.TEXT_MENTION]))
     ent = entities[0] if entities else None
-
     # if entity offset matches (command end/text start) then all good
     if entities and ent and ent.offset == len(message.text) - len(text_to_parse):
         ent = entities[0]
@@ -98,7 +97,7 @@ def extract_text(message) -> str:
 
 def extract_unt_fedban(
     message: Message, args: List[str]
-) -> (Optional[int], Optional[str]):
+) -> (Optional[int], Optional[str]):  # sourcery no-metrics
     prev_message = message.reply_to_message
     split_text = message.text.split(None, 1)
 
@@ -111,7 +110,6 @@ def extract_unt_fedban(
 
     entities = list(message.parse_entities([MessageEntity.TEXT_MENTION]))
     ent = entities[0] if entities else None
-
     # if entity offset matches (command end/text start) then all good
     if entities and ent and ent.offset == len(message.text) - len(text_to_parse):
         ent = entities[0]

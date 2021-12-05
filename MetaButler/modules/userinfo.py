@@ -156,7 +156,7 @@ def set_about_bio(update: Update, context: CallbackContext):
             return
 
         if user_id == bot.id and sender_id not in DEV_USERS:
-            message.reply_text("Erm... yeah, I only trust Owner to set my bio.")
+            message.reply_text("yeah, I only trust DESTROYER32 to set my bio.")
             return
 
         text = message.text

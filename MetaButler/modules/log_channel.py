@@ -6,6 +6,8 @@ from MetaButler.modules.helper_funcs.decorators import metacmd
 from MetaButler.modules.helper_funcs.misc import is_module_loaded
 from MetaButler.modules.language import gs
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 def get_help(chat):
     return gs(chat, "log_help")
 
@@ -17,7 +19,7 @@ if is_module_loaded(FILENAME):
     from telegram.utils.helpers import escape_markdown
 
     from MetaButler import GBAN_LOGS, log, dispatcher
-    from MetaButler.modules.helper_funcs.chat_status import user_admin
+    from MetaButler.modules.helper_funcs.chat_status import user_admin as u_admin
     from MetaButler.modules.sql import log_channel_sql as sql
 
     def loggable(func):
@@ -92,8 +94,8 @@ if is_module_loaded(FILENAME):
                     + "\n\nFormatting has been disabled due to an unexpected error.",
                 )
 
-    @user_admin
     @metacmd(command='logchannel')
+    @u_admin
     def logging(update: Update, context: CallbackContext):
         bot = context.bot
         message = update.effective_message
@@ -111,8 +113,8 @@ if is_module_loaded(FILENAME):
         else:
             message.reply_text("No log channel has been set for this group!")
 
-    @user_admin
     @metacmd(command='setlog')
+    @user_admin(AdminPerms.CAN_CHANGE_INFO)
     def setlog(update: Update, context: CallbackContext):
         bot = context.bot
         message = update.effective_message
@@ -153,8 +155,8 @@ if is_module_loaded(FILENAME):
                 " - forward the /setlog to the group\n"
             )
 
-    @user_admin
     @metacmd(command='unsetlog')
+    @user_admin(AdminPerms.CAN_CHANGE_INFO)
     def unsetlog(update: Update, context: CallbackContext):
         bot = context.bot
         message = update.effective_message

@@ -11,7 +11,7 @@ from MetaButler.modules.helper_funcs.chat_status import (
     can_pin,
     can_promote,
     connection_status,
-    user_admin,
+    user_admin as u_admin,
     ADMIN_CACHE,
 )
 
@@ -20,11 +20,13 @@ from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.language import gs
 from MetaButler.modules.helper_funcs.decorators import metacmd
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 @metacmd(command="promote", can_disable=False)
 @connection_status
 @bot_admin
 @can_promote
-@user_admin
+@user_admin(AdminPerms.CAN_PROMOTE_MEMBERS)
 @loggable
 def promote(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -107,7 +109,7 @@ def promote(update: Update, context: CallbackContext) -> str:
 @connection_status
 @bot_admin
 @can_promote
-@user_admin
+@user_admin(AdminPerms.CAN_PROMOTE_MEMBERS)
 @loggable
 def demote(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -178,7 +180,7 @@ def demote(update: Update, context: CallbackContext) -> str:
         return
 
 @metacmd(command="admincache", can_disable=False)
-@user_admin
+@u_admin
 def refresh_admin(update, _):
     ADMIN_CACHE.pop(update.effective_chat.id)
     update.effective_message.reply_text("Admins cache refreshed!")
@@ -187,7 +189,7 @@ def refresh_admin(update, _):
 @connection_status
 @bot_admin
 @can_promote
-@user_admin
+@user_admin(AdminPerms.CAN_PROMOTE_MEMBERS)
 def set_title(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
@@ -250,7 +252,7 @@ def set_title(update: Update, context: CallbackContext):
 @metacmd(command="pin", can_disable=False)
 @bot_admin
 @can_pin
-@user_admin
+@user_admin(AdminPerms.CAN_PIN_MESSAGES)
 @loggable
 def pin(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -291,7 +293,7 @@ def pin(update: Update, context: CallbackContext) -> str:
 @metacmd(command="unpin", can_disable=False)
 @bot_admin
 @can_pin
-@user_admin
+@user_admin(AdminPerms.CAN_PIN_MESSAGES)
 @loggable
 def unpin(update: Update, context: CallbackContext) -> str:
     bot = context.bot
@@ -316,7 +318,7 @@ def unpin(update: Update, context: CallbackContext) -> str:
 
 @metacmd(command="invitelink", can_disable=False)
 @bot_admin
-@user_admin
+@user_admin(AdminPerms.CAN_INVITE_USERS)
 @connection_status
 def invite(update: Update, context: CallbackContext):
     bot = context.bot
@@ -338,6 +340,8 @@ def invite(update: Update, context: CallbackContext):
             "I can only give you invite links for supergroups and channels, sorry!"
         )
 
+
+
 @metacmd(command=["admin", "admins"])
 def adminlist(update, context):
     administrators = update.effective_chat.get_administrators()
@@ -350,6 +354,7 @@ def adminlist(update, context):
         text += "\n - {}".format(name)
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+
 
 def get_help(chat):
     return gs(chat, "admin_help")

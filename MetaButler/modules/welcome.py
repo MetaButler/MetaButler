@@ -17,7 +17,7 @@ from MetaButler import (
 )
 from MetaButler.modules.helper_funcs.chat_status import (
     is_user_ban_protected,
-    user_admin,
+    user_admin as u_admin,
 )
 from MetaButler.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from MetaButler.modules.helper_funcs.msg_types import get_welcome_type
@@ -43,6 +43,8 @@ from telegram.ext import (
     MessageHandler,
 )
 from telegram.utils.helpers import escape_markdown, mention_html, mention_markdown
+
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 VALID_WELCOME_FORMATTERS = [
     "first",
@@ -113,7 +115,8 @@ def send(update, message, keyboard, backup_message):
                 quote=False,
             )
 
-        elif excp.message == 'Unsupported url protocol':            msg = update.effective_message.reply_text(
+        elif excp.message == 'Unsupported url protocol':
+            msg = update.effective_message.reply_text(
                 markdown_parser(
                     (
                         backup_message
@@ -156,7 +159,7 @@ def send(update, message, keyboard, backup_message):
 
 
 @loggable
-def new_member(update: Update, context: CallbackContext):
+def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
     bot, job_queue = context.bot, context.job_queue
     chat = update.effective_chat
     user = update.effective_user
@@ -181,6 +184,7 @@ def new_member(update: Update, context: CallbackContext):
             sw_ban = sw.get_ban(new_mem.id)
             if sw_ban:
                 return
+
 
         reply = update.message.message_id
         cleanserv = sql.clean_service(chat.id)
@@ -209,7 +213,7 @@ def new_member(update: Update, context: CallbackContext):
             # Welcome Devs
             elif new_mem.id in DEV_USERS:
                 update.effective_message.reply_text(
-                    "Whoa! A Dev just joined!",
+                    "Whoa! A DEV just joined!",
                     reply_to_message_id=reply,
                 )
                 continue
@@ -231,6 +235,7 @@ def new_member(update: Update, context: CallbackContext):
                 continue
 
             # Welcome Whitelisted
+
             elif new_mem.id in WHITELIST_USERS:
                 update.effective_message.reply_text(
                     "Wew! A Whitelisted User just joined!", reply_to_message_id=reply
@@ -545,7 +550,7 @@ def check_not_bot(member, chat_id, message_id, context):
             pass
 
 
-def left_member(update: Update, context: CallbackContext):
+def left_member(update: Update, context: CallbackContext):  # sourcery no-metrics
     bot = context.bot
     chat = update.effective_chat
     user = update.effective_user
@@ -655,7 +660,7 @@ def left_member(update: Update, context: CallbackContext):
             )
 
 
-@user_admin
+@u_admin
 def welcome(update: Update, context: CallbackContext):
     args = context.args
     chat = update.effective_chat
@@ -781,7 +786,7 @@ def welcome(update: Update, context: CallbackContext):
                         reply_markup=keyboard,
                         parse_mode="markdown",
                     )
-
+                    
     elif len(args) >= 1:
         if args[0].lower() in ("on", "yes"):
             sql.set_welc_preference(str(chat.id), True)
@@ -801,7 +806,7 @@ def welcome(update: Update, context: CallbackContext):
             )
 
 
-@user_admin
+@u_admin
 def goodbye(update: Update, context: CallbackContext):
     args = context.args
     chat = update.effective_chat
@@ -851,7 +856,7 @@ def goodbye(update: Update, context: CallbackContext):
             )
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 def set_welcome(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat
@@ -875,7 +880,7 @@ def set_welcome(update: Update, context: CallbackContext) -> str:
     )
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 def reset_welcome(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat
@@ -894,7 +899,7 @@ def reset_welcome(update: Update, context: CallbackContext) -> str:
     )
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 def set_goodbye(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat
@@ -916,7 +921,7 @@ def set_goodbye(update: Update, context: CallbackContext) -> str:
     )
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 def reset_goodbye(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat
@@ -935,7 +940,7 @@ def reset_goodbye(update: Update, context: CallbackContext) -> str:
     )
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 def welcomemute(update: Update, context: CallbackContext) -> str:
     args = context.args
@@ -1002,7 +1007,7 @@ def welcomemute(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 @loggable
 def clean_welcome(update: Update, context: CallbackContext) -> str:
     args = context.args
@@ -1044,7 +1049,7 @@ def clean_welcome(update: Update, context: CallbackContext) -> str:
         return ""
 
 
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 def cleanservice(update: Update, context: CallbackContext) -> str:
     args = context.args
     chat = update.effective_chat  # type: Optional[Chat]
@@ -1140,6 +1145,7 @@ def user_button(update: Update, context: CallbackContext):
         query.answer(text="You're not allowed to do this!")
 
 def user_captcha_button(update: Update, context: CallbackContext):
+    # sourcery no-metrics
     chat = update.effective_chat
     user = update.effective_user
     query = update.callback_query
@@ -1259,12 +1265,12 @@ WELC_MUTE_HELP_TXT = (
 )
 
 
-@user_admin
+@u_admin
 def welcome_help(update: Update, context: CallbackContext):
     update.effective_message.reply_text(WELC_HELP_TXT, parse_mode=ParseMode.MARKDOWN)
 
 
-@user_admin
+@u_admin
 def welcome_mute_help(update: Update, context: CallbackContext):
     update.effective_message.reply_text(
         WELC_MUTE_HELP_TXT, parse_mode=ParseMode.MARKDOWN

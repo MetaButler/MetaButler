@@ -1,7 +1,7 @@
 import html
 
 from MetaButler import log, SUDO_USERS, WHITELIST_USERS
-from MetaButler.modules.helper_funcs.chat_status import user_admin, user_not_admin
+from MetaButler.modules.helper_funcs.chat_status import user_not_admin
 from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.sql import reporting_sql as sql
 from telegram import Chat, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
@@ -13,11 +13,13 @@ from telegram.ext import (
 from telegram.utils.helpers import mention_html
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg, metacallback
 
+from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 REPORT_GROUP = 12
 REPORT_IMMUNE_USERS = SUDO_USERS + WHITELIST_USERS
 
 @metacmd(command='reports')
-@user_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 def report_setting(update: Update, context: CallbackContext):
     bot, args = context.bot, context.args
     chat = update.effective_chat
@@ -60,11 +62,12 @@ def report_setting(update: Update, context: CallbackContext):
         )
 
 
-@user_not_admin
-@loggable
 @metacmd(command='report', filters=Filters.chat_type.groups, group=REPORT_GROUP)
 @metamsg((Filters.regex(r"(?i)@admin(s)?")), group=REPORT_GROUP)
+@user_not_admin
+@loggable
 def report(update: Update, context: CallbackContext) -> str:
+    # sourcery no-metrics
     bot = context.bot
     args = context.args
     message = update.effective_message
@@ -90,7 +93,7 @@ def report(update: Update, context: CallbackContext) -> str:
             return ""
 
         if reported_user.id in REPORT_IMMUNE_USERS:
-            message.reply_text("Uh? You reporting a Friend of me?")
+            message.reply_text("Uh? You reporting a nation?")
             return ""
 
         if chat.username and chat.type == Chat.SUPERGROUP:

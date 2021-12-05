@@ -12,6 +12,7 @@ from telegram.ext import (
 from telegram.ext.dispatcher import DispatcherHandlerStop
 from telegram.utils.helpers import escape_markdown
 from MetaButler import (
+    MInit,
     dispatcher,
     updater,
     TOKEN,
@@ -110,7 +111,6 @@ def test(update: Update, context: CallbackContext):
         update: Update           -
         context: CallbackContext -
     '''
-
     # pprint(ast.literal_eval(str(update)))
     # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
     update.effective_message.reply_text("This person edited a message")
@@ -118,7 +118,7 @@ def test(update: Update, context: CallbackContext):
 
 @metacallback(pattern=r'start_back')
 @metacmd(command='start', pass_args=True)
-def start(update: Update, context: CallbackContext):  # sourcery no-metrics
+def start(update: Update, context: CallbackContext):    # sourcery no-metrics
     '''#TODO
 
     Params:
@@ -129,7 +129,7 @@ def start(update: Update, context: CallbackContext):  # sourcery no-metrics
     args = context.args
 
     if hasattr(update, 'callback_query'):
-        query = update.callback_query 
+        query = update.callback_query
         if hasattr(query, 'id'):
             first_name = update.effective_user.first_name
             update.effective_message.edit_text(
@@ -144,7 +144,7 @@ def start(update: Update, context: CallbackContext):  # sourcery no-metrics
                         [
                             InlineKeyboardButton(
                                 text=gs(chat.id, "support_chat_link_btn"),
-                                url=f"https://t.me/MetaButler",
+                                url='https://t.me/MetaButler',
                             ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "updates_channel_link_btn"),
@@ -152,32 +152,29 @@ def start(update: Update, context: CallbackContext):  # sourcery no-metrics
                             ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "src_btn"),
-                                url="https://github.com/DESTROYER-32/MetaButler",
+                                url="https://github.com/DESTROYER-32/MwtaButler",
                             ),
-                            
                         ],
-
                         [
-
-                             InlineKeyboardButton(
-                                 text="Try inline",
-                                 switch_inline_query_current_chat="",
-                             ),
-                             InlineKeyboardButton(
+                            InlineKeyboardButton(
+                                text="Try inline",
+                                switch_inline_query_current_chat="",
+                            ),
+                            InlineKeyboardButton(
                                 text="Help",
                                 callback_data="help_back",
-                                ),
+                            ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "add_bot_to_group_btn"),
                                 url="t.me/{}?startgroup=true".format(
                                     context.bot.username
                                 ),
                             ),
-                        ]
-                        
+                        ],
                     ]
                 ),
             )
+
             context.bot.answer_callback_query(query.id)
             return
 
@@ -215,7 +212,7 @@ def start(update: Update, context: CallbackContext):  # sourcery no-metrics
                         [
                             InlineKeyboardButton(
                                 text=gs(chat.id, "support_chat_link_btn"),
-                                url=f"https://t.me/MetaButler",
+                                url='https://t.me/MetaButler',
                             ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "updates_channel_link_btn"),
@@ -225,33 +222,30 @@ def start(update: Update, context: CallbackContext):  # sourcery no-metrics
                                 text=gs(chat.id, "src_btn"),
                                 url="https://github.com/DESTROYER-32/MetaButler",
                             ),
-                            
                         ],
-
                         [
-
-                             InlineKeyboardButton(
-                                 text="Try inline",
-                                 switch_inline_query_current_chat="",
-                             ),
-                             InlineKeyboardButton(
+                            InlineKeyboardButton(
+                                text="Try inline",
+                                switch_inline_query_current_chat="",
+                            ),
+                            InlineKeyboardButton(
                                 text="Help",
                                 callback_data="help_back",
-                                ),
+                            ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "add_bot_to_group_btn"),
                                 url="t.me/{}?startgroup=true".format(
                                     context.bot.username
                                 ),
                             ),
-                        ]
-                        
+                        ],
                     ]
                 ),
             )
+
     else:
         update.effective_message.reply_text(gs(chat.id, "grp_start_text"))
-    
+
     if hasattr(update, 'callback_query'):
         query = update.callback_query 
         if hasattr(query, 'id'):
@@ -269,12 +263,9 @@ def error_callback(update, context):
 
     try:
         raise context.error
-    except Unauthorized:
+    except (Unauthorized, BadRequest):
         pass
         # remove update.message.chat_id from conversation list
-    except BadRequest:
-        pass
-        # handle malformed requests - read more below!
     except TimedOut:
         pass
         # handle slow connection problems
@@ -650,7 +641,7 @@ def main():
         MetaINIT.bot_id = dispatcher.bot.id
         MetaINIT.bot_username = dispatcher.bot.username
         MetaINIT.bot_name = dispatcher.bot.first_name
-        updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True)
+        updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=MInit.DROP_UPDATES)
     if len(argv) not in (1, 3, 4):
         telethn.disconnect()
     else:

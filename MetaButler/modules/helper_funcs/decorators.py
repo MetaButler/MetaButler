@@ -5,6 +5,7 @@ from MetaButler import dispatcher as d, log
 from typing import Optional, Union, List
 
 
+
 class MetaTelegramHandler:
     def __init__(self, d):
         self._dispatcher = d
@@ -41,7 +42,6 @@ class MetaTelegramHandler:
         return _command
 
     def message(self, pattern: Optional[str] = None, can_disable: bool = True, run_async: bool = True, group: Optional[Union[int]] = 60, friendly = None):
-
         def _message(func):
             try:
                 if can_disable:
@@ -62,7 +62,7 @@ class MetaTelegramHandler:
                     self._dispatcher.add_handler(
                         MessageHandler(pattern, func, run_async=run_async)
                     )
-                log.infdebugo(f"[METAMSG] Loaded filter pattern {pattern} for function {func.__name__}")
+                log.debug(f"[METAMSG] Loaded filter pattern {pattern} for function {func.__name__}")
 
             return func
         return _message
