@@ -1,0 +1,3 @@
+files:
+  - source: /MetaButler/langs/en.yaml
+    translation: /MetaButler/langs/%two_letters_code%.json

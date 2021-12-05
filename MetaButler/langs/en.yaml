@@ -1,5 +1,12 @@
 # Language name in their native
 language: "English 🇺🇲"
+# name of people(s) who worked on this translation
+authors: "@dank_as_fuck"
+
+# languages
+curr_chat_lang: "Hey. Your current language is {}, select the one you want from the buttons below :)"
+set_chat_lang: "Great, {} it is from now on!"
+
 
 pm_start_text: |
    Hi {}, I'm {},
@@ -16,6 +23,7 @@ pm_help_text: |
    *Main* commands available:
     • /start: Starts me, can be used to check I'm alive or not.
     • /help: PM's you this message.
+    • /language: Change bot language.
     • /settings:
       - in PM: will send you your settings for all supported modules.
       - in a group: will redirect you to pm, with all that chat's settings.
@@ -24,7 +32,7 @@ pm_help_text: |
 add_bot_to_group_btn: "Add MetaButler"
 support_chat_link_btn: "Support"
 updates_channel_link_btn: "Updates"
-src_btn: "Source"
+src_btn: "Source code"
 
 admin_help: |
    • `/admins`*:* list of admins in the chat
@@ -96,13 +104,6 @@ blacklist_help: |
      • `/addblacklist <triggers>`*:* Add a trigger to the blacklist. Each line is considered one trigger, so using different lines will allow you to add multiple triggers.
      • `/unblacklist <triggers>`*:* Remove triggers from the blacklist. Same newline logic applies here, so you can remove multiple triggers at once.
      • `/blacklistmode <off/del/warn/ban/kick/mute/tban/tmute>`*:* Action to perform when someone sends blacklisted words.
-
-bl_stickers_help: |
-      Blacklist sticker is used to stop certain stickers. Whenever a sticker is sent, the message will be deleted immediately.\n
-       • `/blsticker` *:* See current blacklisted sticker
-       • `/addblsticker <sticker link>` *:* Add the sticker trigger to the black list. Can be added via reply sticker
-       • `/rmblsticker <sticker link>` *:* Remove triggers from blacklist.
-       • `/blstickermode <ban/tban/mute/tmute>` *:* sets up a default action on what to do if users use blacklisted stickers
 
 cleaner_help: |
     - /cleanbluetext <on/off/yes/no> - clean commands after sending
@@ -225,10 +226,14 @@ filling_help: |
 fun_help: |
      • /runs: reply a random string from an array of replies.
      • /insult: insults a person
+     • /pat: pat a person, cool thing to have for cute ones :3
      • /slap: slap a user, or get slapped if not a reply.
+     • /shrug : get shrug XD.
+     • /table : get flip/unflip :v.
      • /decide : Randomly answers yes/no/maybe
      • /toss : Tosses A coin
      • /roll : Roll a dice.
+     • /rlg : Join ears,nose,mouth and create an emo ;-;
      • /shout <keyword>: write anything you want to give loud shout.
      • /stickerid: reply to a sticker to get its ID.
      • /getsticker: reply to a sticker to get the raw PNG image.
@@ -242,18 +247,14 @@ antispam_help: |
      you and your groups by removing spam flooders as quickly as possible.
      *Note:* Users can appeal gbans or report spammers at @MetaButler
 
-     MetaButler also integrates @Spamwatch and @Intellivoid's SpamProtectionBot API to remove Spammers as much as possible from your chatroom!
+     MetaButler also integrates @Spamwatch API to remove Spammers as much as possible from your chatroom!
      *What is SpamWatch?*
      SpamWatch maintains a large constantly updated ban-list of spambots, trolls, bitcoin spammers and unsavoury characters.
      Constantly help banning spammers off from your group automatically So, you wont have to worry about spammers storming your group.
      *Note:* Users can appeal spamwatch bans at @SpamwatchSupport
 
-     *What is Spam protection?*
-     SpamProtection is the new AI antispam service which makes sure that your chat is free of spambots, scammers, and pedophiles.
-     Uses @Intellivoid's Coffeehouse Artificial Engine. Every ban is checked by real trusty people before being finalized.
-
 gtranslate_help: |
-     Translate text using this module....
+     Use this module to translate stuff... duh!
 
      *Commands:*
      • `/tl` (or `/tr`): as a reply to a message, translates it to English.
@@ -262,6 +263,7 @@ gtranslate_help: |
      • `/tl <source>//<dest>`: translates from <source> to <lang>.
        eg: `/tl ja//en`: translates from Japanese to English.
      • `/langs`: get a list of supported languages for translation.
+
 
 locks_help: |
      Do stickers annoy you? or want to avoid people sharing links? or pictures?
@@ -332,7 +334,6 @@ misc_help: |
       • /tr (language code) as reply to a long message.
       • /getid : get IDs of chat, user and chat message.
       • /spbinfo : get info about a user from @Intellivoid's SpamProtection API
-      • /swinfo : show spamwatch info along with fedinfo of a user
       • /weather <city name>: Get weather info from openweather.
 
 muting_help: |
