@@ -106,11 +106,15 @@ DEFAULT_WELCOME_MESSAGES = [
     "Hey {first}, Are You Challenging Me?",  # Shaggy
     "{first} just warped into the group!",
     "I..it's..it's just {first}.",
+    "In the jungle you must wait...until the dice read five or eight.",  # Jumanji stuff
+    "Dr.{first} Famed archeologist and international explorer,\nWelcome to Jumanji!\nJumanji's Fate is up to you now.",
+    "{first}, this will not be an easy mission - monkeys slow the expedition.",  # End of jumanji stuff
 ]
 DEFAULT_GOODBYE_MESSAGES = [
     "{first} will be missed.",
     "{first} just went offline.",
     "{first} has left the lobby.",
+    "{first} has left the clan.",
     "{first} has left the game.",
     "{first} has fled the area.",
     "{first} is out of the running.",
@@ -241,7 +245,7 @@ class WelcomeMute(BASE):
 
 class WelcomeMuteUsers(BASE):
     __tablename__ = "human_checks"
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(BigInteger, primary_key=True)
     chat_id = Column(String(14), primary_key=True)
     human_check = Column(Boolean)
 
