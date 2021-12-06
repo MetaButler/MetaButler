@@ -83,6 +83,56 @@ def addsudo(update: Update, context: CallbackContext) -> str:
 
     return log_message
 
+@metacmd(command='adddev')
+@dev_plus
+@gloggable
+def adddev(update: Update, context: CallbackContext) -> str:
+    message = update.effective_message
+    user = update.effective_user
+    chat = update.effective_chat
+    bot, args = context.bot, context.args
+    user_id = extract_user(message, args)
+    user_member = bot.getChat(user_id)
+    rt = ""
+
+    reply = check_user_id(user_id, bot)
+    if reply:
+        message.reply_text(reply)
+        return ""
+
+    if user_id in DEV_USERS:
+        message.reply_text("This member is already a Dev user")
+        return ""
+
+    if user_id in SUPPORT_USERS:
+        rt += "Requested MetaButler to promote a Support user to Dev."
+        SUPPORT_USERS.remove(user_id)
+
+    if user_id in WHITELIST_USERS:
+        rt += "Requested MetaButler to promote a Whitelist user to Dev."
+        WHITELIST_USERS.remove(user_id)
+
+    # will add or update their role
+    sql.set_meta_role(user_id, "devs")
+    DEV_USERS.append(user_id)
+
+    update.effective_message.reply_text(
+        rt
+        + "\nSuccessfully promoted {} to Dev!".format(
+            user_member.first_name
+        )
+    )
+
+    log_message = (
+        f"#DEV\n"
+        f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
+        f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+    )
+
+    if chat.type != "private":
+        log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+
+    return log_message
 
 @metacmd(command='addsupport')
 @sudo_plus
@@ -291,26 +341,47 @@ def removewhitelist(update: Update, context: CallbackContext) -> str:
         message.reply_text("This user is not a Whitelist user!")
         return ""
 
+@metacmd(command='removedev')
+@sudo_plus
+@gloggable
+def removedev(update: Update, context: CallbackContext) -> str:
+    message = update.effective_message
+    user = update.effective_user
+    chat = update.effective_chat
+    bot, args = context.bot, context.args
+    user_id = extract_user(message, args)
+    user_member = bot.getChat(user_id)
+
+    reply = check_user_id(user_id, bot)
+    if reply:
+        message.reply_text(reply)
+        return ""
+
+    if user_id in DEV_USERS:
+        message.reply_text("Demoting to normal user")
+        DEV_USERS.remove(user_id)
+        sql.remove_meta(user_id)
+
+        log_message = (
+            f"#Removed Dev\n"
+            f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
+            f"<b>User:</b> {mention_html(user_member.id, html.escape(user_member.first_name))}"
+        )
+
+        if chat.type != "private":
+            log_message = f"<b>{html.escape(chat.title)}:</b>\n" + log_message
+
+        return log_message
+    else:
+        message.reply_text("This user is not a Dev user!")
+        return ""
 
 def send_metas(update):
     update.effective_message.reply_text(
         metas, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
     )
 
-@metacmd(command='removesardegna')
-@whitelist_plus
-def whitelistlist(update: Update, context: CallbackContext):
-    bot = context.bot
-    reply = "<b>Known Whitelisted :</b>\n"
-    for each_user in WHITELIST_USERS:
-        user_id = int(each_user)
-        try:
-            user = bot.get_chat(user_id)
 
-            reply += f"• {mention_html(user_id, user.first_name)}\n"
-        except TelegramError:
-            pass
-    update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
 
 @metacmd(command=["supportlist"])
 @whitelist_plus
