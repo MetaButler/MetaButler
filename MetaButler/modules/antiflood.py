@@ -40,10 +40,12 @@ from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 FLOOD_GROUP = -5
 
+
 @metamsg((Filters.all & ~Filters.status_update & Filters.chat_type.groups), group=FLOOD_GROUP)
 @connection_status
 @loggable
-def check_flood(update, context) -> str:
+def check_flood(update, context) -> Optional[str]:
+    global execstrings
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
@@ -52,12 +54,12 @@ def check_flood(update, context) -> str:
 
     # ignore admins and whitelists
     if (
-        is_user_admin(update, user.id)
-        or user.id in WHITELIST_USERS
+            is_user_admin(update, user.id)
+            or user.id in WHITELIST_USERS
     ):
         sql.update_flood(chat.id, None)
         return ""
-      # ignore approved users
+    # ignore approved users
     if is_approved(chat.id, user.id):
         sql.update_flood(chat.id, None)
         return
@@ -153,6 +155,7 @@ def flood_button(update: Update, context: CallbackContext):
             )
         except:
             pass
+
 
 @metacmd(command='setflood', pass_args=True, filters=Filters.chat_type.groups)
 @connection_status
@@ -293,9 +296,11 @@ def flood(update, context):
             )
         )
 
+
 @metacmd(command="setfloodmode", pass_args=True, filters=Filters.chat_type.groups)
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 def set_flood_mode(update, context):  # sourcery no-metrics
+    global settypeflood
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     msg = update.effective_message  # type: Optional[Message]
@@ -412,7 +417,9 @@ def __chat_settings__(chat_id, user_id):
 
 from MetaButler.modules.language import gs
 
+
 def get_help(chat):
     return gs(chat, "antiflood_help")
+
 
 __mod_name__ = "Anti-Flood"
