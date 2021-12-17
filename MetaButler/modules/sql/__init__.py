@@ -2,11 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from MetaButler import DB_URI, log
+from MetaButler import DB_URI, MInit, log
 
 
 def start() -> scoped_session:
-    engine = create_engine(DB_URI, client_encoding="utf8")
+    engine = create_engine(DB_URI, client_encoding="utf8", echo=MInit.DEBUG)
     log.info("[PostgreSQL] Connecting to database......")
     BASE.metadata.bind = engine
     BASE.metadata.create_all(engine)
