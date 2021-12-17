@@ -647,7 +647,7 @@ def main():
         MetaINIT.bot_id = dispatcher.bot.id
         MetaINIT.bot_username = dispatcher.bot.username
         MetaINIT.bot_name = dispatcher.bot.first_name
-        updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=MInit.DROP_UPDATES)
+        updater.start_polling(timeout=15, read_latency=4, allowed_updates=Update.ALL_TYPES, drop_pending_updates=MInit.DROP_UPDATES)
     if len(argv) not in (1, 3, 4):
         telethn.disconnect()
     else:
