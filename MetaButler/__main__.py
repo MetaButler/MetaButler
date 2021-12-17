@@ -34,7 +34,6 @@ from MetaButler.modules.helper_funcs.misc import paginate_modules
 from MetaButler.modules.helper_funcs.decorators import metacmd, metacallback, metamsg
 from MetaButler.modules.language import gs
 
-
 IMPORTED = {}
 MIGRATEABLE = []
 HELPABLE = {}
@@ -95,7 +94,8 @@ def send_help(chat_id, text, keyboard=None):
     if not keyboard:
         kb = paginate_modules(0, HELPABLE, "help")
         kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
-        InlineKeyboardButton(text='Back', callback_data='start_back'), InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
+                   InlineKeyboardButton(text='Back', callback_data='start_back'),
+                   InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
         keyboard = InlineKeyboardMarkup(kb)
     dispatcher.bot.send_message(
         chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard
@@ -116,9 +116,10 @@ def test(update: Update, context: CallbackContext):
     update.effective_message.reply_text("This person edited a message")
     print(update.effective_message)
 
+
 @metacallback(pattern=r'start_back')
 @metacmd(command='start', pass_args=True)
-def start(update: Update, context: CallbackContext):    # sourcery no-metrics
+def start(update: Update, context: CallbackContext):   # sourcery no-metrics
     '''#TODO
 
     Params:
@@ -190,7 +191,7 @@ def start(update: Update, context: CallbackContext):    # sourcery no-metrics
                 match = re.match("stngs_(.*)", args[0].lower())
                 chat = dispatcher.bot.getChat(match.group(1))
 
-                if is_user_admin(chat, update.effective_user.id):
+                if is_user_admin(update, update.effective_user.id):
                     send_settings(match.group(1), update.effective_user.id, False)
                 else:
                     send_settings(match.group(1), update.effective_user.id, True)
@@ -247,10 +248,9 @@ def start(update: Update, context: CallbackContext):    # sourcery no-metrics
         update.effective_message.reply_text(gs(chat.id, "grp_start_text"))
 
     if hasattr(update, 'callback_query'):
-        query = update.callback_query 
+        query = update.callback_query
         if hasattr(query, 'id'):
-           context.bot.answer_callback_query(query.id)
-
+            context.bot.answer_callback_query(query.id)
 
 # for test purposes
 def error_callback(update, context):
@@ -278,6 +278,7 @@ def error_callback(update, context):
     except TelegramError:
         pass
         # handle all other telegram related errors
+
 
 @metacallback(pattern=r'help_')
 def help_button(update, context):
@@ -307,14 +308,14 @@ def help_button(update, context):
                 help_text = help_list
                 help_buttons = []
             text = (
-                "Here is the help for the *{}* module:\n".format(
-                    HELPABLE[module].__mod_name__
-                )
-                + help_text
+                    "Here is the help for the *{}* module:\n".format(
+                        HELPABLE[module].__mod_name__
+                    )
+                    + help_text
             )
             help_buttons.append(
                 [InlineKeyboardButton(text="Back", callback_data="help_back"),
-                InlineKeyboardButton(text='Support', url='https://t.me/MetaButler')]
+                 InlineKeyboardButton(text='Support', url='https://t.me/MetaButler')]
             )
             query.message.edit_text(
                 text=text,
@@ -326,8 +327,8 @@ def help_button(update, context):
             curr_page = int(prev_match.group(1))
             kb = paginate_modules(curr_page - 1, HELPABLE, "help")
             kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
-            InlineKeyboardButton(text='Back', callback_data='start_back'), InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
-            query.message.edit_text(
+                       InlineKeyboardButton(text='Back', callback_data='start_back'),
+                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])            query.message.edit_text(
                 text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(kb),
@@ -337,8 +338,8 @@ def help_button(update, context):
             next_page = int(next_match.group(1))
             kb = paginate_modules(next_page + 1, HELPABLE, "help")
             kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
-            InlineKeyboardButton(text='Back', callback_data='start_back'), InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
-            query.message.edit_text(
+                       InlineKeyboardButton(text='Back', callback_data='start_back'),
+                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])            query.message.edit_text(
                 text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(kb),
@@ -347,8 +348,8 @@ def help_button(update, context):
         elif back_match:
             kb = paginate_modules(0, HELPABLE, "help")
             kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
-            InlineKeyboardButton(text='Back', callback_data='start_back'), InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
-            query.message.edit_text(
+                       InlineKeyboardButton(text='Back', callback_data='start_back'),
+                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])            query.message.edit_text(
                 text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(kb),
@@ -360,6 +361,7 @@ def help_button(update, context):
 
     except BadRequest:
         pass
+
 
 @metacmd(command='help')
 def get_help(update, context):
@@ -394,10 +396,10 @@ def get_help(update, context):
     elif len(args) >= 2 and any(args[1].lower() == x for x in HELPABLE):
         module = args[1].lower()
         text = (
-            "Here is the available help for the *{}* module:\n".format(
-                HELPABLE[module].__mod_name__
-            )
-            + HELPABLE[module].get_help
+                "Here is the available help for the *{}* module:\n".format(
+                    HELPABLE[module].__mod_name__
+                )
+                + HELPABLE[module].get_help
         )
         send_help(
             chat.id,
@@ -457,6 +459,7 @@ def send_settings(chat_id, user_id, user=False):
             "in a group chat you're admin in to find its current settings!",
             parse_mode=ParseMode.MARKDOWN,
         )
+
 
 @metacallback(pattern=r"stngs_")
 def settings_button(update: Update, context: CallbackContext):
@@ -530,7 +533,7 @@ def settings_button(update: Update, context: CallbackContext):
             chat = bot.get_chat(chat_id)
             query.message.reply_text(
                 text="Hi there! There are quite a few settings for {} - go ahead and pick what "
-                "you're interested in.".format(escape_markdown(chat.title)),
+                     "you're interested in.".format(escape_markdown(chat.title)),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id)
@@ -547,6 +550,7 @@ def settings_button(update: Update, context: CallbackContext):
             "Message can't be deleted",
         ]:
             log.exception('Exception in settings buttons. %s', str(query.data))
+
 
 @metacmd(command='settings')
 def get_settings(update: Update, context: CallbackContext):
@@ -565,7 +569,7 @@ def get_settings(update: Update, context: CallbackContext):
     if chat.type == chat.PRIVATE:
         send_settings(chat.id, user.id, True)
 
-    elif is_user_admin(chat, user.id):
+    elif is_user_admin(update, user.id):
         text = "Click here to get this chat's settings, as well as yours."
         msg.reply_text(
             text,
@@ -585,6 +589,7 @@ def get_settings(update: Update, context: CallbackContext):
     else:
         text = "Click here to check your settings."
 
+
 @metacmd(command='donate')
 def donate(update: Update, context: CallbackContext):
     '''#TODO
@@ -595,6 +600,7 @@ def donate(update: Update, context: CallbackContext):
     '''
 
     update.effective_message.reply_text("I'm free for everyone! >_<")
+
 
 @metamsg((Filters.status_update.migrate))
 def migrate_chats(update: Update, context: CallbackContext):
@@ -647,6 +653,7 @@ def main():
     else:
         telethn.run_until_disconnected()
     updater.idle()
+
 
 if __name__ == "__main__":
     log.info("[META] Successfully loaded modules: " + str(ALL_MODULES))
