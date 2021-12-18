@@ -16,6 +16,7 @@ from MetaButler.modules.helper_funcs.anonymous import user_admin
 from MetaButler.modules.helper_funcs.chat_status import user_not_admin
 from MetaButler.modules.helper_funcs.misc import split_message
 from MetaButler.modules.helper_funcs.string_handling import extract_time
+from MetaButler.modules.language import gs
 from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.sql.approve_sql import is_approved
 from MetaButler.modules.warns import warn
@@ -498,8 +499,11 @@ def __stats__():
     )
 
 
-__mod_name__ = "Stickers Blacklist"
+__mod_name__ = "Sticker Ban"
+def get_help(chat):
+    return gs(chat, "sticker_blacklist_help")
 
+    
 BLACKLIST_STICKER_HANDLER = DisableAbleCommandHandler(
     "blsticker", blackliststicker, admin_ok=True,
 )
