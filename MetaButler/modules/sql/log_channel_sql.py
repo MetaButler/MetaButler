@@ -1,4 +1,5 @@
 import threading
+import typing
 
 from sqlalchemy import Column, String, func, distinct, BigInteger, Boolean, select
 

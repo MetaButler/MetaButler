@@ -328,7 +328,8 @@ def help_button(update, context):
             kb = paginate_modules(curr_page - 1, HELPABLE, "help")
             kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
                        InlineKeyboardButton(text='Back', callback_data='start_back'),
-                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])            query.message.edit_text(
+                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
+            query.message.edit_text(
                 text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(kb),
@@ -339,7 +340,8 @@ def help_button(update, context):
             kb = paginate_modules(next_page + 1, HELPABLE, "help")
             kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
                        InlineKeyboardButton(text='Back', callback_data='start_back'),
-                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])            query.message.edit_text(
+                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
+            query.message.edit_text(
                 text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(kb),
@@ -349,7 +351,8 @@ def help_button(update, context):
             kb = paginate_modules(0, HELPABLE, "help")
             kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaButler'),
                        InlineKeyboardButton(text='Back', callback_data='start_back'),
-                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])            query.message.edit_text(
+                       InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
+            query.message.edit_text(
                 text=gs(chat.id, "pm_help_text"),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(kb),

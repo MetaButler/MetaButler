@@ -253,7 +253,7 @@ def log_settings(update: Update, _: CallbackContext):
     msg.reply_text("Toggle channel log settings", reply_markup=btn)
 
 
-from tg_bot.modules.sql import log_channel_sql as sql
+from MetaButler.modules.sql import log_channel_sql as sql
 
 
 @metacallback(pattern=r"log_tog_.*")
