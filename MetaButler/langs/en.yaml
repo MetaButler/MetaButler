@@ -336,7 +336,13 @@ misc_help: |
       • /getid : get IDs of chat, user and chat message.
       • /spbinfo : get info about a user from @Intellivoid's SpamProtection API
       • /weather <city name>: Get weather info from openweather.
-
+      ~~~~~~
+      *Anti channel*
+      Tired of telegram's stupidity? well here you go
+      *Available commands:*
+      • /antichannel <on/off>: Bans and deletes anyone who tries to talk as channel and forces em to talk as themselves
+      • /antilinkedchan <on/off: Makes Kigyo automatically delete linked channel posts from chatroom
+      
 muting_help: |
       *Admins only:*
        • `/mute <userhandle>`*:* silences a user. Can also be used as a reply, muting the replied to user.
