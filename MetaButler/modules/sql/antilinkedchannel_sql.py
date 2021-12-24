@@ -4,7 +4,7 @@ from sqlalchemy import Boolean
 from sqlalchemy.sql.sqltypes import String
 from sqlalchemy import Column
 
-from tg_MetaButler.modules.sql import BASE, SESSION
+from MetaButler.modules.sql import BASE, SESSION
 
 
 class AntiLinkedChannelSettings(BASE):
