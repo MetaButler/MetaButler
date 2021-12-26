@@ -44,7 +44,7 @@ def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bo
         or user_id in SUDO_USERS
         or user_id in DEV_USERS
         or chat.all_members_are_administrators
-        or (msg.sender_chat is not None and msg.sender_chat.type != "channel")
+        or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and msg.reply_to_message.sender_chat.type != "channel")
     ):
         return True
 
@@ -88,7 +88,7 @@ def is_user_ban_protected(update: Update, user_id: int, member: ChatMember = Non
         or user_id in DEV_USERS
         or user_id in WHITELIST_USERS
         or chat.all_members_are_administrators
-        or (msg.sender_chat is not None and msg.sender_chat.type != "channel")
+        or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and msg.reply_to_message.sender_chat.type != "channel")
     ):
         return True
 
