@@ -9,14 +9,14 @@ from MetaButler import (
     dispatcher,
 )
 from cachetools import TTLCache
-from telegram import Chat, ChatMember, ParseMode, Update
+from telegram import Chat, ChatMember, ParseMode, Update, TelegramError
 from telegram.ext import CallbackContext
 
-# stores admemes in memory for 10 min.
+# stores admin in memory for 10 min.
 ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10)
 
 
-def is_whitelist_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+def is_whitelist_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
     return any(
         user_id in user
         for user in [
@@ -28,11 +28,11 @@ def is_whitelist_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bo
     )
 
 
-def is_support_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+def is_support_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
     return user_id in SUPPORT_USERS or user_id in SUDO_USERS or user_id in DEV_USERS
 
 
-def is_sudo_plus(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
+def is_sudo_plus(_: Chat, user_id: int, member: ChatMember = None) -> bool:
     return user_id in SUDO_USERS or user_id in DEV_USERS
 
 
@@ -44,7 +44,8 @@ def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bo
         or user_id in SUDO_USERS
         or user_id in DEV_USERS
         or chat.all_members_are_administrators
-        or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and msg.reply_to_message.sender_chat.type != "channel")
+        or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and
+            msg.reply_to_message.sender_chat.type != "channel")
     ):
         return True
 
@@ -88,7 +89,8 @@ def is_user_ban_protected(update: Update, user_id: int, member: ChatMember = Non
         or user_id in DEV_USERS
         or user_id in WHITELIST_USERS
         or chat.all_members_are_administrators
-        or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and msg.reply_to_message.sender_chat.type != "channel")
+        or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None
+            and msg.reply_to_message.sender_chat.type != "channel")
     ):
         return True
 
@@ -106,7 +108,7 @@ def is_user_in_chat(chat: Chat, user_id: int) -> bool:
 def dev_plus(func):
     @wraps(func)
     def is_dev_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
-        bot = context.bot
+        # bot = context.bot
         user = update.effective_user
 
         if user.id in DEV_USERS:
@@ -116,7 +118,7 @@ def dev_plus(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
         else:
             update.effective_message.reply_text(
@@ -130,7 +132,7 @@ def dev_plus(func):
 def sudo_plus(func):
     @wraps(func)
     def is_sudo_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
-        bot = context.bot
+        # bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
 
@@ -141,7 +143,7 @@ def sudo_plus(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
         else:
             update.effective_message.reply_text(
@@ -154,7 +156,7 @@ def sudo_plus(func):
 def support_plus(func):
     @wraps(func)
     def is_support_plus_func(update: Update, context: CallbackContext, *args, **kwargs):
-        bot = context.bot
+        # bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
 
@@ -163,7 +165,7 @@ def support_plus(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
 
     return is_support_plus_func
@@ -174,7 +176,7 @@ def whitelist_plus(func):
     def is_whitelist_plus_func(
         update: Update, context: CallbackContext, *args, **kwargs
     ):
-        bot = context.bot
+        # bot = context.bot
         user = update.effective_user
         chat = update.effective_chat
 
@@ -191,9 +193,9 @@ def whitelist_plus(func):
 def user_admin(func):
     @wraps(func)
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
-        bot = context.bot
+        # bot = context.bot
         user = update.effective_user
-        chat = update.effective_chat
+        # chat = update.effective_chat
 
         if user and is_user_admin(update, user.id):
             return func(update, context, *args, **kwargs)
@@ -202,7 +204,7 @@ def user_admin(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
         else:
             update.effective_message.reply_text(
@@ -217,9 +219,9 @@ def user_admin_no_reply(func):
     def is_not_admin_no_reply(
         update: Update, context: CallbackContext, *args, **kwargs
     ):
-        bot = context.bot
+        # bot = context.bot
         user = update.effective_user
-        chat = update.effective_chat
+        # chat = update.effective_chat
 
         if user and is_user_admin(update, user.id):
             return func(update, context, *args, **kwargs)
@@ -228,7 +230,7 @@ def user_admin_no_reply(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             try:
                 update.effective_message.delete()
-            except:
+            except TelegramError:
                 pass
 
     return is_not_admin_no_reply
@@ -237,12 +239,17 @@ def user_admin_no_reply(func):
 def user_not_admin(func):
     @wraps(func)
     def is_not_admin(update: Update, context: CallbackContext, *args, **kwargs):
-        bot = context.bot
+        message = update.effective_message
         user = update.effective_user
-        chat = update.effective_chat
+        # chat = update.effective_chat
 
-        if user and not is_user_admin(update, user.id):
+        if message.is_automatic_forward:
+            return
+        if message.sender_chat and message.sender_chat.type != "channel":
+            return
+        elif user and not is_user_admin(update, user.id):
             return func(update, context, *args, **kwargs)
+
         elif not user:
             pass
 
@@ -281,7 +288,8 @@ def bot_can_delete(func):
         if update_chat_title == message_chat_title:
             cant_delete = "I can't delete messages here!\nMake sure I'm admin and can delete other user's messages."
         else:
-            cant_delete = f"I can't delete messages in <b>{update_chat_title}</b>!\nMake sure I'm admin and can delete other user's messages there."
+            cant_delete = f"I can't delete messages in <b>{update_chat_title}</b>!\nMake sure I'm admin and can " \
+                          f"delete other user's messages there. "
 
         if can_delete(chat, bot.id):
             return func(update, context, *args, **kwargs)
@@ -304,7 +312,8 @@ def can_pin(func):
                 "I can't pin messages here!\nMake sure I'm admin and can pin messages."
             )
         else:
-            cant_pin = f"I can't pin messages in <b>{update_chat_title}</b>!\nMake sure I'm admin and can pin messages there."
+            cant_pin = f"I can't pin messages in <b>{update_chat_title}</b>!\nMake sure I'm admin and can pin " \
+                       f"messages there. "
 
         if chat.get_member(bot.id).can_pin_messages:
             return func(update, context, *args, **kwargs)
@@ -349,7 +358,8 @@ def can_restrict(func):
         if update_chat_title == message_chat_title:
             cant_restrict = "I can't restrict people here!\nMake sure I'm admin and can restrict users."
         else:
-            cant_restrict = f"I can't restrict people in <b>{update_chat_title}</b>!\nMake sure I'm admin there and can restrict users."
+            cant_restrict = f"I can't restrict people in <b>{update_chat_title}</b>!\nMake sure I'm admin there and " \
+                            f"can restrict users. "
 
         if chat.get_member(bot.id).can_restrict_members:
             return func(update, context, *args, **kwargs)
@@ -364,7 +374,7 @@ def can_restrict(func):
 def user_can_ban(func):
     @wraps(func)
     def user_is_banhammer(update: Update, context: CallbackContext, *args, **kwargs):
-        bot = context.bot
+        # bot = context.bot
         user = update.effective_user.id
         member = update.effective_chat.get_member(user)
 
