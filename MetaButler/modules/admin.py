@@ -6,21 +6,16 @@ from telegram.error import BadRequest
 from telegram.ext import CallbackContext
 from telegram.utils.helpers import escape_markdown, mention_html
 
-from MetaButler import SUDO_USERS
 from MetaButler.modules.helper_funcs.chat_status import (
     bot_admin,
     can_pin,
     can_promote,
     connection_status,
-    user_admin as u_admin,
-    ADMIN_CACHE,
 )
-
-from MetaButler.modules.helper_funcs.extraction import extract_user, extract_user_and_text
-from MetaButler.modules.log_channel import loggable
-from MetaButler.modules.language import gs
 from MetaButler.modules.helper_funcs.decorators import metacmd
-
+from MetaButler.modules.helper_funcs.extraction import extract_user, extract_user_and_text
+from MetaButler.modules.language import gs
+from MetaButler.modules.log_channel import loggable
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 
@@ -38,15 +33,15 @@ def promote(update: Update, context: CallbackContext) -> Optional[str]:
     chat = update.effective_chat
     user = update.effective_user
 
-    promoter = chat.get_member(user.id)
-
+    # promoter = chat.get_member(user.id)
+    """
     if (
             not (promoter.can_promote_members or promoter.status == "creator")
             and not user.id in SUDO_USERS
     ):
         message.reply_text("You don't have the necessary rights to do that!")
         return
-
+    """
     user_id = extract_user(message, args)
 
     if not user_id:
@@ -182,13 +177,13 @@ def demote(update: Update, context: CallbackContext) -> Optional[str]:
         )
         return
 
-
+"""
 @metacmd(command="admincache", can_disable=False)
 @u_admin
 def refresh_admin(update, _):
     ADMIN_CACHE.pop(update.effective_chat.id)
     update.effective_message.reply_text("Admins cache refreshed!")
-
+"""
 
 @metacmd(command="title", can_disable=False)
 @connection_status
