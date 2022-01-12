@@ -33,3 +33,6 @@ tswift
 ujson
 zalgo-text
 wikipedia
+pycryptodome
+base58
+privatebinapi
