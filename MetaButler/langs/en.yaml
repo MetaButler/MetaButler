@@ -331,7 +331,7 @@ misc_help: |
       • /ud <word>: Type the word or expression you want to search use.
       • /urban <word>: Same as /ud
       • /paste - Do a paste at `nekobin.com`
-      • /delpaste URL deletion_token: To delete a PrivateBIN paste
+      • /delpaste `PasteBin URL` `deletion_token`: Delete the PrivateBin paste corresponding to URL
       • /react: Reacts with a random reaction
       • /tr (language code) as reply to a long message.
       • /getid : get IDs of chat, user and chat message.
