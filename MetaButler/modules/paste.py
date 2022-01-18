@@ -25,7 +25,7 @@ def paste(update: Update, context: CallbackContext):
                 data = file.read().decode()
 
     elif len(args) >= 1:
-        data = message.text.split()[1:]
+        data = " ".join(message.text.split()[1:])
     else:
         message.reply_text('What am I supposed to do with this?')
         return
