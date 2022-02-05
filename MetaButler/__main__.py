@@ -1,5 +1,6 @@
 import importlib
 import re
+import threading
 from typing import Optional
 from sys import argv
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
@@ -30,8 +31,8 @@ from MetaButler import (
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from MetaButler.modules import ALL_MODULES
 from MetaButler.modules.helper_funcs.chat_status import is_user_admin
-from MetaButler.modules.helper_funcs.misc import paginate_modules
 from MetaButler.modules.helper_funcs.decorators import metacmd, metacallback, metamsg
+from MetaButler.modules.helper_funcs.misc import paginate_modules
 from MetaButler.modules.language import gs
 
 IMPORTED = {}
@@ -183,10 +184,34 @@ def start(update: Update, context: CallbackContext):   # sourcery no-metrics
         if args and len(args) >= 1:
             if args[0].lower() == "help":
                 send_help(update.effective_chat.id, (gs(chat.id, "pm_help_text")))
+            elif args[0].lower().startswith("ghelp_"):
+                query = update.callback_query
+                mod = args[0].lower().split("_", 1)[1]
+                if not HELPABLE.get(mod, False):
+                    return
+                help_list = HELPABLE[mod].get_help(chat.id)
+                help_text = []
+                help_buttons = []
+                if isinstance(help_list, list):
+                    help_text = help_list[0]
+                    help_buttons = help_list[1:]
+                elif isinstance(help_list, str):
+                    help_text = help_list
+                text = "Here is the help for the *{}* module:\n".format(HELPABLE[mod].__mod_name__) + help_text
+                help_buttons.append(
+                    [InlineKeyboardButton(text="Back", callback_data="help_back"),
+                     InlineKeyboardButton(text='Support', url='https://t.me/MetaButler')]
+                )
+                send_help(
+                    chat.id,
+                    text,
+                    InlineKeyboardMarkup(help_buttons),
+                )
+
+                if hasattr(query, "id"):
+                    context.bot.answer_callback_query(query.id)
             elif args[0].lower() == "markdownhelp":
                 IMPORTED["extras"].markdown_help_sender(update)
-            elif args[0].lower() == "nations":
-                IMPORTED["nations"].send_nations(update)
             elif args[0].lower().startswith("stngs_"):
                 match = re.match("stngs_(.*)", args[0].lower())
                 chat = dispatcher.bot.getChat(match.group(1))
@@ -253,13 +278,13 @@ def start(update: Update, context: CallbackContext):   # sourcery no-metrics
             context.bot.answer_callback_query(query.id)
 
 # for test purposes
-def error_callback(update, context):
-    '''#TODO
+def error_callback(_, context: CallbackContext):
+    """#TODO
 
     Params:
         update  -
         context -
-    '''
+    """
 
     try:
         raise context.error
@@ -272,7 +297,7 @@ def error_callback(update, context):
     except NetworkError:
         pass
         # handle other connection problems
-    except ChatMigrated as e:
+    except ChatMigrated:
         pass
         # the chat_id of a group has changed, use e.new_chat_id instead
     except TelegramError:
@@ -281,13 +306,13 @@ def error_callback(update, context):
 
 
 @metacallback(pattern=r'help_')
-def help_button(update, context):
-    '''#TODO
+def help_button(update: Update, context: CallbackContext):
+    """#TODO
 
     Params:
         update  -
         context -
-    '''
+    """
 
     query = update.callback_query
     mod_match = re.match(r"help_module\((.+?)\)", query.data)
@@ -368,7 +393,7 @@ def help_button(update, context):
 
 
 @metacmd(command='help')
-def get_help(update, context):
+def get_help(update: Update, context: CallbackContext):
     '''#TODO
 
     Params:
@@ -381,6 +406,31 @@ def get_help(update, context):
 
     # ONLY send help in PM
     if chat.type != chat.PRIVATE:
+
+        if len(args) >= 2:
+            if any(args[1].lower() == x for x in HELPABLE):
+                module = args[1].lower()
+                update.effective_message.reply_text(
+                    f"Contact me in PM to get help of {module.capitalize()}",
+                    reply_markup=InlineKeyboardMarkup(
+                        [
+                            [
+                                InlineKeyboardButton(
+                                    text="Help",
+                                    url="t.me/{}?start=ghelp_{}".format(
+                                        context.bot.username, module
+                                    ),
+                                )
+                            ]
+                        ]
+                    ),
+                )
+            else:
+                update.effective_message.reply_text(
+                    f"<code>{args[1].lower()}</code> is not a module",
+                    parse_mode=ParseMode.HTML,
+                )
+            return
 
         update.effective_message.reply_text(
             "Contact me in PM to get the list of possible commands.",
@@ -397,27 +447,37 @@ def get_help(update, context):
         )
         return
 
-    elif len(args) >= 2 and any(args[1].lower() == x for x in HELPABLE):
-        module = args[1].lower()
-        text = (
-                "Here is the available help for the *{}* module:\n".format(
-                    HELPABLE[module].__mod_name__
-                )
-                + HELPABLE[module].get_help
-        )
-        send_help(
-            chat.id,
-            text,
-            InlineKeyboardMarkup(
-                [[InlineKeyboardButton(text="Back", callback_data="help_back")]]
-            ),
-        )
-
+    if len(args) >= 2:
+        if any(args[1].lower() == x for x in HELPABLE):
+            module = args[1].lower()
+            help_list = HELPABLE[module].get_help(chat.id)
+            help_text = []
+            help_buttons = []
+            if isinstance(help_list, list):
+                help_text = help_list[0]
+                help_buttons = help_list[1:]
+            elif isinstance(help_list, str):
+                help_text = help_list
+            text = "Here is the available help for the *{}* module:\n".format(HELPABLE[module].__mod_name__) + help_text
+            help_buttons.append(
+                [InlineKeyboardButton(text="Back", callback_data="help_back"),
+                 InlineKeyboardButton(text='Support', url='https://t.me/MetaButler')]
+            )
+            send_help(
+                chat.id,
+                text,
+                InlineKeyboardMarkup(help_buttons),
+            )
+        else:
+            update.effective_message.reply_text(
+                f"<code>{args[1].lower()}</code> is not a module",
+                parse_mode=ParseMode.HTML,
+            )
     else:
         send_help(chat.id, (gs(chat.id, "pm_help_text")))
 
 
-def send_settings(chat_id, user_id, user=False):
+def send_settings(chat_id: int, user_id: int, user=False):
     '''#TODO
 
     Params:
@@ -595,25 +655,25 @@ def get_settings(update: Update, context: CallbackContext):
 
 
 @metacmd(command='donate')
-def donate(update: Update, context: CallbackContext):
-    '''#TODO
+def donate(update: Update, _: CallbackContext):
+    """#TODO
 
     Params:
         update: Update           -
         context: CallbackContext -
-    '''
+    """
 
     update.effective_message.reply_text("I'm free for everyone! >_<")
 
 
-@metamsg((Filters.status_update.migrate))
+@metamsg(Filters.status_update.migrate)
 def migrate_chats(update: Update, context: CallbackContext):
-    '''#TODO
+    """#TODO
 
     Params:
         update: Update           -
         context: CallbackContext -
-    '''
+    """
 
     msg = update.effective_message  # type: Optional[Message]
     if msg.migrate_to_chat_id:
@@ -651,7 +711,8 @@ def main():
         MetaINIT.bot_id = dispatcher.bot.id
         MetaINIT.bot_username = dispatcher.bot.username
         MetaINIT.bot_name = dispatcher.bot.first_name
-        updater.start_polling(timeout=15, read_latency=4, allowed_updates=Update.ALL_TYPES, drop_pending_updates=MInit.DROP_UPDATES)
+        updater.start_polling(timeout=15, read_latency=4, allowed_updates=Update.ALL_TYPES,
+                              drop_pending_updates=MInit.DROP_UPDATES)
     if len(argv) not in (1, 3, 4):
         telethn.disconnect()
     else:
@@ -662,4 +723,4 @@ def main():
 if __name__ == "__main__":
     log.info("[META] Successfully loaded modules: " + str(ALL_MODULES))
     telethn.start(bot_token=TOKEN)
-    main()
+    threading.Thread(target=main).start()
