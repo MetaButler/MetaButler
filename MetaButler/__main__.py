@@ -1,4 +1,5 @@
 import importlib
+import platform
 import re
 import threading
 from typing import Optional
@@ -723,4 +724,7 @@ def main():
 if __name__ == "__main__":
     log.info("[META] Successfully loaded modules: " + str(ALL_MODULES))
     telethn.start(bot_token=TOKEN)
-    threading.Thread(target=main).start()
+    if platform.system() == 'Windows':
+        main()
+    else:
+        threading.Thread(target=main).start()
