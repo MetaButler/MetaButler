@@ -1,22 +1,24 @@
 import html
-from MetaButler.modules.disable import DisableAbleCommandHandler
-from MetaButler import dispatcher, SUDO_USERS
-from MetaButler.modules.helper_funcs.extraction import extract_user
-from telegram.ext import CallbackContext, CallbackQueryHandler, Filters
-import MetaButler.modules.sql.approve_sql as sql
-from MetaButler.modules.helper_funcs.chat_status import user_admin as u_admin
-from MetaButler.modules.log_channel import loggable
+
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, Update
-from telegram.utils.helpers import mention_html
 from telegram.error import BadRequest
+from telegram.ext import CallbackContext, Filters
+from telegram.utils.helpers import mention_html
+
+import MetaButler.modules.sql.approve_sql as sql
+from MetaButler import SUDO_USERS
+from MetaButler.modules.helper_funcs.chat_status import user_admin as u_admin
 from MetaButler.modules.helper_funcs.decorators import metacmd, metacallback
+from MetaButler.modules.helper_funcs.extraction import extract_user
+from MetaButler.modules.log_channel import loggable
 
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+
 
 @metacmd(command='approve', filters=Filters.chat_type.groups)
 @loggable
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
-def approve(update, context):
+def approve(update: Update, context: CallbackContext):
     message = update.effective_message
     chat_title = message.chat.title
     chat = update.effective_chat
@@ -45,7 +47,8 @@ def approve(update, context):
         return ""
     sql.approve(message.chat_id, user_id)
     message.reply_text(
-        f"[{member.user['first_name']}](tg://user?id={member.user['id']}) has been approved in {chat_title}! They will now be ignored by automated admin actions like locks, blocklists, and antiflood.",
+        f"[{member.user['first_name']}](tg://user?id={member.user['id']}) has been approved in {chat_title}! They "
+        f"will now be ignored by automated admin actions like locks, blocklists, and antiflood.",
         parse_mode=ParseMode.MARKDOWN,
     )
     log_message = (
@@ -56,10 +59,11 @@ def approve(update, context):
 
     return log_message
 
+
 @metacmd(command='unapprove', filters=Filters.chat_type.groups)
 @loggable
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
-def disapprove(update, context):
+def disapprove(update: Update, context: CallbackContext):
     message = update.effective_message
     chat_title = message.chat.title
     chat = update.effective_chat
@@ -92,9 +96,10 @@ def disapprove(update, context):
 
     return log_message
 
+
 @metacmd(command='approved', filters=Filters.chat_type.groups)
-@u_admin
-def approved(update, context):
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
+def approved(update: Update, _:CallbackContext):
     message = update.effective_message
     chat_title = message.chat.title
     chat = update.effective_chat
@@ -111,7 +116,7 @@ def approved(update, context):
 
 
 @metacmd(command='approval', filters=Filters.chat_type.groups)
-@u_admin
+@user_admin(AdminPerms.CAN_CHANGE_INFO)
 def approval(update, context):
     message = update.effective_message
     chat = update.effective_chat
@@ -123,7 +128,7 @@ def approval(update, context):
         )
         return ""
     member = chat.get_member(int(user_id))
-        
+
     if sql.is_approved(message.chat_id, user_id):
         message.reply_text(
             f"{member.user['first_name']} is an approved user. Locks, antiflood, and blocklists won't apply to them."
@@ -135,7 +140,7 @@ def approval(update, context):
 
 
 @metacmd(command='unapproveall', filters=Filters.chat_type.groups)
-def unapproveall(update: Update, context: CallbackContext):
+def unapproveall(update: Update, _: CallbackContext):
     chat = update.effective_chat
     user = update.effective_user
     member = chat.get_member(user.id)
@@ -161,7 +166,7 @@ def unapproveall(update: Update, context: CallbackContext):
         )
 
 @metacallback(pattern=r"unapproveall_.*")
-def unapproveall_btn(update: Update, context: CallbackContext):
+def unapproveall_btn(update: Update, _: CallbackContext):
     query = update.callback_query
     chat = update.effective_chat
     message = update.effective_message
@@ -188,9 +193,12 @@ def unapproveall_btn(update: Update, context: CallbackContext):
         if member.status == "member":
             query.answer("You need to be admin to do this.")
 
+
 from MetaButler.modules.language import gs
+
 
 def get_help(chat):
     return gs(chat, "approve_help")
+
 
 __mod_name__ = "Approvals"
