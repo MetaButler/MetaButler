@@ -92,6 +92,7 @@ def send(update, message, keyboard, backup_message):
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=keyboard,
             reply_to_message_id=reply,
+            allow_sending_without_reply=True,
         )
     except BadRequest as excp:
         if excp.message == 'Button_url_invalid':
@@ -388,6 +389,7 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                     ),
                     parse_mode=ParseMode.MARKDOWN,
                     reply_to_message_id=reply,
+                    allow_sending_without_reply=True,
                 )
                 bot.restrict_chat_member(
                     chat.id,
@@ -479,6 +481,7 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                                           reply_markup=InlineKeyboardMarkup(btn),
                                           parse_mode=ParseMode.MARKDOWN,
                                           reply_to_message_id=reply,
+                                          allow_sending_without_reply=True,
                                           )
                 bot.restrict_chat_member(
                     chat.id,
