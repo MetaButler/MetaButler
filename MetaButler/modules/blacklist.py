@@ -357,7 +357,7 @@ def del_blacklist(update, context):  # sourcery no-metrics
 
     chat_filters = sql.get_chat_blacklist(chat.id)
     for trigger in chat_filters:
-        pattern = r"( |^|[^\w])" + re.escape(trigger) + r"( |$|[^\w])"
+        pattern = r"( |^|[^\w])" + re.escape(trigger).replace('\\*', '.*').replace('\\?', '.') + r"( |$|[^\w])"
         if re.search(pattern, to_match, flags=re.IGNORECASE):
             try:
                 if getmode == 0:

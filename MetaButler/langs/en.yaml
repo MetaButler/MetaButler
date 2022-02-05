@@ -105,6 +105,12 @@ blacklist_help: |
      • `/unblacklist <triggers>`*:* Remove triggers from the blacklist. Same newline logic applies here, so you can remove multiple triggers at once.
      • `/blacklistmode <off/del/warn/ban/kick/mute/tban/tmute>`*:* Action to perform when someone sends blacklisted words.
 
+    Blacklist Trigger examples:
+     • `/addblacklist boo`*:* Take action on users that says 'boo'
+     • `/addblacklist "the admins suck"`*:* Take blacklist action against users' message having 'the admins suck'
+     • `/addblocklist "bit.ly/*"`*:* Stop any bit.ly links using the * shortcut to match any character
+     • `/addblocklist "bit.ly/???"`*:* Stop any bit.ly links followed by exactly three characters, to catch bit.ly/hey, but not bit.ly/abcd
+
 cleaner_help: |
     - /cleanbluetext <on/off/yes/no> - clean commands after sending
     - /ignorecleanbluetext <word> - prevent auto cleaning of the command
