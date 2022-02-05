@@ -1,25 +1,30 @@
 import html
 import re
-from telegram import ParseMode, ChatPermissions
+
+import MetaButler.modules.sql.blacklist_sql as sql
+from MetaButler import dispatcher, log
+from MetaButler.modules.connection import connected
+from MetaButler.modules.helper_funcs.alternate import (send_message,
+                                                       typing_action)
+from MetaButler.modules.helper_funcs.chat_status import user_admin as u_admin
+from MetaButler.modules.helper_funcs.chat_status import user_not_admin
+from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
+from MetaButler.modules.helper_funcs.extraction import extract_text
+from MetaButler.modules.helper_funcs.misc import split_message
+from MetaButler.modules.helper_funcs.string_handling import extract_time
+from MetaButler.modules.language import gs
+from MetaButler.modules.log_channel import loggable
+from MetaButler.modules.sql.approve_sql import is_approved
+from MetaButler.modules.warns import warn
+from telegram import ChatPermissions, ParseMode
 from telegram.error import BadRequest
 from telegram.ext import Filters
 from telegram.utils.helpers import mention_html
-from MetaButler.modules.sql.approve_sql import is_approved
-import MetaButler.modules.sql.blacklist_sql as sql
-from MetaButler import log, dispatcher
-from MetaButler.modules.helper_funcs.chat_status import user_admin as u_admin, user_not_admin
-from MetaButler.modules.helper_funcs.extraction import extract_text
-from MetaButler.modules.helper_funcs.misc import split_message
-from MetaButler.modules.log_channel import loggable
-from MetaButler.modules.warns import warn
-from MetaButler.modules.helper_funcs.string_handling import extract_time
-from MetaButler.modules.connection import connected
-from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
-from MetaButler.modules.helper_funcs.alternate import send_message, typing_action
 
-from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
+from ..modules.helper_funcs.anonymous import AdminPerms, user_admin
 
 BLACKLIST_GROUP = -3
+
 
 @metacmd(command="blacklist", pass_args=True, admin_ok=True)
 @u_admin
@@ -64,6 +69,7 @@ def blacklist(update, context):
             )
             return
         send_message(update.effective_message, text, parse_mode=ParseMode.HTML)
+
 
 @metacmd(command="addblacklist", pass_args=True)
 @user_admin(AdminPerms.CAN_DELETE_MESSAGES)
@@ -122,6 +128,7 @@ def add_blacklist(update, context):
             update.effective_message,
             "Tell me which words you would like to add in blacklist.",
         )
+
 
 @metacmd(command="unblacklist", pass_args=True)
 @user_admin(AdminPerms.CAN_DELETE_MESSAGES)
@@ -207,6 +214,7 @@ def unblacklist(update, context):
             "Tell me which words you would like to remove from blacklist!",
         )
 
+
 @metacmd(command="blacklistmode", pass_args=True)
 @loggable
 @user_admin(AdminPerms.CAN_RESTRICT_MEMBERS)
@@ -258,13 +266,15 @@ def blacklist_mode(update, context):  # sourcery no-metrics
                 teks = """It looks like you tried to set time value for blacklist but you didn't specified time; Try, `/blacklistmode tban <timevalue>`.
 
 Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks."""
-                send_message(update.effective_message, teks, parse_mode="markdown")
+                send_message(update.effective_message,
+                             teks, parse_mode="markdown")
                 return ""
             restime = extract_time(msg, args[1])
             if not restime:
                 teks = """Invalid time value!
 Example of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks."""
-                send_message(update.effective_message, teks, parse_mode="markdown")
+                send_message(update.effective_message,
+                             teks, parse_mode="markdown")
                 return ""
             settypeblacklist = "temporarily ban for {}".format(args[1])
             sql.set_blacklist_strength(chat_id, 6, str(args[1]))
@@ -273,13 +283,15 @@ Example of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks."
                 teks = """It looks like you tried to set time value for blacklist but you didn't specified  time; try, `/blacklistmode tmute <timevalue>`.
 
 Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks."""
-                send_message(update.effective_message, teks, parse_mode="markdown")
+                send_message(update.effective_message,
+                             teks, parse_mode="markdown")
                 return ""
             restime = extract_time(msg, args[1])
             if not restime:
                 teks = """Invalid time value!
 Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks."""
-                send_message(update.effective_message, teks, parse_mode="markdown")
+                send_message(update.effective_message,
+                             teks, parse_mode="markdown")
                 return ""
             settypeblacklist = "temporarily mute for {}".format(args[1])
             sql.set_blacklist_strength(chat_id, 7, str(args[1]))
@@ -329,7 +341,8 @@ Examples of time value: 4m = 4 minutes, 3h = 3 hours, 6d = 6 days, 5w = 5 weeks.
             )
         else:
             text = "Current blacklistmode: *{}*.".format(settypeblacklist)
-        send_message(update.effective_message, text, parse_mode=ParseMode.MARKDOWN)
+        send_message(update.effective_message, text,
+                     parse_mode=ParseMode.MARKDOWN)
     return ""
 
 
@@ -338,7 +351,6 @@ def findall(p, s):
     while i != -1:
         yield i
         i = s.find(p, i + 1)
-
 
 
 @metamsg(((Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.chat_type.groups), group=BLACKLIST_GROUP)
@@ -357,7 +369,8 @@ def del_blacklist(update, context):  # sourcery no-metrics
 
     chat_filters = sql.get_chat_blacklist(chat.id)
     for trigger in chat_filters:
-        pattern = r"( |^|[^\w])" + re.escape(trigger).replace('\\*', '.*').replace('\\?', '.') + r"( |$|[^\w])"
+        pattern = r"( |^|[^\w])" + re.escape(trigger).replace('\\*',
+                                                              '.*').replace('\\?', '.') + r"( |$|[^\w])"
         if re.search(pattern, to_match, flags=re.IGNORECASE):
             try:
                 if getmode == 0:
@@ -383,7 +396,9 @@ def del_blacklist(update, context):  # sourcery no-metrics
                     )
                     bot.sendMessage(
                         chat.id,
-                        f"Muted {user.first_name} for using Blacklisted word: {trigger}!",
+                        f"Muted {user.first_name} for using Blacklisted word: <code>{html.escape(to_match)}</code>!\nBlacklist caused by trigger: <code>{html.escape(trigger)}</code>",
+                        disable_web_page_preview=True,
+                        parse_mode = ParseMode.HTML,
                     )
                     return
                 elif getmode == 4:
@@ -392,7 +407,9 @@ def del_blacklist(update, context):  # sourcery no-metrics
                     if res:
                         bot.sendMessage(
                             chat.id,
-                            f"Kicked {user.first_name} for using Blacklisted word: {trigger}!",
+                            f"Kicked {user.first_name} for using Blacklisted word: <code>{html.escape(to_match)}</code>!\nBlacklist caused by trigger: <code>{html.escape(trigger)}</code>",
+                            disable_web_page_preview=True,
+                            parse_mode = ParseMode.HTML,
                         )
                     return
                 elif getmode == 5:
@@ -400,7 +417,9 @@ def del_blacklist(update, context):  # sourcery no-metrics
                     chat.ban_member(user.id)
                     bot.sendMessage(
                         chat.id,
-                        f"Banned {user.first_name} for using Blacklisted word: {trigger}",
+                        f"Banned {user.first_name} for using Blacklisted word: <code>{html.escape(to_match)}</code>!\nBlacklist caused by trigger: <code>{html.escape(trigger)}</code>",
+                        disable_web_page_preview=True,
+                        parse_mode = ParseMode.HTML,
                     )
                     return
                 elif getmode == 6:
@@ -409,7 +428,9 @@ def del_blacklist(update, context):  # sourcery no-metrics
                     chat.ban_member(user.id, until_date=bantime)
                     bot.sendMessage(
                         chat.id,
-                        f"Banned {user.first_name} until '{value}' for using Blacklisted word: {trigger}!",
+                        f"Banned {user.first_name} until '{value}' for using Blacklisted word: <code>{html.escape(to_match)}</code>!\nBlacklist caused by trigger: <code>{html.escape(trigger)}</code>",
+                        disable_web_page_preview=True,
+                        parse_mode = ParseMode.HTML,
                     )
                     return
                 elif getmode == 7:
@@ -423,7 +444,9 @@ def del_blacklist(update, context):  # sourcery no-metrics
                     )
                     bot.sendMessage(
                         chat.id,
-                        f"Muted {user.first_name} until '{value}' for using Blacklisted word: {trigger}!",
+                        f"Muted {user.first_name} until '{value}' for using Blacklisted word: <code>{html.escape(to_match)}</code>!\nBlacklist caused by trigger: <code>{html.escape(trigger)}</code>",
+                        disable_web_page_preview=True,
+                        parse_mode = ParseMode.HTML,
                     )
                     return
             except BadRequest as excp:
@@ -456,7 +479,6 @@ def __stats__():
 
 __mod_name__ = "Blacklists"
 
-from MetaButler.modules.language import gs
 
 def get_help(chat):
     return gs(chat, "blacklist_help")
