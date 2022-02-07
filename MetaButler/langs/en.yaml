@@ -380,6 +380,21 @@ purge_help: |
         • /purge: deletes all messages between this and the replied to message.
         • /purge <integer X>: deletes the replied message, and X messages following it if replied to a message.
 
+antiraid_help: |
+  Ever had your group raided by spammers or bots?
+  This module allows you to quickly stop the raiders
+  By enabling *antiraid mode* I will automatically kick every user that tries to join
+  When the raid is done you can toggle back lockgroup and everything will be back to normal.
+  
+   *Admins only!* 
+  • /antiraid `(off/time optional)` : toggle the antiraid mode (on/off)
+  if no time is given it will default to 2 hours then turn off automatically
+  By enabling *antiraid mode* I will kick every user on joining the group.
+  • /antiraidtime `(time optional)` : view or set the default duration for antiraid mode, after that time from toggling the antiraid mode will turn off automatically
+  Default is 6 hours
+  • /antiraidactiontime `(time optional)` : view or set the default duration that the antiraid mode will tempban
+  Default is 1 hour 
+
 reports_help: |
         • `/report <reason>`*:* reply to a message to report it to admins.
         • `@admin`*:* reply to a message to report it to admins.

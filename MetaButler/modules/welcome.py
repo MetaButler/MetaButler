@@ -73,6 +73,7 @@ CAPTCHA_ANS_DICT = {}
 
 from multicolorcaptcha import CaptchaGenerator
 
+WHITELISTED = [OWNER_ID] + DEV_USERS + SUDO_USERS + SUPPORT_USERS + WHITELIST_USERS
 
 # do not async
 def send(update, message, keyboard, backup_message):
@@ -174,6 +175,7 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
     should_welc, cust_welcome, cust_content, welc_type = sql.get_welc_pref(chat.id)
     welc_mutes = sql.welcome_mutes(chat.id)
     human_checks = sql.get_human_checks(user.id, chat.id)
+    antiraid, _, deftime = sql.getAntiRaidStatus(str(chat.id))
 
     new_members = update.effective_message.new_chat_members
 
@@ -186,6 +188,13 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
         welcome_bool = True
         media_wel = False
 
+        if antiraid and new_mem.id not in WHITELISTED:
+            bantime = deftime
+            try:
+                chat.ban_member(new_mem.id, until_date=bantime)
+            except BadRequest:
+                pass
+            return
         if sw != None:
             sw_ban = sw.get_ban(new_mem.id)
             if sw_ban:

@@ -2,7 +2,7 @@ import re
 from html import escape
 
 import telegram
-from telegram import ParseMode, InlineKeyboardMarkup, Message, InlineKeyboardButton
+from telegram import Chat, ParseMode, InlineKeyboardMarkup, Message, InlineKeyboardButton
 from telegram.error import BadRequest
 from telegram.ext import (
     DispatcherHandlerStop,
@@ -152,7 +152,7 @@ def filters(update, context):  # sourcery no-metrics
         if not text:
             send_message(
                 update.effective_message,
-                "There is no note message - You can't JUST have buttons, you need a message to go with it!",
+                "There is no filter message - You can't JUST have buttons, you need a message to go with it!",
             )
             return
 
@@ -195,7 +195,7 @@ def filters(update, context):  # sourcery no-metrics
         if (msg.reply_to_message.text or msg.reply_to_message.caption) and not text:
             send_message(
                 update.effective_message,
-                "There is no note message - You can't JUST have buttons, you need a message to go with it!",
+                "There is no filter message - You can't JUST have buttons, you need a message to go with it!",
             )
             return
 
@@ -257,6 +257,7 @@ def stop_filter(update, context):
         "That's not a filter - Click: /filters to get currently active filters.",
     )
 
+
 @metamsg((CustomFilters.has_text & ~Filters.update.edited_message))
 def reply_filter(update, context):  # sourcery no-metrics
     chat = update.effective_chat  # type: Optional[Chat]
@@ -289,7 +290,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                 ]
                 if filt.reply_text:
                     valid_format = escape_invalid_curly_brackets(
-                        filt.reply_text, VALID_WELCOME_FORMATTERS
+                        markdown_to_html(filt.reply_text), VALID_WELCOME_FORMATTERS
                     )
                     if valid_format:
                         filtext = valid_format.format(
@@ -328,7 +329,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                     try:
                         context.bot.send_message(
                             chat.id,
-                            markdown_to_html(filtext),
+                            filtext,
                             reply_to_message_id=message.message_id,
                             parse_mode=ParseMode.HTML,
                             disable_web_page_preview=True,
@@ -340,7 +341,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                             try:
                                 context.bot.send_message(
                                     chat.id,
-                                    markdown_to_html(filtext),
+                                    filtext,
                                     parse_mode=ParseMode.HTML,
                                     disable_web_page_preview=True,
                                     reply_markup=keyboard,
@@ -372,7 +373,7 @@ def reply_filter(update, context):  # sourcery no-metrics
                     ENUM_FUNC_MAP[filt.file_type](
                         chat.id,
                         filt.file_id,
-                        caption=markdown_to_html(filtext),
+                        caption=filtext,
                         reply_to_message_id=message.message_id,
                         parse_mode=ParseMode.HTML,
                         reply_markup=keyboard,
@@ -450,7 +451,7 @@ def reply_filter(update, context):  # sourcery no-metrics
             break
 
 @metacmd(command="removeallfilters", filters=Filters.chat_type.groups)
-def rmall_filters(update, context):
+def rmall_filters(update, _):
     chat = update.effective_chat
     user = update.effective_user
     member = chat.get_member(user.id)
@@ -476,7 +477,7 @@ def rmall_filters(update, context):
         )
 
 @metacallback(pattern=r"filters_.*")
-def rmall_callback(update, context):
+def rmall_callback(update, _):
     query = update.callback_query
     chat = update.effective_chat
     msg = update.effective_message
@@ -555,7 +556,7 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(chat_id, user_id):
+def __chat_settings__(chat_id, _):
     cust_filters = sql.get_chat_triggers(chat_id)
     return "There are `{}` custom filters here.".format(len(cust_filters))
 

@@ -266,6 +266,20 @@ class CleanServiceSetting(BASE):
     def __repr__(self):
         return "<Chat used clean service ({})>".format(self.chat_id)
 
+class AntiRaidMode(BASE):
+    __tablename__ = "antiraid_mode"
+    chat_id = Column(String(14), primary_key=True)
+    status = Column(Boolean, default=False)
+    time = Column(Integer, default=21600)
+    acttime = Column(Integer, default=3600)
+    # permanent = Column(Boolean, default=False)
+
+    def __init__(self, chat_id, status, time, acttime):
+        self.chat_id = str(chat_id)
+        self.status = status
+        self.time = time
+        self.acttime = acttime
+        # self.permanent = permanent
 
 Welcome.__table__.create(checkfirst=True)
 WelcomeButtons.__table__.create(checkfirst=True)
@@ -273,13 +287,14 @@ GoodbyeButtons.__table__.create(checkfirst=True)
 WelcomeMute.__table__.create(checkfirst=True)
 WelcomeMuteUsers.__table__.create(checkfirst=True)
 CleanServiceSetting.__table__.create(checkfirst=True)
+AntiRaidMode.__table__.create(checkfirst=True)
 
 INSERTION_LOCK = threading.RLock()
 WELC_BTN_LOCK = threading.RLock()
 LEAVE_BTN_LOCK = threading.RLock()
 WM_LOCK = threading.RLock()
 CS_LOCK = threading.RLock()
-
+ANTIRAID_LOCK = threading.RLock()
 
 def welcome_mutes(chat_id):
     try:
@@ -572,3 +587,41 @@ def migrate_chat(old_chat_id, new_chat_id):
                 btn.chat_id = str(new_chat_id)
 
         SESSION.commit()
+
+def getAntiRaidStatus(chat_id):
+    try:
+        if stat := SESSION.query(AntiRaidMode).get(str(chat_id)):
+            return stat.status, stat.time, stat.acttime
+        return False, 21600, 3600 #default
+    finally:
+        SESSION.close()
+
+
+def setAntiRaidStatus(chat_id, status, time=21600, acttime=3600):
+    with ANTIRAID_LOCK:
+        if prevObj := SESSION.query(AntiRaidMode).get(str(chat_id)):
+            SESSION.delete(prevObj)
+        newObj = AntiRaidMode(str(chat_id), status, time, acttime)
+        SESSION.add(newObj)
+        SESSION.commit()
+
+def toggleAntiRaidStatus(chat_id):
+    newObj = True
+    with ANTIRAID_LOCK:
+        prevObj = SESSION.query(AntiRaidMode).get(str(chat_id))
+        if prevObj:
+            newObj = not prevObj.status
+        stat = AntiRaidMode(str(chat_id), newObj, prevObj.time or 21600, prevObj.acttime or 3600)
+        SESSION.add(stat)
+        SESSION.commit()
+        return newObj
+
+def _ResetAntiRaidOnRestart():
+    with ANTIRAID_LOCK:
+        antiraid = SESSION.query(AntiRaidMode).all()
+        for r in antiraid:
+            r.status = False
+        SESSION.commit()
+
+# it uses a cron job to turn off so if the bot restarts and there is a pending antiraid disable job then antiraid will stay on
+_ResetAntiRaidOnRestart()
