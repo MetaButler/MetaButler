@@ -9,19 +9,24 @@ class BlackListFilters(BASE):
     __tablename__ = "blacklist"
     chat_id = Column(String(14), primary_key=True)
     trigger = Column(UnicodeText, primary_key=True, nullable=False)
+    custom_mode = Column(UnicodeText, default=None)
 
-    def __init__(self, chat_id, trigger):
+    def __init__(self, chat_id, trigger, custom_mode = None):
         self.chat_id = str(chat_id)  # ensure string
         self.trigger = trigger
+        self.custom_mode = custom_mode
 
     def __repr__(self):
-        return "<Blacklist filter '%s' for %s>" % (self.trigger, self.chat_id)
+        if self.custom_mode is None:
+            return "<Blacklist filter '%s' for %s>" % (self.trigger, self.chat_id)
+        return "<Blacklist filter '%s' for %s with custom blacklist mode %s>" % (self.trigger, self.chat_id, self.custom_mode)
 
     def __eq__(self, other):
         return bool(
             isinstance(other, BlackListFilters)
             and self.chat_id == other.chat_id
             and self.trigger == other.trigger
+            and self.custom_mode == other.custom_mode
         )
 
 

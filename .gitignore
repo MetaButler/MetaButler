@@ -17,3 +17,4 @@ shell_output.txt
 .vs
 Pipfile
 Pipfile.lock
+alembic.ini

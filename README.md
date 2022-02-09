@@ -21,7 +21,11 @@ The Support group can be reached out to at [MetaButler](https://t.me/MetaButler)
 - `cd MetaButler`
 - `cp sample_config.ini config.ini`
 - *Fill in all the vars*
+- `cp alembic_sample.ini alembic.ini`
+- *Fill in sqlalchemy.url var (L#55) with the same value as SQLALCHEMY_DATABASE_URI from config.ini*
 - `pip3 install -U -r requirements.txt`
+- *The following step is important, it introduces a new column to blacklist table:*
+- `alembic upgrade head`
 - *And finally* `python3 -m MetaButler`
 
 *Enjoy!*
