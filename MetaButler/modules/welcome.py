@@ -424,10 +424,15 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                         can_add_web_page_previews=False,
                     ),
                 )
+                job_data = {
+                    'member': new_mem,
+                    'id': chat.id,
+                    'message_id': message.message_id,
+                }
                 job_queue.run_once(
-                    partial(check_not_bot, new_mem,
-                            chat.id, message.message_id),
-                    120,
+                    callback = check_not_bot,
+                    when = 120,
+                    context = job_data,
                     name="welcomemute",
                 )
             if welc_mutes == "captcha":
