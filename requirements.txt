@@ -37,3 +37,4 @@ pycryptodome
 base58
 privatebinapi
 pytimeparse
+alembic
