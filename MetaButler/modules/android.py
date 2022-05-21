@@ -21,11 +21,10 @@ def sanitize_data(data: dict, chat_id: int) -> Tuple[str, str, str]:
         else:
             build_date = datetime.utcfromtimestamp(int(device_data['datetime'])).strftime('%Y-%m-%d %H:%M:%S') or None
             file_name = device_data['filename'] or None
-            md5_url = device_data['md5url'] or None
             build_size = sizee(int(device_data['size']), system=alternative) or None
             download_url = device_data['url']
             build_version = device_data['version']
-            msg += f'**Build Date:** {build_date}\n**Build Size:** {build_size}\n**Build Version:** {build_version}\n**File Name:** [{file_name}]({download_url})\n**File MD5:** {md5_url}\n\n'
+            msg += f'**Build Date:** {build_date}\n**Build Size:** {build_size}\n**Build Version:** {build_version}\n**File Name:** [{file_name}]({download_url})\n\n'
     return device_build, msg, download_url
 
 @register(pattern=r'^/bliss(?: |$)(\S*)')
@@ -204,76 +203,6 @@ async def phh(event):
         except IndexError:
             continue
     await event.reply(reply_text)
-
-@register(pattern=r"^/bootleggers(?: |$)(\S*)")
-async def bootleggers(event):
-    if event.sender_id is None:
-        return
-
-    chat_id = event.chat_id
-    try:
-        codename_ = event.pattern_match.group(1)
-        codename = urllib.parse.quote_plus(codename_)
-    except Exception:
-        codename = ''
-
-    if codename == '':
-        reply_text = gs(chat_id, "cmd_example").format("bootleggers")
-        await event.reply(reply_text, link_preview=False)
-        return
-
-    fetch = get('https://bootleggersrom-devices.github.io/api/devices.json')
-    if fetch.status_code == 200:
-        nestedjson = json.loads(fetch.content)
-
-        if codename.lower() == 'x00t':
-            devicetoget = 'X00T'
-        else:
-            devicetoget = codename.lower()
-
-        reply_text = ""
-        devices = {}
-
-        for device, values in nestedjson.items():
-            devices.update({device: values})
-
-        if devicetoget in devices:
-            for oh, baby in devices[devicetoget].items():
-                dontneedlist = ['id', 'filename', 'download', 'xdathread']
-                peaksmod = {
-                    'fullname': 'Device name',
-                    'buildate': 'Build date',
-                    'buildsize': 'Build size',
-                    'downloadfolder': 'SourceForge folder',
-                    'mirrorlink': 'Mirror link',
-                    'xdathread': 'XDA thread'
-                }
-                if baby and oh not in dontneedlist:
-                    if oh in peaksmod:
-                        oh = peaksmod[oh]
-                    else:
-                        oh = oh.title()
-
-                    if oh == 'SourceForge folder':
-                        reply_text += f"\n**{oh}:** [Here]({baby})\n"
-                    elif oh == 'Mirror link':
-                        if not baby == "Error404":
-                            reply_text += f"\n**{oh}:** [Here]({baby})\n"
-                    else:
-                        reply_text += f"\n**{oh}:** `{baby}`"
-
-            reply_text += gs(chat_id, "xda_thread").format(
-                devices[devicetoget]['xdathread'])
-            reply_text += gs(chat_id, "download").format(
-                devices[devicetoget]['filename'],
-                devices[devicetoget]['download'])
-        else:
-            reply_text = gs(chat_id, "err_not_found")
-
-    elif fetch.status_code == 404:
-        reply_text = gs(chat_id, "err_api")
-    await event.reply(reply_text, link_preview=False)
-
 
 @register(pattern=r"^/magisk$")
 async def magisk(event):
