@@ -56,7 +56,7 @@ async def bliss(event):
             msg = {'msg': 'Server error occurred, please retry later!'}
             response[build] = msg
         elif req.status_code == 200:
-            response[build] = req.json()['response'][-1] # Get latest build
+            response[build] = req.json()['response'][0] # Get latest build
         else:
             msg = {'msg': f'Unexpected response {req.data}\nPlease report this to bot developers!'}
             response[build] = msg
@@ -113,6 +113,52 @@ async def los(event):
         reply_text = gs(chat_id, "err_not_found")
     await event.reply(reply_text, link_preview=False)
 
+@register(pattern=r'^/awaken(?: |$)(\S*)')
+async def awaken(event):
+    if event.sender_id is None:
+        return
+    
+    chat_id = event.chat_id
+    try:
+        device_code__ = event.pattern_match.group(1)
+        device_code = urllib.parse.quote_plus(device_code__)
+    except Exception:
+        device_code = ''
+    
+    if device_code == '':
+        reply_text = gs(chat_id, "cmd_example").format('awaken')
+        return await event.reply(reply_text, link_preview=False)
+    
+    url = 'https://raw.githubusercontent.com/Project-Awaken/OTA/12/{build}/{device_code}.json'
+    device_data = list()
+    for build in ['vanilla', 'gapps']:
+        build_url = url.format(device_code=device_code, build=build)
+        req = get(build_url)
+        response = {}
+        if req.status_code == 404:
+            msg = {'msg': req.json()['message']}
+            response[build] = msg
+        elif req.status_code >= 500:
+            msg = {'msg': 'Server error occurred, please retry later!'}
+            response[build] = msg
+        elif req.status_code == 200:
+            response[build] = req.json()['response'][-1] # Get latest build
+        else:
+            msg = {'msg': f'Unexpected response {req.data}\nPlease report this to bot developers!'}
+            response[build] = msg
+        device_data.append(response)
+
+    base_msg = ""
+    keyboard = []
+    for build in device_data:
+        device_build, msg, download_url = sanitize_data(build, chat_id)
+        base_msg += msg
+        if download_url is not None:
+            keyboard.append([custom.Button.url(f'Download {str(device_build).capitalize()} build', download_url)])
+    base_msg = str(base_msg).strip()
+    if len(keyboard) == 0:
+        return await event.reply(base_msg)
+    return await event.reply(base_msg, buttons=keyboard, link_preview=False)
 
 @register(pattern=r"^/evo(?: |$)(\S*)")
 async def evo(event):

@@ -345,6 +345,8 @@ greetings_help: |
 #Android
 android_help: |
   *Device Specific ROM for a device*
+       • `/bliss <device>` *:* Get the latest Bliss ROM for a device.
+       • `/awaken <device>` *:* Get the latest Project-Awaken ROM for a device.
        • `/evo <device>` *:* Get the latest Evolution X ROM for a device.
        • `/los <device>` ** Get the latest LineageOS ROM for a device
        • `/phh` *:* Get the latest Phh AOSP GSI.
@@ -367,4 +369,4 @@ err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
 err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
 btn_dl: Click here to Download
-cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
+cmd_example: Please type your device **codename**!\nFor example, `/{} beryllium`
