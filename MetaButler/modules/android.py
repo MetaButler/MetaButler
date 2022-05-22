@@ -136,13 +136,13 @@ async def awaken(event):
         req = get(build_url)
         response = {}
         if req.status_code == 404:
-            msg = {'msg': req.json()['message']}
+            msg = {'msg': 'Build Not Found!'}
             response[build] = msg
         elif req.status_code >= 500:
             msg = {'msg': 'Server error occurred, please retry later!'}
             response[build] = msg
         elif req.status_code == 200:
-            response[build] = req.json()['response'][-1] # Get latest build
+            response[build] = req.json()['response'][0] # Get latest build
         else:
             msg = {'msg': f'Unexpected response {req.data}\nPlease report this to bot developers!'}
             response[build] = msg
