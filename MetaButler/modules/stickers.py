@@ -68,6 +68,7 @@ def getsticker(update: Update, context: CallbackContext):
 @metacmd(command=["steal", "kang"])
 def kang(update: Update, context: CallbackContext):
     global ppref
+    ppref = ""
     msg = update.effective_message
     user = update.effective_user
     args = context.args
