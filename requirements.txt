@@ -21,7 +21,7 @@ psycopg2-binary
 pyYAML>=5.1.2
 pyrate-limiter
 python-rapidjson
-python-telegram-bot==13.9
+python-telegram-bot==13.11
 requests
 spamwatch
 speedtest-cli
@@ -37,4 +37,5 @@ pycryptodome
 base58
 privatebinapi
 pytimeparse
+SibylSystem
 alembic
