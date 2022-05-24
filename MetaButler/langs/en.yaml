@@ -341,7 +341,6 @@ misc_help: |
       • /react: Reacts with a random reaction
       • /tr (language code) as reply to a long message.
       • /getid : get IDs of chat, user and chat message.
-      • /spbinfo : get info about a user from @Intellivoid's SpamProtection API
       • /weather <city name>: Get weather info from openweather.
       ~~~~~~
       *Anti channel*

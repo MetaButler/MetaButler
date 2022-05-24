@@ -67,7 +67,6 @@ class MetaINIT:
         self.spamwatch_api: str = self.parser.get('spamwatch_api', None)
         self.CASH_API_KEY: str = self.parser.get('CASH_API_KEY', None)
         self.TIME_API_KEY: str = self.parser.get('TIME_API_KEY', None)
-        self.CF_API_KEY: str =  self.parser.get("CF_API_KEY", None)
         self.bot_id = 0 #placeholder
         self.WEATHER_API = self.parser.get("WEATHER_API", None)
         self.bot_name = "MetaButler" #placeholder
@@ -123,7 +122,6 @@ SPAMMERS = get_user_list("spammers")
 spamwatch_api = MInit.spamwatch_api
 WEATHER_API = MInit.WEATHER_API
 TIME_API_KEY = MInit.TIME_API_KEY
-CF_API_KEY = MInit.CF_API_KEY
 PRIVATEBIN_INSTANCE = MInit.PRIVATEBIN_INSTANCE
 
 # SpamWatch

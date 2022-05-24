@@ -266,7 +266,7 @@ misc_help: |
    • /react: reacciona con una reacción aleatoria
    • /tr (código de idioma) como respuesta a un mensaje largo.
    • /getid: obtiene ID de chat, usuario y mensaje de chat.
-   • /spbinfo: obtenga información sobre un usuario de la API SpamProtection de @ Intellivoid
+
 muting_help: |
   * Solo administradores: *
     • `/mute <userhandle>` *: * silencia a un usuario.  También se puede utilizar como respuesta, silenciando la respuesta al usuario.
