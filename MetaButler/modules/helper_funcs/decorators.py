@@ -1,6 +1,6 @@
 from MetaButler.modules.disable import DisableAbleCommandHandler, DisableAbleMessageHandler
 from telegram.ext import CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler
-from telegram.ext.filters import BaseFilter
+from telegram.ext.filters import BaseFilter, Filters
 from MetaButler import dispatcher as d, log
 from typing import Optional, Union, List
 
@@ -14,7 +14,10 @@ class MetaTelegramHandler:
             pass_chat_data: bool = False, run_async: bool = True, can_disable: bool = True,
             group: Optional[int] = 40
     ):
-
+        if filters:
+           filters = filters & ~Filters.update.edited_message
+        else:
+            filters = ~Filters.update.edited_message
         def _command(func):
             try:
                 if can_disable:
@@ -46,6 +49,10 @@ class MetaTelegramHandler:
 
     def message(self, pattern: Optional[BaseFilter] = None, can_disable: bool = True, run_async: bool = True,
                 group: Optional[int] = 60, friendly=None):
+        if pattern:
+           pattern = pattern & ~Filters.update.edited_message
+        else:
+           pattern = ~Filters.update.edited_message
         def _message(func):
             try:
                 if can_disable:

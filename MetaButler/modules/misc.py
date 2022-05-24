@@ -1,3 +1,4 @@
+import contextlib
 import html
 import time
 import git
@@ -5,7 +6,7 @@ import re
 import requests
 import wikipedia
 from io import BytesIO
-from telegram import Update, MessageEntity, ParseMode
+from telegram import Chat, Update, MessageEntity, ParseMode, User
 from telegram.error import BadRequest
 from telegram.ext import Filters, CallbackContext
 from telegram.utils.helpers import mention_html, escape_markdown
@@ -21,14 +22,14 @@ from MetaButler import (
     WHITELIST_USERS,
     INFOPIC,
     sw,
-    StartTime,
-    MInit
+    StartTime
 )
 from MetaButler.__main__ import STATS, USER_INFO, TOKEN
 from MetaButler.modules.sql import SESSION
 from MetaButler.modules.helper_funcs.chat_status import user_admin, dev_plus, sudo_plus
 from MetaButler.modules.helper_funcs.extraction import extract_user
 import MetaButler.modules.sql.users_sql as sql
+from MetaButler.modules.users import __user_info__ as chat_count
 from MetaButler.modules.language import gs
 from telegram import __version__ as ptbver, InlineKeyboardMarkup, InlineKeyboardButton
 from psutil import cpu_percent, virtual_memory, disk_usage, boot_time
@@ -67,10 +68,7 @@ def get_id(update: Update, context: CallbackContext):
     message = update.effective_message
     chat = update.effective_chat
     msg = update.effective_message
-    user_id = extract_user(msg, args)
-
-    if user_id:
-
+    if user_id := extract_user(msg, args):
         if msg.reply_to_message and msg.reply_to_message.forward_from:
 
             user1 = message.reply_to_message.from_user
@@ -91,17 +89,15 @@ def get_id(update: Update, context: CallbackContext):
                 parse_mode=ParseMode.HTML,
             )
 
+    elif chat.type == "private":
+        msg.reply_text(
+            f"Your id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML
+        )
+
     else:
-
-        if chat.type == "private":
-            msg.reply_text(
-                f"Your id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML
-            )
-
-        else:
-            msg.reply_text(
-                f"This group's id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML
-            )
+        msg.reply_text(
+            f"This group's id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML
+        )
 
 @metacmd(command='gifid')
 def gifid(update: Update, _):
@@ -120,20 +116,22 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     args = context.args
     message = update.effective_message
     chat = update.effective_chat
-    user_id = extract_user(update.effective_message, args)
-
-    if user_id:
+    if user_id := extract_user(update.effective_message, args):
         user = bot.get_chat(user_id)
 
     elif not message.reply_to_message and not args:
-        user = message.from_user
+        user = (
+            message.sender_chat
+            if message.sender_chat is not None
+            else message.from_user
+        )
 
     elif not message.reply_to_message and (
         not args
         or (
             len(args) >= 1
             and not args[0].startswith("@")
-            and not args[0].isdigit()
+            and not args[0].lstrip("-").isdigit()
             and not message.parse_entities([MessageEntity.TEXT_MENTION])
         )
     ):
@@ -143,6 +141,57 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     else:
         return
 
+    if hasattr(user, 'type') and user.type != "private":
+        text = get_chat_info(user)
+        is_chat = True
+    else:
+        text = get_user_info(chat, user)
+        is_chat = False
+
+    if INFOPIC:
+        if is_chat:
+            try:
+                pic = user.photo.big_file_id
+                pfp = bot.get_file(pic).download(out=BytesIO())
+                pfp.seek(0)
+                message.reply_photo(
+                        photo=pfp,
+                        filename=f'{user.id}.jpg',
+                        caption=text,
+                        parse_mode=ParseMode.HTML,
+                )
+            except AttributeError:  # AttributeError means no chat pic so just send text
+                message.reply_text(
+                        text,
+                        parse_mode=ParseMode.HTML,
+                        disable_web_page_preview=True,
+                )
+        else:
+            try:
+                profile = bot.get_user_profile_photos(user.id).photos[0][-1]
+                _file = bot.get_file(profile["file_id"])
+                _file.download(f"{user.id}.png")
+                #_file.seek(0)
+
+                message.reply_photo(
+                    photo=open(f"{user.id}.png", "rb"),
+                    caption=(text),
+                    parse_mode=ParseMode.HTML,
+                )
+
+            # Incase user don't have profile pic, send normal text
+            except IndexError:
+                message.reply_text(
+                        text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+                )
+
+    else:
+        message.reply_text(
+            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+        )
+
+def get_user_info(chat: Chat, user: User) -> str:
+    bot = dispatcher.bot
     text = (
         f"<b>General:</b>\n"
         f"ID: <code>{user.id}</code>\n"
@@ -160,15 +209,12 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     num_chats = sql.get_user_num_chats(user.id)
     text += f"\n<b>Chat count</b>: <code>{num_chats}</code>"
 
-    try:
+    with contextlib.suppress(BadRequest):
         user_member = chat.get_member(user.id)
         if user_member.status == "administrator":
             result = bot.get_chat_member(chat.id, user.id)
             if result.custom_title:
                 text += f"\nAdmin Title: <b>{result.custom_title}</b>"
-    except BadRequest:
-        pass
-
 
     if user.id == OWNER_ID:
         text += '\nOwner'
@@ -180,31 +226,20 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
         text += '\nSupport User'
     elif user.id in WHITELIST_USERS:
         text += '\nWhiteListed'
+    return text
 
-    if INFOPIC:
-        try:
-            profile = bot.get_user_profile_photos(user.id).photos[0][-1]
-            _file = bot.get_file(profile["file_id"])
-            _file.download(f"{user.id}.png")
-            #_file.seek(0)
+def get_chat_info(user):
+    text = (
+        f"<b>Chat Info:</b>\n"
+        f"<b>Title:</b> {user.title}"
+    )
+    if user.username:
+        text += f"\n<b>Username:</b> @{html.escape(user.username)}"
+    text += f"\n<b>Chat ID:</b> <code>{user.id}</code>"
+    text += f"\n<b>Chat Type:</b> {user.type.capitalize()}"
+    text += "\n" + chat_count(user.id)
 
-            message.reply_photo(
-                photo=open(f"{user.id}.png", "rb"),
-                caption=(text),
-                parse_mode=ParseMode.HTML,
-            )
-
-
-        # Incase user don't have profile pic, send normal text
-        except IndexError:
-            message.reply_text(
-                text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-            )
-
-    else:
-        message.reply_text(
-            text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
-        )
+    return text
 
 @metacmd(command='echo', pass_args=True, filters=Filters.chat_type.groups)
 @user_admin
@@ -298,7 +333,7 @@ def get_readable_time(seconds: int) -> str:
     for x in range(len(time_list)):
         time_list[x] = str(time_list[x]) + time_suffix_list[x]
     if len(time_list) == 4:
-        ping_time += time_list.pop() + ", "
+        ping_time += f'{time_list.pop()}, '
 
     time_list.reverse()
     ping_time += ":".join(time_list)
@@ -324,13 +359,13 @@ def stats(update, context):
     mem = virtual_memory()
     cpu = cpu_percent()
     disk = disk_usage("/")
-    status += "*• CPU:* " + str(cpu) + " %\n"
-    status += "*• RAM:* " + str(mem[2]) + " %\n"
-    status += "*• Storage:* " + str(disk[3]) + " %\n\n"
-    status += "*• Python version:* " + python_version() + "\n"
-    status += "*• python-telegram-bot:* " + str(ptbver) + "\n"
-    status += "*• Uptime:* " + str(botuptime) + "\n"
-    status += "*• Database size:* " + str(db_size) + "\n"
+    status += f"*• CPU:* {str(cpu)}" + " %\n"
+    status += f"*• RAM:* {str(mem[2])}" + " %\n"
+    status += f"*• Storage:* {str(disk[3])}" + " %\n\n"
+    status += f"*• Python version:* {python_version()}" + "\n"
+    status += f"*• python-telegram-bot:* {str(ptbver)}" + "\n"
+    status += f"*• Uptime:* {str(botuptime)}" + "\n"
+    status += f"*• Database size:* {str(db_size)}" + "\n"
     kb = [
           [
            InlineKeyboardButton('Ping', callback_data='pingCB')
@@ -400,7 +435,7 @@ def pingCallback(update: Update, context: CallbackContext):
     requests.get('https://api.telegram.org')
     end_time = time.time()
     ping_time = round((end_time - start_time) * 1000, 3)
-    query.answer('Pong! {}ms'.format(ping_time))
+    query.answer(f'Pong! {ping_time}ms')
 
 @metacmd(command='wiki', pass_args=True)
 def wiki(update: Update, context: CallbackContext):
