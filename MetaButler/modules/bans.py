@@ -21,6 +21,7 @@ from MetaButler.modules.helper_funcs.chat_status import (
     is_user_admin,
     is_user_ban_protected,
     is_user_in_chat,
+    can_delete,
 )
 from MetaButler.modules.helper_funcs.extraction import extract_user_and_text
 from MetaButler.modules.helper_funcs.string_handling import extract_time
@@ -30,7 +31,7 @@ from MetaButler.modules.helper_funcs.decorators import metacmd
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
 
-@metacmd(command='ban', pass_args=True)
+@metacmd(command=['ban', 'dban', 'sban'], pass_args=True)
 @connection_status
 @bot_admin
 @can_restrict
@@ -95,6 +96,18 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:  # sourcery 
         else:
             message.reply_text("This user has immunity and cannot be banned.")
         return log_message
+    if message.text.startswith("/s") or message.text.startswith("!s"):
+        silent = True
+        if not can_delete(chat, context.bot.id):
+            return ""
+    else:
+        silent = False
+    if message.text.startswith("/d") or message.text.startswith("!d"):
+        delban = True
+        if not can_delete(chat, context.bot.id):
+            return ""
+    else:
+        delban = False
     log = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#BANNED\n"
@@ -106,20 +119,44 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:  # sourcery 
 
     try:
         chat.ban_member(user_id)
-        context.bot.send_sticker(chat.id, BAN_STICKER)
-        context.bot.sendMessage(
-            chat.id,
-            "{} was hit by Thunder Shock by {} in <b>{}</b>\n<b>Reason</b>: <code>{}</code>".format(
-                mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
-                message.chat.title, reason
-            ),
-            parse_mode=ParseMode.HTML,
-        )
-        return log
+
+        if silent:
+            if message.reply_to_message:
+                message.delete()
+            return log
+        if delban:
+            log += "\n<b>Reason:</b> {}".format(reason)
+            if message.reply_to_message:
+                message.reply_to_message.delete()
+            chat.ban_member(user_id)
+            context.bot.sendMessage(
+                chat.id,
+                "<b>Banned:</b> {} \n<b>Admin:</b> {}\n<b>Chat:</b> <b>{}</b>\n<b>Reason:</b> <code>{}</code>".format(
+                    mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
+                    message.chat.title, reason
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+            return log
+        if reason:
+            log += "\n<b>Reason:</b> {}".format(reason)
+            chat.ban_member(user_id)
+            context.bot.send_sticker(chat.id, BAN_STICKER)
+            context.bot.sendMessage(
+                chat.id,
+                "<b>Banned:</b> {} \n<b>Admin:</b> {}\n<b>Chat:</b> <b>{}</b>\n<b>Reason:</b> <code>{}</code>".format(
+                    mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
+                    message.chat.title, reason
+                ),
+                parse_mode=ParseMode.HTML,
+            )   
+            return log
 
     except BadRequest as excp:
         if excp.message == "Reply message not found":
             # Do not reply
+            if silent:
+                return log
             message.reply_text("Banned!", quote=False)
             return log
         else:
@@ -133,7 +170,7 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:  # sourcery 
             )
             message.reply_text("Well damn, I can't ban that user.")
 
-    return ""
+    return log_message
 
 
 @metacmd(command='tban', pass_args=True)
@@ -351,7 +388,7 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
     chat.unban_member(user_id)
     bot.sendMessage(
         chat.id,
-        "{} was unbanned by {} in <b>{}</b>\n<b>Reason</b>: <code>{}</code>".format(
+        "<b>UnBanned:</b> {} \n<b>Admin:</b> {}\n<b>Chat:</b> <b>{}</b>\n<b>Reason:</b> <code>{}</code>".format(
             mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name),
             message.chat.title, reason
         ),

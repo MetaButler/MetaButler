@@ -89,6 +89,8 @@ bans_help: |
 
      *Admin only:*
     - /ban <userhandle>: bans a user. (via handle, or reply)
+    - /dban <userhandle>: bans a user deleting the replied message. (via handle, or reply)
+    - /sban <userhandle>: silently ban a user. (via handle, or reply)
     - /tban <userhandle> x(m/h/d): bans a user for x time. (via handle, or reply). m = minutes, h = hours, d = days.
     - /unban <userhandle>: unbans a user. (via handle, or reply)
     - /kick <userhandle>: kick a user out of the group, (via handle, or reply)
