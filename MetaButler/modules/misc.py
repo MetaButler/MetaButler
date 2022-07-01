@@ -378,7 +378,7 @@ def stats(update, context):
         update.effective_message.reply_text(status +
             "\n*Bot statistics*:\n"
             + "\n".join([mod.__stats__() for mod in STATS]) +
-            "\n\n[⍙ GitHub](https://github.com/DESTROYER-32/MetaButler)\n\n" +
+            "\n\n[⍙ GitHub](https://github.com/MetaButler/MetaButler)\n\n" +
             "╘══「 by [DESTROYER-32](github.com/DESTROYER-32) 」\n",
         parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(kb), disable_web_page_preview=True)
     except BaseException:
@@ -389,7 +389,7 @@ def stats(update, context):
                         "\n*Bot statistics*:\n"
                         + "\n".join(mod.__stats__() for mod in STATS)
                     )
-                    + "\n\n⍙ [GitHub](https://github.com/DESTROYER-32/MetaButler)\n\n"
+                    + "\n\n⍙ [GitHub](https://github.com/MetaButler/MetaButler)\n\n"
                 )
                 + "╘══「 by [DESTROYER-32](github.com/DESTROYER-32) 」\n"
             ),
@@ -421,7 +421,7 @@ def repo(update: Update, _):
                     [
                         InlineKeyboardButton(
                             text="GitHub",
-                            url="https://github.com/DESTROYER-32/MetaButler", disable_web_page_preview=True,
+                            url="https://github.com/MetaButler/MetaButler", disable_web_page_preview=True,
                         )
                     ]
                 ]
