@@ -389,15 +389,26 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
         return log_message
 
     chat.unban_member(user_id)
-    bot.sendMessage(
-        chat.id,
-        "<b>UnBanned:</b> {} \n<b>Admin:</b> {}\n<b>Chat:</b> <b>{}</b>\n<b>Reason:</b> <code>{}</code>".format(
-            mention_html(member.user.id, member.user.first_name), mention_html(
-                user.id, user.first_name),
-            message.chat.title, reason
-        ),
-        parse_mode=ParseMode.HTML,
-    )
+    if reason:
+        bot.sendMessage(
+            chat.id,
+            "<b>UnBanned:</b> {} \n<b>Admin:</b> {}\n<b>Chat:</b> <b>{}</b>\n<b>Reason:</b> <code>{}</code>".format(
+                mention_html(member.user.id, member.user.first_name), mention_html(
+                    user.id, user.first_name),
+                message.chat.title, reason
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+    else:
+        bot.sendMessage(
+            chat.id,
+            "<b>UnBanned:</b> {} \n<b>Admin:</b> {}\n<b>Chat:</b> <b>{}</b>".format(
+                mention_html(member.user.id, member.user.first_name), mention_html(
+                    user.id, user.first_name),
+                message.chat.title
+            ),
+            parse_mode=ParseMode.HTML,
+        )
 
     log = (
         f"<b>{html.escape(chat.title)}:</b>\n"
