@@ -150,7 +150,6 @@ def warn(
     return log_reason
 
 
-@user_admin_no_reply
 @bot_admin
 @loggable
 def button(update: Update, context: CallbackContext) -> str:
@@ -160,6 +159,10 @@ def button(update: Update, context: CallbackContext) -> str:
     if match:
         user_id = match.group(1)
         chat: Optional[Chat] = update.effective_chat
+        if not is_user_admin(update, query.from_user.id):
+            query.answer('This button is only for admins!', show_alert=True)
+            return
+        query.answer()
         res = sql.remove_warn(user_id, chat.id)
         if res:
             update.effective_message.edit_text(
