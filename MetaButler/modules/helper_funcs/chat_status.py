@@ -1,3 +1,4 @@
+import re
 from functools import wraps
 
 from MetaButler import (
@@ -48,7 +49,7 @@ def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bo
             or user_id in DEV_USERS
             or chat.all_members_are_administrators
             or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and
-                msg.reply_to_message.sender_chat.type != "channel")
+                msg.reply_to_message.sender_chat.type != "channel" and not re.match(r'rm_warn\((.+?)\)', msg.reply_markup.inline_keyboard[0][0].callback_data))
     ):
         return True
 
