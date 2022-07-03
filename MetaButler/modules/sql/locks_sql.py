@@ -27,6 +27,9 @@ class Permissions(BASE):
     button = Column(Boolean, default=False)
     egame = Column(Boolean, default=False)
     inline = Column(Boolean, default=False)
+    premiumsticker = Column(Boolean, default=False)
+    animatedsticker = Column(Boolean, default=False)
+    videosticker = Column(Boolean, default=False)
 
     def __init__(self, chat_id):
         self.chat_id = str(chat_id)  # ensure string
@@ -47,6 +50,9 @@ class Permissions(BASE):
         self.button = False
         self.egame = False
         self.inline = False
+        self.premiumsticker = False
+        self.animatedsticker = False
+        self.videosticker = False
 
     def __repr__(self):
         return "<Permissions for %s>" % self.chat_id
@@ -145,6 +151,12 @@ def update_lock(chat_id, lock_type, locked):
             curr_perm.egame = locked
         elif lock_type == "inline":
             curr_perm.inline = locked
+        elif lock_type == "premiumsticker":
+            curr_perm.premiumsticker = locked
+        elif lock_type == "animatedsticker":
+            curr_perm.animatedsticker = locked
+        elif lock_type == "videosticker":
+            curr_perm.videosticker = locked
 
         SESSION.add(curr_perm)
         SESSION.commit()
@@ -214,6 +226,12 @@ def is_locked(chat_id, lock_type):
         return curr_perm.egame
     elif lock_type == "inline":
         return curr_perm.inline
+    elif lock_type == "premiumsticker":
+        return curr_perm.premiumsticker
+    elif lock_type == "animatedsticker":
+        return curr_perm.animatedsticker
+    elif lock_type == "videosticker":
+        return curr_perm.videosticker
 
 
 def is_restr_locked(chat_id, lock_type):

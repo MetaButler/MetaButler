@@ -41,6 +41,9 @@ LOCK_TYPES = {
     "rtl": "rtl",
     "button": "button",
     "inline": "inline",
+    "premiumsticker": "premiumsticker",
+    "animatedsticker": "animatedsticker",
+    "videosticker": "videosticker"
 }
 
 LOCK_CHAT_RESTRICTION = {
@@ -399,6 +402,48 @@ def del_lockables(update, context):  # sourcery no-metrics
                         log.exception("ERROR in lockables")
                 break
             continue
+        if lockable == "premiumsticker":
+            if (sql.is_locked(chat.id, lockable)
+                and can_delete(chat, context.bot.id)
+                and message
+                and message.sticker
+                and message.sticker.premium_animation
+            ):
+                try:
+                    message.delete()
+                except BadRequest as excp:
+                    if excp.message != "Message to delete not found":
+                        log.exception("ERROR in lockables")
+                break
+            continue
+        if lockable == 'animatedsticker':
+            if (sql.is_locked(chat.id, lockable)
+                and can_delete(chat, context.bot.id)
+                and message
+                and message.sticker
+                and message.sticker.is_animated
+            ):
+                try:
+                    message.delete()
+                except BadRequest as excp:
+                    if excp.message != "Message to delete not found":
+                        log.exception("ERROR in lockables")
+                break
+            continue
+        if lockable == 'videosticker':
+            if (sql.is_locked(chat.id, lockable)
+                and can_delete(chat, context.bot.id)
+                and message
+                and message.sticker
+                and message.sticker.is_video
+            ):
+                try:
+                    message.delete()
+                except BadRequest as excp:
+                    if excp.message != "Message to delete not found":
+                        log.exception("ERROR in lockables")
+                break
+            continue
         if (
                 filter(update)
                 and sql.is_locked(chat.id, lockable)
@@ -456,6 +501,9 @@ def build_lock_message(chat_id):
         locklist.append("button = `{}`".format(locks.button))
         locklist.append("egame = `{}`".format(locks.egame))
         locklist.append("inline = `{}`".format(locks.inline))
+        locklist.append("premiumsticker = `{}`".format(locks.premiumsticker))
+        locklist.append("animatedsticker = `{}`".format(locks.animatedsticker))
+        locklist.append("videosticker = `{}`".format(locks.videosticker))
     permissions = dispatcher.bot.get_chat(chat_id).permissions
     permslist.append("messages = `{}`".format(permissions.can_send_messages))
     permslist.append("media = `{}`".format(permissions.can_send_media_messages))
