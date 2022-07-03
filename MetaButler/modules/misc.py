@@ -22,9 +22,13 @@ from MetaButler import (
     WHITELIST_USERS,
     INFOPIC,
     sw,
-    StartTime
+    StartTime,
+    USERGE_ANTISPAM_API_KEY
 )
 from MetaButler.__main__ import STATS, USER_INFO, TOKEN
+from MetaButler.modules import ALL_MODULES
+from MetaButler.modules.helper_funcs.alternate import typing_action
+from MetaButler.modules.sibylsystem import get_sibyl_info
 from MetaButler.modules.sql import SESSION
 from MetaButler.modules.helper_funcs.chat_status import user_admin, dev_plus, sudo_plus
 from MetaButler.modules.helper_funcs.extraction import extract_user
@@ -463,6 +467,86 @@ def wiki(update: Update, context: CallbackContext):
             update.effective_message.reply_text(
                 "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}"
                 .format(eet))
+
+@metacmd(command='spamcheck', pass_args=True, filters=Filters.chat_type.groups | Filters.chat_type.private)
+@typing_action
+def spamcheck(update: Update, context: CallbackContext) -> None:
+    msg = update.effective_message
+    bot = context.bot
+    if msg.reply_to_message:
+        user_id = msg.reply_to_message.from_user.id
+        user = msg.reply_to_message.from_user
+    elif context.args:
+        user_id = context.args[0]
+    else:
+        msg.reply_text('You need to either provide a user_id or reply to a message to check their spam', reply_to_message_id=msg.message_id)
+        return
+    try:
+        user_id = int(user_id)
+        user = bot.get_chat(user_id)
+    except ValueError:
+        msg.reply_text('That is not a valid user!', reply_to_message_id=msg.message_id)
+        return
+    
+    # Basic information of the user
+    text = (
+        f"<b>Information:</b>\n"
+        f"<b> • ID</b>: <code>{user.id}</code>\n"
+        f"<b> • First Name</b>: {html.escape(user.first_name)}"
+    )
+    if user.last_name:
+        text += f"\n<b> • Last Name</b>: {html.escape(user.last_name)}"
+    if user.username:
+        text += f"\n<b> • Username</b>: @{html.escape(user.username)}"
+    text += f"\n<b> • Permanent user link</b>: {mention_html(user.id, 'link')}"
+
+    # Spamwatch Antispam
+    try:
+        spamwtc = sw.get_ban(int(user.id))
+        text += "\n\n<b>SpamWatch Information:</b>\n"
+        if spamwtc:
+            text += "<b> • SpamWatched:\n</b> Yes"
+            text += f"\n<b> • Reason</b>: <pre>{spamwtc.reason}</pre>"
+            text += "\n • Appeal at @SpamWatchSupport"
+        else:
+            text += "<b> • SpamWatched:</b> No"
+    except:
+        pass  # don't crash if api is down somehow...
+
+    # Userge Antispam
+    if USERGE_ANTISPAM_API_KEY is not None:
+        userge_response = requests.get(f'https://api.userge.live/ban?api_key={str(USERGE_ANTISPAM_API_KEY)}&user_id={str(user_id)}')
+        if userge_response.status_code <= 500:
+            userge_response = userge_response.json()
+            text += "\n\n<b>Userge Antispam Information:</b>\n"
+            if userge_response['success'] == True:
+                # Has been banned
+                text += "<b> • Banned by Userge Antispam:</b> Yes"
+                text += f"\n<b> • Reason</b>: <pre>{userge_response['reason']}</pre>"
+                text += f"\n<b> • Banned On</b>: <pre>{userge_response['date']}</pre>"
+                text += f"\n • Appeal at @UsergeAntiSpamSupport"
+            else:
+                # Has not been banned
+                text += "<b> • Banned by Userge Antispam:</b> No"
+        else:
+            # Server error, HTTP >= 500, ignore
+            pass
+    else:
+        # Userge Antispam Key not set, ignore
+        pass
+
+    # Sibly Antispam
+    if 'sibylsystem' in ALL_MODULES:
+        sibyl_data, kb = get_sibyl_info(bot, user)
+        text += sibyl_data.replace('<b>Cymatic Scan Results', '\n\n<b>Sibyl Antispam Information:').replace('\n\nPowered by @SibylSystem | Kaizoku', '\n Sibyl Antispam is powered by @SibylSystem | Kaizoku')
+        if "<b>Banned:</b> <code>Yes</code>" in sibyl_data:
+            text += "\n • Appeal at @SibylRobot"
+
+    # Extra Information
+    num_chats = sql.get_user_num_chats(user.id)
+    text += f"\n\n• <b>Chat count</b>: <code>{num_chats}</code>"
+    msg.reply_text(text, reply_to_message_id=msg.message_id, parse_mode=ParseMode.HTML, disable_web_page_preview=True, allow_sending_without_reply=True)
+
                 
 def get_help(chat):
     return gs(chat, "misc_help")
