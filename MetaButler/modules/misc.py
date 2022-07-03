@@ -473,41 +473,53 @@ def wiki(update: Update, context: CallbackContext):
 def spamcheck(update: Update, context: CallbackContext) -> None:
     msg = update.effective_message
     bot = context.bot
+    # Use a variable to denote user is not present in DB - False means presence in DB, True means absence
+    no_user_db = False
     if msg.reply_to_message:
         user_id = msg.reply_to_message.from_user.id
         user = msg.reply_to_message.from_user
     elif context.args:
         user_id = context.args[0]
+        try:
+            user_id = int(user_id)
+            user = bot.get_chat(user_id)
+        except BadRequest as excp:
+            if excp.message in ("User_id_invalid", "Chat not found"):
+                m = msg.reply_text(
+                    "I don't seem to have interacted with this user before - I will try to provide antispam information without using my DB."
+                )
+                no_user_db = True
+        except ValueError:
+            msg.reply_text('That is not a valid user!', reply_to_message_id=msg.message_id)
+            return
     else:
-        msg.reply_text('You need to either provide a user_id or reply to a message to check their spam', reply_to_message_id=msg.message_id)
-        return
-    try:
-        user_id = int(user_id)
-        user = bot.get_chat(user_id)
-    except ValueError:
-        msg.reply_text('That is not a valid user!', reply_to_message_id=msg.message_id)
-        return
+        # Return spamcheck of the user triggering the command
+        user_id = msg.from_user.id
+        user = msg.from_user
     
     # Basic information of the user
-    text = (
-        f"<b>Information:</b>\n"
-        f"<b> • ID</b>: <code>{user.id}</code>\n"
-        f"<b> • First Name</b>: {html.escape(user.first_name)}"
-    )
-    if user.last_name:
-        text += f"\n<b> • Last Name</b>: {html.escape(user.last_name)}"
-    if user.username:
-        text += f"\n<b> • Username</b>: @{html.escape(user.username)}"
-    text += f"\n<b> • Permanent user link</b>: {mention_html(user.id, 'link')}"
+    if not no_user_db:
+        text = (
+            f"<b>Information:</b>\n"
+            f"<b> • ID</b>: <code>{user.id}</code>\n"
+            f"<b> • First Name</b>: {html.escape(user.first_name)}"
+        )
+        if user.last_name:
+            text += f"\n<b> • Last Name</b>: {html.escape(user.last_name)}"
+        if user.username:
+            text += f"\n<b> • Username</b>: @{html.escape(user.username)}"
+        text += f"\n<b> • Permanent user link</b>: {mention_html(user.id, 'link')}"
+    else:
+        text = ""
 
     # Spamwatch Antispam
     try:
-        spamwtc = sw.get_ban(int(user.id))
+        spamwtc = sw.get_ban(int(user_id))
         text += "\n\n<b>SpamWatch Information:</b>\n"
         if spamwtc:
-            text += "<b> • SpamWatched:\n</b> Yes"
-            text += f"\n<b> • Reason</b>: <pre>{spamwtc.reason}</pre>"
-            text += "\n • Appeal at @SpamWatchSupport"
+            text += "<b> • SpamWatched:</b> Yes\n"
+            text += f"<b> • Reason</b>: <pre>{spamwtc.reason}</pre>\n"
+            text += " • Appeal at @SpamWatchSupport"
         else:
             text += "<b> • SpamWatched:</b> No"
     except:
@@ -537,15 +549,55 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
 
     # Sibly Antispam
     if 'sibylsystem' in ALL_MODULES:
-        sibyl_data, kb = get_sibyl_info(bot, user)
-        text += sibyl_data.replace('<b>Cymatic Scan Results', '\n\n<b>Sibyl Antispam Information:').replace('\n\nPowered by @SibylSystem | Kaizoku', '\n Sibyl Antispam is powered by @SibylSystem | Kaizoku')
-        if "<b>Banned:</b> <code>Yes</code>" in sibyl_data:
+        # Import in the middle of the file
+        # Previous implementation of directly calling get_sibyl_info() would not work if bot had not seen the user before
+        from MetaButler.modules.sibylsystem import sibylClient, GeneralException, logging
+        try:
+            data = sibylClient.get_info(user_id)
+        except GeneralException:
+            data = None
+        except BaseException as e:
+            logging.error(e)
+            data = None
+        text += "\n\n<b>Sibyl Antispam Information</b>"
+        if data:
+            text += f"\n • <b>Banned:</b> <code>{'No' if not data.banned else 'Yes'}</code>"
+            cc = data.crime_coefficient or"?"
+            text += f"\n • <b>Crime Coefficient:</b> <code>{cc}</code> [<a href='https://t.me/SibylSystem/3'>?</a>]"
+            hue = data.hue_color or "?"
+            text += f"\n • <b>Hue Color:</b> <code>{hue}</code> [<a href='https://t.me/SibylSystem/5'>?</a>]"
+            if data.ban_flags:
+                text += f"\n • <b>Flagged For:</b> <code>{', '.join(data.ban_flags)}</code>"
+            if data.date:
+                text += f"\n • <b>Date:</b> <code>{data.date}</code>"
+            if data.is_bot:
+                text += "\n • <b>Bot:</b> <code>Yes</code>"
+
+            if data.crime_coefficient < 10:
+                text += "\n • <b>Status:</b> <code>Inspector</code>"
+            elif 10 <= data.crime_coefficient < 80:
+                text += "\n • <b>Status:</b> <code>Civilian</code>"
+            elif 81 <= data.crime_coefficient <= 100:
+                text += "\n • <b>Status:</b> <code>Restored</code>"
+            elif 101 <= data.crime_coefficient <= 150:
+                text += "\n • <b>Status:</b> <code>Enforcer</code>"
+        else:
+            text += "\n • <b>Banned:</b> <code>No</code>"
+            text += f"\n • <b>Crime Coefficient:</b> <code>?</code> [<a href='https://t.me/SibylSystem/3'>?</a>]"
+            text += f"\n • <b>Hue Color:</b> <code>?</code> [<a href='https://t.me/SibylSystem/5'>?</a>]"
+        text += "\nSibyl Antispam is powered by @SibylSystem | @Kaizoku"
+        if data and data.banned:
             text += "\n • Appeal at @SibylRobot"
 
     # Extra Information
-    num_chats = sql.get_user_num_chats(user.id)
-    text += f"\n\n• <b>Chat count</b>: <code>{num_chats}</code>"
-    msg.reply_text(text, reply_to_message_id=msg.message_id, parse_mode=ParseMode.HTML, disable_web_page_preview=True, allow_sending_without_reply=True)
+    if not no_user_db:
+        num_chats = sql.get_user_num_chats(user.id)
+        text += f"\n\n• <b>Chat count</b>: <code>{num_chats}</code>"
+    
+    if not no_user_db:
+        msg.reply_text(text, reply_to_message_id=msg.message_id, parse_mode=ParseMode.HTML, disable_web_page_preview=True, allow_sending_without_reply=True)
+    else:
+        m.edit_text(text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
                 
 def get_help(chat):
