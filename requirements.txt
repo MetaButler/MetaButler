@@ -20,6 +20,7 @@ psutil
 psycopg2-binary
 pyYAML>=5.1.2
 pyrate-limiter
+pytesseract
 python-rapidjson
 python-telegram-bot==13.13
 requests
