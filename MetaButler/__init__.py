@@ -10,6 +10,7 @@ from telethon.sessions import MemorySession
 from configparser import ConfigParser
 from ptbcontrib.postgres_persistence import PostgresPersistence
 from logging.config import fileConfig
+from SibylSystem import PsychoPass
 
 StartTime = time.time()
 
@@ -77,6 +78,7 @@ class MetaINIT:
         self.BOT_API_FILE_URL: str = self.parser.get('BOT_API_FILE_URL', "https://api.telegram.org/file/bot")
         self.PRIVATEBIN_INSTANCE: str = self.parser.get('PRIVATEBIN_INSTANCE', 'https://bin.0xfc.de/')
         self.USERGE_ANTISPAM_API_KEY = self.parser.get('USERGE_ANTISPAM_API_KEY', None)
+        self.SIBYL_KEY = self.parser.get('SIBYL_KEY', None)
 
 
     def init_sw(self):
@@ -91,6 +93,23 @@ class MetaINIT:
                 sw = None
                 log.warning("Can't connect to SpamWatch!")
                 return sw
+
+        
+    def init_sibyl_client(self):
+        if self.SIBYL_KEY is None:
+            log.warning("SibylSystem module is NOT loaded!")
+            return None
+        else:
+            try:
+                sibylClient: PsychoPass = None
+                sibylClient = PsychoPass(self.SIBYL_KEY)
+                log.info('Connected to @SibylSystem')
+            except Exception as e:
+                sibylClient = None
+                log.error(
+                    f"Failed to load SibylSystem due to {e.with_traceback(e.__traceback__)}",
+                )
+            return sibylClient
 
 
 MInit = MetaINIT(parser=metaconfig)
@@ -125,11 +144,17 @@ WEATHER_API = MInit.WEATHER_API
 TIME_API_KEY = MInit.TIME_API_KEY
 PRIVATEBIN_INSTANCE = MInit.PRIVATEBIN_INSTANCE
 USERGE_ANTISPAM_API_KEY = MInit.USERGE_ANTISPAM_API_KEY
+SIBYL_KEY = MInit.SIBYL_KEY
 
 # SpamWatch
 sw = MInit.init_sw()
 
 from MetaButler.modules.sql import SESSION
+from MetaButler.modules import ALL_MODULES
+
+# Sibyl Antispam
+if 'sibylsystem' in ALL_MODULES:
+    sibylClient = MInit.init_sibyl_client()
 
 if not MInit.DROP_UPDATES:
     updater = tg.Updater(token=TOKEN, base_url=MInit.BOT_API_URL, base_file_url=MInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10}, persistence=PostgresPersistence(session=SESSION))

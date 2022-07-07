@@ -47,7 +47,8 @@ from telegram.ext import (
 from telegram.utils.helpers import escape_markdown, mention_html, mention_markdown
 import MetaButler.modules.sql.log_channel_sql as logsql
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
-from .sibylsystem import sibylClient, does_chat_sibylban
+from .sibylsystem import sibylClient
+from MetaButler.modules.sql.sibyl_sql import does_chat_sibylban
 from SibylSystem import GeneralException
 
 VALID_WELCOME_FORMATTERS = [
@@ -212,7 +213,7 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
                 except GeneralException:
                     pass
                 except BaseException as e:
-                    LOGGER.error(e)
+                    log.error(e)
                     pass
                 if data and data.banned:
                         return # all modes handle it in different ways

@@ -551,7 +551,8 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
     if 'sibylsystem' in ALL_MODULES:
         # Import in the middle of the file
         # Previous implementation of directly calling get_sibyl_info() would not work if bot had not seen the user before
-        from MetaButler.modules.sibylsystem import sibylClient, GeneralException, logging
+        from MetaButler import sibylClient
+        from MetaButler.modules.sibylsystem import GeneralException, logging
         try:
             data = sibylClient.get_info(user_id)
         except GeneralException:
