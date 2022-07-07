@@ -63,6 +63,7 @@ class MetaINIT:
         self.LOAD: List[str] = list(map(str, self.LOAD))
         self.MESSAGE_DUMP: int = self.parser.getint('MESSAGE_DUMP', None)
         self.GBAN_LOGS: int = self.parser.getint('GBAN_LOGS', None)
+        self.ERROR_LOGS: int = self.parser.getint('ERROR_LOGS', None)
         self.NO_LOAD = self.parser.get("NO_LOAD").split()
         self.NO_LOAD: List[str] = list(map(str, self.NO_LOAD))
         self.spamwatch_api: str = self.parser.get('spamwatch_api', None)
@@ -94,7 +95,7 @@ class MetaINIT:
                 log.warning("Can't connect to SpamWatch!")
                 return sw
 
-        
+
     def init_sibyl_client(self):
         if self.SIBYL_KEY is None:
             log.warning("SibylSystem module is NOT loaded!")
@@ -132,6 +133,7 @@ DB_URI = MInit.DB_URI
 LOAD = MInit.LOAD
 MESSAGE_DUMP = MInit.MESSAGE_DUMP
 GBAN_LOGS = MInit.GBAN_LOGS
+ERROR_LOGS = MInit.ERROR_LOGS
 NO_LOAD = MInit.NO_LOAD
 SUDO_USERS = [OWNER_ID] + get_user_list("sudos")
 DEV_USERS = [OWNER_ID] + get_user_list("devs")
@@ -158,10 +160,10 @@ if 'sibylsystem' in ALL_MODULES:
 
 if not MInit.DROP_UPDATES:
     updater = tg.Updater(token=TOKEN, base_url=MInit.BOT_API_URL, base_file_url=MInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10}, persistence=PostgresPersistence(session=SESSION))
-    
+
 else:
     updater = tg.Updater(token=TOKEN, base_url=MInit.BOT_API_URL, base_file_url=MInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10})
-    
+
 telethn = TelegramClient(MemorySession(), APP_ID, API_HASH)
 dispatcher = updater.dispatcher
 

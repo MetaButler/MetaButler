@@ -5,7 +5,7 @@ from .helper_funcs.misc import upload_text
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackContext, CommandHandler
 from psycopg2 import errors as sqlerrors
-from MetaButler import MInit, dispatcher, DEV_USERS, OWNER_ID, log
+from MetaButler import MInit, dispatcher, DEV_USERS, ERROR_LOGS, log
 
 class ErrorsDict(dict):
     "A custom dict to store errors and their count"
@@ -36,7 +36,7 @@ def error_callback(update: Update, context: CallbackContext):
 
     if update.effective_chat.type != "channel" and MInit.DEBUG:
         try:
-            context.bot.send_message(update.effective_chat.id, 
+            context.bot.send_message(update.effective_chat.id,
             f"<b>Sorry I ran into an error!</b>\n<b>Error</b>: <code>{e}</code>\n<i>This incident has been logged. No further action is required.</i>",
             parse_mode="html")
         except BaseException as e:
@@ -70,19 +70,19 @@ def error_callback(update: Update, context: CallbackContext):
         with open("error.txt", "w+") as f:
             f.write(pretty_message)
         context.bot.send_document(
-            OWNER_ID,
+            ERROR_LOGS,
             open("error.txt", "rb"),
             caption=f"#{context.error.identifier}\n<b>Got an error for you:</b>\n<code>{e}</code>",
             parse_mode="html",
         )
         return
     context.bot.send_message(
-        OWNER_ID,
+        ERROR_LOGS,
         text=f"#{context.error.identifier}\n<b>Got an error for you:</b>\n<code>{e}</code>",
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("PrivateBin", url=paste_url)]]),
         parse_mode="html",
     )
-    
+
 
 
 def list_errors(update: Update, context: CallbackContext):
