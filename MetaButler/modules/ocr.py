@@ -15,7 +15,7 @@ def ocr(update: Update, context: CallbackContext):
         try:
             file_info = context.bot.get_file(
                 message.reply_to_message.photo.file_id)
-            img_name = str(chat_id)+'.jpg'
+            img_name = f'{str(chat.id)}_{str(update.effective_user.id)}.jpg'
             path = file_info.download(img_name)
             text = pytesseract.image_to_string(Image.open(path))
             if text:
