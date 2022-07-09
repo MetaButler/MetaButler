@@ -471,27 +471,27 @@ if SIBYL_KEY and __name__.split(".")[-1] in ALL_MODULES:
 
 
 __help__ = """
-[Sibyl System](https://t.me/SibylSystem/14) is an anti-spam module designed off the anime "[PsychoPass]". 
+[Sibyl System](https://t.me/SibylSystem/14) is an anti-spam module designed off the anime "[PsychoPass]".
 This module is capable of interactively or silently handling bad users that Sibyl has recognised to be maliciuos in nature.
 
-The module is on by default and comes with 2 commands. 
+The module is on by default and comes with 2 commands.
 
-*Available Commands:* 
+*Available Commands:*
  • `/sibyl`*:* Run this in a group to control settings
  • `/check`*:* An info command to check if a user exists in Sibyl's database
 """
 """
-Other Terminologies 
+Other Terminologies
 • [Crime Coefficient](https://t.me/SibylSystem/3)
 • [Ban Flags and reasons](https://t.me/SibylSystem/4)
-• [Hue Colors explained](https://t.me/SibylSystem/5) 
+• [Hue Colors explained](https://t.me/SibylSystem/5)
 • [API Help and docs](https://t.me/PsychoPass/5)
 • [Support group](https://t.me/PublicSafetyBureau)
 • [Report bad users](https://t.me/MinistryOfWelfare/8)
 """
 
 
-def get_help():
+def get_help(chat):
     return [__help__,
             [
                 InlineKeyboardButton(text="Crime Coefficient",
