@@ -14,6 +14,7 @@ from MetaButler import (
     OWNER_ID,
     WHITELIST_USERS,
     BAN_STICKER,
+    log
 )
 from MetaButler.modules.helper_funcs.chat_status import (
     bot_admin,
@@ -111,21 +112,21 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:
             return ""
     else:
         delban = False
-    log = (
+    log_message = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#BANNED\n"
         f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
         f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
     )
     if reason:
-        log += "\n<b>Reason:</b> {}".format(reason)
+        log_message += "\n<b>Reason:</b> {}".format(reason)
 
     try:
         chat.ban_member(user_id)
         if silent:
             if message.reply_to_message:
                 message.delete()
-            return log
+            return log_message
         else:
             if delban and message.reply_to_message:
                 message.reply_to_message.delete()
@@ -150,14 +151,14 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:
                     ),
                     parse_mode=ParseMode.HTML,
                 )
-            return log
+            return log_message
     except BadRequest as excp:
         if excp.message == "Reply message not found":
             # Do not reply
             if silent:
-                return log
+                return log_message
             message.reply_text("Banned!", quote=False)
-            return log
+            return log_message
         else:
             log.warning(update)
             log.exception(
@@ -220,7 +221,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
     if not bantime:
         return log_message
 
-    log = (
+    log_message = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         "#TEMP BANNED\n"
         f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
@@ -228,7 +229,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
         f"<b>Time:</b> {time_val}"
     )
     if reason:
-        log += "\n<b>Reason:</b> {}".format(reason)
+        log_message += "\n<b>Reason:</b> {}".format(reason)
 
     try:
         chat.ban_member(user_id, until_date=bantime)
@@ -238,7 +239,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
             f"Banned! User {mention_html(member.user.id, member.user.first_name)} will be banned for {time_val}.\nReason: {reason}",
             parse_mode=ParseMode.HTML,
         )
-        return log
+        return log_message
 
     except BadRequest as excp:
         if excp.message == "Reply message not found":
@@ -246,7 +247,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
             message.reply_text(
                 f"Banned! User will be banned for {time_val}.", quote=False
             )
-            return log
+            return log_message
         else:
             log.warning(update)
             log.exception(
@@ -302,16 +303,16 @@ def kick(update: Update, context: CallbackContext) -> str:
             f"{mention_html(member.user.id, member.user.first_name)} was kicked by {mention_html(user.id, user.first_name)} in {message.chat.title}\n<b>Reason</b>: <code>{reason}</code>",
             parse_mode=ParseMode.HTML,
         )
-        log = (
+        log_message = (
             f"<b>{html.escape(chat.title)}:</b>\n"
             f"#KICKED\n"
             f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
             f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
         )
         if reason:
-            log += f"\n<b>Reason:</b> {reason}"
+            log_message += f"\n<b>Reason:</b> {reason}"
 
-        return log
+        return log_message
 
     else:
         message.reply_text("Well damn, I can't kick that user.")
@@ -410,16 +411,16 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
             parse_mode=ParseMode.HTML,
         )
 
-    log = (
+    log_message = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#UNBANNED\n"
         f"<b>Admin:</b> {mention_html(user.id, user.first_name)}\n"
         f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
     )
     if reason:
-        log += f"\n<b>Reason:</b> {reason}"
+        log_message += f"\n<b>Reason:</b> {reason}"
 
-    return log
+    return log_message
 
 
 @metacmd(command='selfunban', pass_args=True)
@@ -458,13 +459,13 @@ def selfunban(context: CallbackContext, update: Update) -> Optional[str]:
     chat.unban_member(user.id)
     message.reply_text("Yep, I have unbanned you.")
 
-    log = (
+    log_message = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#UNBANNED\n"
         f"<b>User:</b> {mention_html(member.user.id, member.user.first_name)}"
     )
 
-    return log
+    return log_message
 
 
 def get_help(chat):
