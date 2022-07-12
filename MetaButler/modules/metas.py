@@ -1,6 +1,4 @@
 import html
-import json
-import os
 from typing import List, Optional
 
 from telegram import Update, ParseMode, TelegramError
@@ -8,7 +6,6 @@ from telegram.ext import CallbackContext
 from telegram.utils.helpers import mention_html
 
 from MetaButler import (
-    dispatcher,
     WHITELIST_USERS,
     SUPPORT_USERS,
     SUDO_USERS,
@@ -419,6 +416,21 @@ def devlist(update: Update, context: CallbackContext):
     true_dev = list(set(DEV_USERS) - {OWNER_ID})
     reply = "<b>Dev Members :</b>\n"
     for each_user in true_dev:
+        user_id = int(each_user)
+        try:
+            user = bot.get_chat(user_id)
+            reply += f"• {mention_html(user_id, user.first_name)}\n"
+        except TelegramError:
+            pass
+    update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
+
+
+@metacmd('whitelist')
+@whitelist_plus
+def whitelist(update: Update, _: CallbackContext) -> None:
+    bot = _.bot
+    reply = "<b>Whitelisted Users: </b>\n"
+    for each_user in WHITELIST_USERS:
         user_id = int(each_user)
         try:
             user = bot.get_chat(user_id)
