@@ -7,6 +7,7 @@ from MetaButler import BAN_STICKER, WHITELIST_USERS, dispatcher
 from MetaButler.modules.disable import DisableAbleCommandHandler
 from MetaButler.modules.helper_funcs.chat_status import (
     bot_admin,
+    can_delete,
     can_restrict,
     is_user_admin,
     user_admin_no_reply,
@@ -18,7 +19,7 @@ from MetaButler.modules.helper_funcs.extraction import (
     extract_user_and_text,
 )
 from MetaButler.modules.helper_funcs.filters import CustomFilters
-from MetaButler.modules.helper_funcs.misc import split_message
+from MetaButler.modules.helper_funcs.misc import delete, split_message
 from MetaButler.modules.helper_funcs.string_handling import split_quotes
 from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.sql import warns_sql as sql
@@ -52,7 +53,7 @@ CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
 
 # Not async
 def warn(
-        user: User, update: Update, reason: str, message: Message, warner: User = None
+        user: User, update: Update, reason: str, message: Message, warner: User = None, orig_msg: Message = None, context: CallbackContext = None,
 ) -> Optional[str]:  # sourcery no-metrics
     chat = update.effective_chat
     if is_user_admin(update, user.id):
@@ -72,6 +73,17 @@ def warn(
         warner_tag = mention_html(warner.id, warner.first_name)
     else:
         warner_tag = "Automated warn filter."
+    
+    if orig_msg is not None and orig_msg.text.startswith(('/d', '!d')):
+        delwarn = True
+        if not can_delete(chat, context.bot.id):
+            message.reply_text('I cannot delete messages in this chat, please give me the necessary admin permission!', reply_to_message_id=message.message_id, allow_sending_without_reply=True)
+            return
+    else:
+        delwarn = False
+
+    if delwarn and message:
+        message.delete()
 
     limit, soft_warn = sql.get_warn_setting(chat.id)
     num_warns, reasons = sql.warn_user(user.id, chat.id, reason)
@@ -138,7 +150,7 @@ def warn(
         )
 
     try:
-        message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+        message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML, allow_sending_without_reply=True)
     except BadRequest as excp:
         if excp.message == "Reply message not found":
             # Do not reply
@@ -207,6 +219,8 @@ def warn_user(update: Update, context: CallbackContext) -> str:
                 reason,
                 message.reply_to_message,
                 warner,
+                message,
+                context
             )
         else:
             return warn(chat.get_member(user_id).user, update, reason, message, warner)
@@ -499,7 +513,7 @@ def get_help(chat):
 
 __mod_name__ = "Warnings"
 
-WARN_HANDLER = CommandHandler("warn", warn_user, filters=Filters.chat_type.groups)
+WARN_HANDLER = CommandHandler(['warn', 'dwarn'], warn_user, filters=Filters.chat_type.groups)
 RESET_WARN_HANDLER = CommandHandler(
     ["resetwarn", "resetwarns"], reset_warns, filters=Filters.chat_type.groups
 )

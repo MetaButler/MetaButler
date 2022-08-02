@@ -441,6 +441,7 @@ warns_help: |
 
       *Admins only:*
       • `/warn <userhandle>`*:* warn a user. After 3 warns, the user will be banned from the group. Can also be used as a reply.
+      • `/dwarn <userhandle>`*:* Warn an user and delete the replied to message. After 3 warns, the user will be banned. (via reply or mention)
       • `/resetwarn <userhandle>`*:* reset the warns for a user. Can also be used as a reply.
       • `/addwarn <keyword> <reply message>`*:* set a warning filter on a certain keyword. If you want your keyword to
       be a sentence, encompass it with quotes, as such: `/addwarn "very angry" This is an angry user`.
