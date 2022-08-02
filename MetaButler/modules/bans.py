@@ -41,9 +41,9 @@ from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 @loggable
 # sourcery no-metrics
 def ban(update: Update, context: CallbackContext) -> Optional[str]:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
     args = context.args
     bot = context.bot
     log_message = ""
@@ -262,7 +262,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
     return log_message
 
 
-@metacmd(command='kick', pass_args=True)
+@metacmd(command=['kick', 'dkick', 'skick'], pass_args=True)
 @connection_status
 @bot_admin
 @can_restrict
@@ -295,14 +295,37 @@ def kick(update: Update, context: CallbackContext) -> str:
         message.reply_text("I really wish I could kick this user....")
         return log_message
 
+    if message.text.startswith(('/s', '!s')):
+        silent = True
+        if not can_delete(chat, context.bot.id):
+            message.reply_text('I cannot delete messages in this chat, please give me the necessary admin permission!', reply_to_message_id=message.message_id, allow_sending_without_reply=True)
+            return
+    else:
+        silent = False
+    
+    if message.text.startswith(('/d', '!d')):
+        delkick = True
+        if not can_delete(chat, context.bot.id):
+            message.reply_text('I cannot delete messages in this chat, please give me the necessary admin permission!', reply_to_message_id=message.message_id, allow_sending_without_reply=True)
+            return
+    else:
+        delkick = False
+
     res = chat.unban_member(user_id)  # unban on current user = kick
     if res:
+        if delkick:
+            if message.reply_to_message:
+                message.reply_to_message.delete()
+        if not silent:
         # bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
-        bot.sendMessage(
-            chat.id,
-            f"{mention_html(member.user.id, member.user.first_name)} was kicked by {mention_html(user.id, user.first_name)} in {message.chat.title}\n<b>Reason</b>: <code>{reason}</code>",
-            parse_mode=ParseMode.HTML,
-        )
+            bot.sendMessage(
+                chat.id,
+                f"{mention_html(member.user.id, member.user.first_name)} was kicked by {mention_html(user.id, user.first_name)} in {message.chat.title}\n<b>Reason</b>: <code>{reason}</code>",
+                parse_mode=ParseMode.HTML,
+            )
+        else:
+            if message:
+                message.delete()
         log_message = (
             f"<b>{html.escape(chat.title)}:</b>\n"
             f"#KICKED\n"
