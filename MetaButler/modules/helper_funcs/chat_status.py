@@ -70,6 +70,16 @@ def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bo
             return False
 
 
+def is_user_creator(update: Update, context: CallbackContext, user_id: int) -> bool:
+    chat = update.effective_chat
+    if user_id in SUDO_USERS:
+        return True
+    getuser = context.bot.get_chat_member(chat.id, user_id).status
+    if getuser == 'creator':
+        return True
+    return False
+
+
 def is_bot_admin(chat: Chat, bot_id: int, bot_member: ChatMember = None) -> bool:
     if chat.type == "private" or chat.all_members_are_administrators:
         return True

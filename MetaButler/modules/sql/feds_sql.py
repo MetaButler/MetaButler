@@ -566,7 +566,6 @@ def multi_fban_user(
         finally:
             SESSION.commit()
         __load_all_feds_banned()
-        print("Done")
         return counter
 
 
@@ -718,7 +717,6 @@ def set_fed_log(fed_id, chat_id):
         )
         SESSION.merge(fed)
         SESSION.commit()
-        print(fed_log)
         return True
 
 
@@ -732,10 +730,15 @@ def subs_fed(fed_id, my_fed):
         SESSION.merge(subsfed)  # merge to avoid duplicate key issues
         SESSION.commit()
         global FEDS_SUBSCRIBER
+        global MYFEDS_SUBSCRIBER
         if FEDS_SUBSCRIBER.get(fed_id, set()) == set():
             FEDS_SUBSCRIBER[fed_id] = {my_fed}
         else:
             FEDS_SUBSCRIBER.get(fed_id, set()).add(my_fed)
+        if MYFEDS_SUBSCRIBER.get(my_fed, set()) == set():
+            MYFEDS_SUBSCRIBER[my_fed] = {fed_id}
+        else:
+            MYFEDS_SUBSCRIBER.get(my_fed, set()).add(fed_id)
         return True
 
 
@@ -745,6 +748,8 @@ def unsubs_fed(fed_id, my_fed):
         if getsubs:
             if my_fed in FEDS_SUBSCRIBER.get(fed_id, set()):  # sanity check
                 FEDS_SUBSCRIBER.get(fed_id, set()).remove(my_fed)
+            if fed_id in MYFEDS_SUBSCRIBER.get(my_fed, set()):
+                MYFEDS_SUBSCRIBER.get(my_fed, set()).remove(fed_id)
 
             SESSION.delete(getsubs)
             SESSION.commit()
@@ -884,7 +889,9 @@ def __load_feds_subscriber():
         feds = SESSION.query(FedSubs.fed_id).distinct().all()
         for (fed_id,) in feds:  # remove tuple by ( ,)
             FEDS_SUBSCRIBER[fed_id] = []
-            MYFEDS_SUBSCRIBER[fed_id] = []
+        myfeds = SESSION.query(FedSubs.fed_subs).distinct().all()
+        for (myfed, ) in myfeds:
+            MYFEDS_SUBSCRIBER[myfed] = []
 
         all_fedsubs = SESSION.query(FedSubs).all()
         for x in all_fedsubs:

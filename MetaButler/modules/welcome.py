@@ -1,10 +1,10 @@
+from MetaButler.modules.feds import welcome_fed
 from MetaButler.modules.language import gs
 from multicolorcaptcha import CaptchaGenerator
 import html
 import random
 import re
 import time
-from functools import partial
 from io import BytesIO
 import MetaButler.modules.sql.welcome_sql as sql
 from MetaButler import (
@@ -34,9 +34,9 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ParseMode,
-    Update, ChatMember, User,
+    Update
 )
-from telegram.error import BadRequest, TelegramError
+from telegram.error import BadRequest
 from telegram.ext import (
     CallbackContext,
     CallbackQueryHandler,
@@ -222,6 +222,9 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
             sw_ban = sw.get_ban(new_mem.id)
             if sw_ban:
                 return
+
+        if welcome_fed(update, context):
+            continue
 
         reply = update.message.message_id
         cleanserv = sql.clean_service(chat.id)
@@ -1125,7 +1128,7 @@ def clean_welcome(update: Update, context: CallbackContext) -> str:
 @user_admin(AdminPerms.CAN_CHANGE_INFO)
 def cleanservice(update: Update, context: CallbackContext) -> str:
     args = context.args
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if chat.type == chat.PRIVATE:
         curr = sql.clean_service(chat.id)
         if curr:

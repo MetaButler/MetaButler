@@ -176,9 +176,11 @@ FED_OWNER_HELP: |
     • `/subfed <fed_id>`*:* Subscribes to a given fed ID, bans from that subscribed fed will also happen in your fed
     • `/unsubfed <fed_id>`*:* Unsubscribes to a given fed ID
     • `/setfedlog <fed_id>`*:* Sets the group as a fed log report base for the federation
+    • `/fedlog`*:* Shows the current federation log
     • `/unsetfedlog <fed_id>`*:* Removed the group as a fed log report base for the federation
     • `/fbroadcast <message>`*:* Broadcasts a messages to all groups that have joined your fed
-    • `/fedsubs`*:* Shows the feds your group is subscribed to `(broken rn)`
+    • `/fedsubs`*:* Shows the feds your fed is subscribed to
+    • `/fedsubbed`*:* Shows the feds which are have subscribed to your fed
 
 FED_ADMIN_HELP: |
     *Fed Admins:*
