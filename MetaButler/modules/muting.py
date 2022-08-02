@@ -1,9 +1,9 @@
 import html
 from typing import Optional
 
-from MetaButler import SARDEGNA_USERS
 from MetaButler.modules.helper_funcs.chat_status import (
     bot_admin,
+    can_delete,
     can_restrict,
     connection_status,
     is_user_admin,
@@ -42,7 +42,7 @@ def check_user(user_id: int, bot: Bot, update: Update) -> Optional[str]:
     return None
 
 
-@metacmd(command='mute')
+@metacmd(command=['mute', 'dmute', 'smute'], pass_args=True)
 @connection_status
 @bot_admin
 @can_restrict
@@ -65,6 +65,22 @@ def mute(update: Update, context: CallbackContext) -> str:
 
     member = chat.get_member(user_id)
 
+    if message.text.startswith(('/s', '!s')):
+        silent = True
+        if not can_delete(chat, context.bot.id):
+            message.reply_text('I cannot delete messages in this chat, please give me the necessary admin permission!', reply_to_message_id=message.message_id, allow_sending_without_reply=True)
+            return
+    else:
+        silent = False
+    
+    if message.text.startswith(('/d', '!d')):
+        delmute = True
+        if not can_delete(chat, context.bot.id):
+            message.reply_text('I cannot delete messages in this chat, please give me the necessary admin permission!', reply_to_message_id=message.message_id, allow_sending_without_reply=True)
+            return
+    else:
+        delmute = False
+
     log = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"#MUTE\n"
@@ -74,6 +90,13 @@ def mute(update: Update, context: CallbackContext) -> str:
 
     if reason:
         log += f"\n<b>Reason:</b> {reason}"
+
+    if delmute:
+        if message.reply_to_message:
+            message.reply_to_message.delete()
+    if silent:
+        if message:
+            message.delete()
 
     if member.can_send_messages is None or member.can_send_messages:
         chat_permissions = ChatPermissions(can_send_messages=False)
