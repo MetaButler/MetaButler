@@ -1748,21 +1748,6 @@ def put_chat(chat_id: int, value: bool, chat_data: Optional[dict]) -> None:
     chat_data[chat_id] = {"federation": {"status": status, "value": value}}
 
 
-def welcome_fed(update: Update, context: CallbackContext) -> bool:
-    chat = update.effective_chat
-    user = update.effective_user
-    fed_id = sql.get_fed_id(chat.id)
-    fban = sql.get_fban_user(fed_id, user.id)
-    if fban:
-        update.effective_message.reply_text(
-            "This user is banned in current federation! I will remove him."
-        )
-        context.bot.ban_chat_member(chat.id, user.id)
-        return True
-    else:
-        return False
-
-
 def __stats__() -> str:
     all_fbanned = sql.get_all_fban_users_global()
     all_feds = sql.get_all_feds_users_global()

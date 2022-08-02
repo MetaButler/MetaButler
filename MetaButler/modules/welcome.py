@@ -1,4 +1,3 @@
-from MetaButler.modules.feds import welcome_fed
 from MetaButler.modules.language import gs
 from multicolorcaptcha import CaptchaGenerator
 import html
@@ -7,6 +6,7 @@ import re
 import time
 from io import BytesIO
 import MetaButler.modules.sql.welcome_sql as sql
+import MetaButler.modules.sql.feds_sql as fed_sql
 from MetaButler import (
     DEV_USERS,
     log,
@@ -176,6 +176,7 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
     user = update.effective_user
     msg = update.effective_message
     log_setting = logsql.get_chat_setting(chat.id)
+    fed_id = fed_sql.get_fed_id(chat.id)
     if not log_setting:
         logsql.set_chat_setting(logsql.LogChannelSettings(
             chat.id, True, True, True, True, True))
@@ -223,8 +224,11 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
             if sw_ban:
                 return
 
-        if welcome_fed(update, context):
-            continue
+        if fed_id:
+            fban = fed_sql.get_fban_user(fed_id, user.id)
+            if fban[0]:
+                msg.reply_text("This user is banned in current federation! I will remove them.", reply_to_message_id=msg.message_id, allow_sending_without_reply=True)
+                context.bot.ban_chat_member(chat.id, user.id)
 
         reply = update.message.message_id
         cleanserv = sql.clean_service(chat.id)
