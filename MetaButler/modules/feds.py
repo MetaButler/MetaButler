@@ -1751,7 +1751,7 @@ def put_chat(chat_id: int, value: bool, chat_data: Optional[dict]) -> None:
 def __stats__() -> str:
     all_fbanned = sql.get_all_fban_users_global()
     all_feds = sql.get_all_feds_users_global()
-    return f"• {all_fbanned} users banned, in {all_feds} federations"
+    return f"• {len(all_fbanned)} users banned, in {len(all_feds)} federations"
 
 
 def __user_info__(user_id: int, chat_id: int) -> str:
