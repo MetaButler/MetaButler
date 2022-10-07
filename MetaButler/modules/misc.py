@@ -578,7 +578,7 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
         if userge_response.status_code <= 500:
             userge_response = userge_response.json()
             text += "\n\n<b>Userge Antispam Information:</b>\n"
-            if userge_response["success"] == True:
+            if userge_response["success"] is True:
                 # Has been banned
                 text += "<b> • Banned by Userge Antispam:</b> Yes"
                 text += f"\n<b> • Reason</b>: <pre>{userge_response['reason']}</pre>"
@@ -664,4 +664,3 @@ def get_help(chat):
 
 
 __mod_name__ = "Misc"
-
