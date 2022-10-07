@@ -23,7 +23,7 @@ from MetaButler import (
     INFOPIC,
     sw,
     StartTime,
-    USERGE_ANTISPAM_API_KEY
+    USERGE_ANTISPAM_API_KEY,
 )
 from MetaButler.__main__ import STATS, USER_INFO, TOKEN
 from MetaButler.modules import ALL_MODULES
@@ -66,7 +66,8 @@ This will create two buttons on a single line, instead of one button per line.
 Keep in mind that your message <b>MUST</b> contain some text other than just a button!
 """
 
-@metacmd(command='id', pass_args=True)
+
+@metacmd(command="id", pass_args=True)
 def get_id(update: Update, context: CallbackContext):
     bot, args = context.bot, context.args
     message = update.effective_message
@@ -94,16 +95,15 @@ def get_id(update: Update, context: CallbackContext):
             )
 
     elif chat.type == "private":
-        msg.reply_text(
-            f"Your id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML
-        )
+        msg.reply_text(f"Your id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML)
 
     else:
         msg.reply_text(
             f"This group's id is <code>{chat.id}</code>.", parse_mode=ParseMode.HTML
         )
 
-@metacmd(command='gifid')
+
+@metacmd(command="gifid")
 def gifid(update: Update, _):
     msg = update.effective_message
     if msg.reply_to_message and msg.reply_to_message.animation:
@@ -114,7 +114,8 @@ def gifid(update: Update, _):
     else:
         update.effective_message.reply_text("Please reply to a gif to get its ID.")
 
-@metacmd(command='info', pass_args=True)
+
+@metacmd(command="info", pass_args=True)
 def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     bot = context.bot
     args = context.args
@@ -145,7 +146,7 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     else:
         return
 
-    if hasattr(user, 'type') and user.type != "private":
+    if hasattr(user, "type") and user.type != "private":
         text = get_chat_info(user)
         is_chat = True
     else:
@@ -159,23 +160,23 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
                 pfp = bot.get_file(pic).download(out=BytesIO())
                 pfp.seek(0)
                 message.reply_photo(
-                        photo=pfp,
-                        filename=f'{user.id}.jpg',
-                        caption=text,
-                        parse_mode=ParseMode.HTML,
+                    photo=pfp,
+                    filename=f"{user.id}.jpg",
+                    caption=text,
+                    parse_mode=ParseMode.HTML,
                 )
             except AttributeError:  # AttributeError means no chat pic so just send text
                 message.reply_text(
-                        text,
-                        parse_mode=ParseMode.HTML,
-                        disable_web_page_preview=True,
+                    text,
+                    parse_mode=ParseMode.HTML,
+                    disable_web_page_preview=True,
                 )
         else:
             try:
                 profile = bot.get_user_profile_photos(user.id).photos[0][-1]
                 _file = bot.get_file(profile["file_id"])
                 _file.download(f"{user.id}.png")
-                #_file.seek(0)
+                # _file.seek(0)
 
                 message.reply_photo(
                     photo=open(f"{user.id}.png", "rb"),
@@ -186,13 +187,14 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
             # Incase user don't have profile pic, send normal text
             except IndexError:
                 message.reply_text(
-                        text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
+                    text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
                 )
 
     else:
         message.reply_text(
             text, parse_mode=ParseMode.HTML, disable_web_page_preview=True
         )
+
 
 def get_user_info(chat: Chat, user: User) -> str:
     bot = dispatcher.bot
@@ -221,22 +223,20 @@ def get_user_info(chat: Chat, user: User) -> str:
                 text += f"\nAdmin Title: <b>{result.custom_title}</b>"
 
     if user.id == OWNER_ID:
-        text += '\nOwner'
+        text += "\nOwner"
     elif user.id in DEV_USERS:
-        text += '\nDev User'
+        text += "\nDev User"
     elif user.id in SUDO_USERS:
-        text += '\nSudo User'
+        text += "\nSudo User"
     elif user.id in SUPPORT_USERS:
-        text += '\nSupport User'
+        text += "\nSupport User"
     elif user.id in WHITELIST_USERS:
-        text += '\nWhiteListed'
+        text += "\nWhiteListed"
     return text
 
+
 def get_chat_info(user):
-    text = (
-        f"<b>Chat Info:</b>\n"
-        f"<b>Title:</b> {user.title}"
-    )
+    text = f"<b>Chat Info:</b>\n" f"<b>Title:</b> {user.title}"
     if user.username:
         text += f"\n<b>Username:</b> @{html.escape(user.username)}"
     text += f"\n<b>Chat ID:</b> <code>{user.id}</code>"
@@ -245,43 +245,58 @@ def get_chat_info(user):
 
     return text
 
-@metacmd(command='echo', pass_args=True, filters=Filters.chat_type.groups)
+
+@metacmd(command="echo", pass_args=True, filters=Filters.chat_type.groups)
 @user_admin
 def echo(update: Update, _):
     args = update.effective_message.text.split(None, 1)
     message = update.effective_message
 
-    if message.reply_to_message:
-        message.reply_to_message.reply_text(args[1])
-    else:
-        message.reply_text(args[1], quote=False)
+    if len(args) > 1:
+        if message.reply_to_message:
+            message.reply_to_message.reply_text(args[1])
+        else:
+            message.reply_text(args[1], quote=False)
 
     message.delete()
 
-@metacmd(command='git', pass_args=True, filters=Filters.chat_type.groups)
+
+@metacmd(command="git", pass_args=True, filters=Filters.chat_type.groups)
 def github(update: Update, _):
     message = update.effective_message
-    text = message.text[len('/git '):]
-    usr = get(f'https://api.github.com/users/{text}').json()
-    if usr.get('login'):
+    text = message.text[len("/git ") :]
+    usr = get(f"https://api.github.com/users/{text}").json()
+    if usr.get("login"):
         text = f"*Username:* [{usr['login']}](https://github.com/{usr['login']})"
 
         whitelist = [
-            'name', 'id', 'type', 'location', 'blog', 'bio', 'followers',
-            'following', 'hireable', 'public_gists', 'public_repos', 'email',
-            'company', 'updated_at', 'created_at'
+            "name",
+            "id",
+            "type",
+            "location",
+            "blog",
+            "bio",
+            "followers",
+            "following",
+            "hireable",
+            "public_gists",
+            "public_repos",
+            "email",
+            "company",
+            "updated_at",
+            "created_at",
         ]
 
         difnames = {
-            'id': 'Account ID',
-            'type': 'Account type',
-            'created_at': 'Account created at',
-            'updated_at': 'Last updated',
-            'public_repos': 'Public Repos',
-            'public_gists': 'Public Gists'
+            "id": "Account ID",
+            "type": "Account type",
+            "created_at": "Account created at",
+            "updated_at": "Last updated",
+            "public_repos": "Public Repos",
+            "public_gists": "Public Gists",
         }
 
-        goaway = [None, 0, 'null', '']
+        goaway = [None, 0, "null", ""]
 
         for x, y in usr.items():
             if x in whitelist:
@@ -290,27 +305,30 @@ def github(update: Update, _):
                 else:
                     x = x.title()
 
-                if x == 'Account created at' or x == 'Last updated':
+                if x == "Account created at" or x == "Last updated":
                     y = datetime.datetime.strptime(y, "%Y-%m-%dT%H:%M:%SZ")
 
                 if y not in goaway:
-                    if x == 'Blog':
+                    if x == "Blog":
                         x = "Website"
                         y = f"[Here!]({y})"
-                        text += ("\n*{}:* {}".format(x, y))
+                        text += "\n*{}:* {}".format(x, y)
                     else:
-                        text += ("\n*{}:* `{}`".format(x, y))
+                        text += "\n*{}:* `{}`".format(x, y)
         reply_text = text
     else:
         reply_text = "User not found. Make sure you entered valid username!"
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
+    message.reply_text(
+        reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
+    )
 
-@metacmd(command='markdownhelp', filters=Filters.chat_type.private)
+
+@metacmd(command="markdownhelp", filters=Filters.chat_type.private)
 def markdown_help(update: Update, _):
     chat = update.effective_chat
-    update.effective_message.reply_text((gs(chat.id, "markdown_help_text")), parse_mode=ParseMode.HTML)
+    update.effective_message.reply_text(
+        (gs(chat.id, "markdown_help_text")), parse_mode=ParseMode.HTML
+    )
     update.effective_message.reply_text(
         "Try forwarding the following message to me, and you'll see!"
     )
@@ -319,6 +337,7 @@ def markdown_help(update: Update, _):
         "[URL](example.com) [button](buttonurl:github.com) "
         "[button2](buttonurl://google.com:same)"
     )
+
 
 def get_readable_time(seconds: int) -> str:
     count = 0
@@ -337,19 +356,24 @@ def get_readable_time(seconds: int) -> str:
     for x in range(len(time_list)):
         time_list[x] = str(time_list[x]) + time_suffix_list[x]
     if len(time_list) == 4:
-        ping_time += f'{time_list.pop()}, '
+        ping_time += f"{time_list.pop()}, "
 
     time_list.reverse()
     ping_time += ":".join(time_list)
 
     return ping_time
 
-stats_str = '''
-'''
-@metacmd(command='botstats', can_disable=False)
+
+stats_str = """
+"""
+
+
+@metacmd(command="botstats", can_disable=False)
 @sudo_plus
 def stats(update, context):
-    db_size = SESSION.execute("SELECT pg_size_pretty(pg_database_size(current_database()))").scalar_one_or_none()
+    db_size = SESSION.execute(
+        "SELECT pg_size_pretty(pg_database_size(current_database()))"
+    ).scalar_one_or_none()
     uptime = datetime.datetime.fromtimestamp(boot_time()).strftime("%Y-%m-%d %H:%M:%S")
     botuptime = get_readable_time((time.time() - StartTime))
     status = "*════「 System statistics: 」════*\n\n"
@@ -370,21 +394,21 @@ def stats(update, context):
     status += f"*• python-telegram-bot:* {str(ptbver)}" + "\n"
     status += f"*• Uptime:* {str(botuptime)}" + "\n"
     status += f"*• Database size:* {str(db_size)}" + "\n"
-    kb = [
-          [
-           InlineKeyboardButton('Ping', callback_data='pingCB')
-          ]
-    ]
+    kb = [[InlineKeyboardButton("Ping", callback_data="pingCB")]]
     repo = git.Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
     status += f"*• Commit*: `{sha[0:9]}`\n"
     try:
-        update.effective_message.reply_text(status +
-            "\n*Bot statistics*:\n"
-            + "\n".join([mod.__stats__() for mod in STATS]) +
-            "\n\n[⍙ GitHub](https://github.com/MetaButler/MetaButler)\n\n" +
-            "╘══「 by [DESTROYER-32](github.com/DESTROYER-32) 」\n",
-        parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(kb), disable_web_page_preview=True)
+        update.effective_message.reply_text(
+            status
+            + "\n*Bot statistics*:\n"
+            + "\n".join([mod.__stats__() for mod in STATS])
+            + "\n\n[⍙ GitHub](https://github.com/MetaButler/MetaButler)\n\n"
+            + "╘══「 by [DESTROYER-32](github.com/DESTROYER-32) 」\n",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=InlineKeyboardMarkup(kb),
+            disable_web_page_preview=True,
+        )
     except BaseException:
         update.effective_message.reply_text(
             (
@@ -402,7 +426,8 @@ def stats(update, context):
             disable_web_page_preview=True,
         )
 
-@metacmd(command='uptime')
+
+@metacmd(command="uptime")
 @dev_plus
 def uptime(update: Update, _):
     msg = update.effective_message
@@ -412,36 +437,40 @@ def uptime(update: Update, _):
     ping_time = round((end_time - start_time) * 1000, 3)
     uptime = get_readable_time((time.time() - StartTime))
     message.edit_text(
-        "*Ping*: `{} ms`\n"
-        "*Bot Uptime*: `{}`".format(ping_time, uptime), parse_mode=ParseMode.MARKDOWN
+        "*Ping*: `{} ms`\n" "*Bot Uptime*: `{}`".format(ping_time, uptime),
+        parse_mode=ParseMode.MARKDOWN,
     )
 
-@metacmd(command='repo', pass_args=True, filters=Filters.chat_type.groups)
+
+@metacmd(command="repo", pass_args=True, filters=Filters.chat_type.groups)
 def repo(update: Update, _):
     update.effective_message.reply_text(
         "Get Source Here",
-            reply_markup=InlineKeyboardMarkup(
+        reply_markup=InlineKeyboardMarkup(
+            [
                 [
-                    [
-                        InlineKeyboardButton(
-                            text="GitHub",
-                            url="https://github.com/MetaButler/MetaButler", disable_web_page_preview=True,
-                        )
-                    ]
+                    InlineKeyboardButton(
+                        text="GitHub",
+                        url="https://github.com/MetaButler/MetaButler",
+                        disable_web_page_preview=True,
+                    )
                 ]
-            ),
-        )
+            ]
+        ),
+    )
 
-@metacallback(pattern=r'^pingCB')
+
+@metacallback(pattern=r"^pingCB")
 def pingCallback(update: Update, context: CallbackContext):
     query = update.callback_query
     start_time = time.time()
-    requests.get('https://api.telegram.org')
+    requests.get("https://api.telegram.org")
     end_time = time.time()
     ping_time = round((end_time - start_time) * 1000, 3)
-    query.answer(f'Pong! {ping_time}ms')
+    query.answer(f"Pong! {ping_time}ms")
 
-@metacmd(command='wiki', pass_args=True)
+
+@metacmd(command="wiki", pass_args=True)
 def wiki(update: Update, context: CallbackContext):
     bot = context.bot
     kueri = re.split(pattern="wiki", string=update.effective_message.text)
@@ -451,24 +480,38 @@ def wiki(update: Update, context: CallbackContext):
     else:
         try:
             pertama = update.effective_message.reply_text("🔄 Loading...")
-            keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton(text="🔧 More Info...",
-                                     url=wikipedia.page(kueri).url)
-            ]])
-            bot.editMessageText(chat_id=update.effective_chat.id,
-                                message_id=pertama.message_id,
-                                text=wikipedia.summary(kueri, sentences=10),
-                                reply_markup=keyboard)
+            keyboard = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text="🔧 More Info...", url=wikipedia.page(kueri).url
+                        )
+                    ]
+                ]
+            )
+            bot.editMessageText(
+                chat_id=update.effective_chat.id,
+                message_id=pertama.message_id,
+                text=wikipedia.summary(kueri, sentences=10),
+                reply_markup=keyboard,
+            )
         except wikipedia.PageError as e:
             update.effective_message.reply_text("⚠ Error: {}".format(e))
         except BadRequest as et:
             update.effective_message.reply_text("⚠ Error: {}".format(et))
         except wikipedia.exceptions.DisambiguationError as eet:
             update.effective_message.reply_text(
-                "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}"
-                .format(eet))
+                "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}".format(
+                    eet
+                )
+            )
 
-@metacmd(command='spamcheck', pass_args=True, filters=Filters.chat_type.groups | Filters.chat_type.private)
+
+@metacmd(
+    command="spamcheck",
+    pass_args=True,
+    filters=Filters.chat_type.groups | Filters.chat_type.private,
+)
 @typing_action
 def spamcheck(update: Update, context: CallbackContext) -> None:
     msg = update.effective_message
@@ -490,13 +533,15 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
                 )
                 no_user_db = True
         except ValueError:
-            msg.reply_text('That is not a valid user!', reply_to_message_id=msg.message_id)
+            msg.reply_text(
+                "That is not a valid user!", reply_to_message_id=msg.message_id
+            )
             return
     else:
         # Return spamcheck of the user triggering the command
         user_id = msg.from_user.id
         user = msg.from_user
-    
+
     # Basic information of the user
     if not no_user_db:
         text = (
@@ -527,11 +572,13 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
 
     # Userge Antispam
     if USERGE_ANTISPAM_API_KEY is not None:
-        userge_response = requests.get(f'https://api.userge.live/ban?api_key={str(USERGE_ANTISPAM_API_KEY)}&user_id={str(user_id)}')
+        userge_response = requests.get(
+            f"https://api.userge.live/ban?api_key={str(USERGE_ANTISPAM_API_KEY)}&user_id={str(user_id)}"
+        )
         if userge_response.status_code <= 500:
             userge_response = userge_response.json()
             text += "\n\n<b>Userge Antispam Information:</b>\n"
-            if userge_response['success'] == True:
+            if userge_response["success"] == True:
                 # Has been banned
                 text += "<b> • Banned by Userge Antispam:</b> Yes"
                 text += f"\n<b> • Reason</b>: <pre>{userge_response['reason']}</pre>"
@@ -548,11 +595,12 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
         pass
 
     # Sibly Antispam
-    if 'sibylsystem' in ALL_MODULES:
+    if "sibylsystem" in ALL_MODULES:
         # Import in the middle of the file
         # Previous implementation of directly calling get_sibyl_info() would not work if bot had not seen the user before
         from MetaButler import sibylClient
         from MetaButler.modules.sibylsystem import GeneralException, logging
+
         try:
             data = sibylClient.get_info(user_id)
         except GeneralException:
@@ -562,13 +610,17 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
             data = None
         text += "\n\n<b>Sibyl Antispam Information</b>"
         if data:
-            text += f"\n • <b>Banned:</b> <code>{'No' if not data.banned else 'Yes'}</code>"
-            cc = data.crime_coefficient or"?"
+            text += (
+                f"\n • <b>Banned:</b> <code>{'No' if not data.banned else 'Yes'}</code>"
+            )
+            cc = data.crime_coefficient or "?"
             text += f"\n • <b>Crime Coefficient:</b> <code>{cc}</code> [<a href='https://t.me/SibylSystem/3'>?</a>]"
             hue = data.hue_color or "?"
             text += f"\n • <b>Hue Color:</b> <code>{hue}</code> [<a href='https://t.me/SibylSystem/5'>?</a>]"
             if data.ban_flags:
-                text += f"\n • <b>Flagged For:</b> <code>{', '.join(data.ban_flags)}</code>"
+                text += (
+                    f"\n • <b>Flagged For:</b> <code>{', '.join(data.ban_flags)}</code>"
+                )
             if data.date:
                 text += f"\n • <b>Date:</b> <code>{data.date}</code>"
             if data.is_bot:
@@ -594,16 +646,22 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
     if not no_user_db:
         num_chats = sql.get_user_num_chats(user.id)
         text += f"\n\n• <b>Chat count</b>: <code>{num_chats}</code>"
-    
+
     if not no_user_db:
-        msg.reply_text(text, reply_to_message_id=msg.message_id, parse_mode=ParseMode.HTML, disable_web_page_preview=True, allow_sending_without_reply=True)
+        msg.reply_text(
+            text,
+            reply_to_message_id=msg.message_id,
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True,
+            allow_sending_without_reply=True,
+        )
     else:
         m.edit_text(text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
-                
+
 def get_help(chat):
     return gs(chat, "misc_help")
 
 
-
 __mod_name__ = "Misc"
+
