@@ -146,7 +146,7 @@ def inlineinfo(query: str, update: Update, context: CallbackContext) -> None:
             [
                 InlineKeyboardButton(
                     text="Report Error",
-                    url=f"https://t.me/MetaButler",
+                    url=f"https://t.me/MetaProjectsSupport",
                 ),
                 InlineKeyboardButton(
                     text="Search again",
@@ -188,7 +188,7 @@ def about(query: str, update: Update, context: CallbackContext) -> None:
             [
                 InlineKeyboardButton(
                     text="Support",
-                    url=f"https://t.me/MetaButler",
+                    url=f"https://t.me/MetaProjectsSupport",
                 ),
                 InlineKeyboardButton(
                     text="Channel",

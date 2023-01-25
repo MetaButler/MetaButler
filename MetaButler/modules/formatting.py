@@ -37,7 +37,7 @@ def fmt_help(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton(text="Back", callback_data=f"help_module({__mod_name__.lower()})"),
-            InlineKeyboardButton(text='Report Error', url='https://t.me/MetaButler')]]
+            InlineKeyboardButton(text='Report Error', url='https://t.me/MetaProjectsSupport')]]
         ),
     )
     bot.answer_callback_query(query.id)

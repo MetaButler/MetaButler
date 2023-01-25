@@ -8,7 +8,7 @@ Originally a Kigyo fork -
 
 Can be found on telegram as [MetaButler](https://t.me/MetaButlerBot).
 
-The Support group can be reached out to at [MetaButler](https://t.me/MetaButler), where you can ask for help setting up your bot, discover/request new features, report bugs, and stay in the loop whenever a new update is available.
+The Support group can be reached out to at [MetaButler](https://t.me/MetaProjectsSupport), where you can ask for help setting up your bot, discover/request new features, report bugs, and stay in the loop whenever a new update is available.
 
 
 
