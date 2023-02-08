@@ -18,3 +18,4 @@ shell_output.txt
 Pipfile
 Pipfile.lock
 alembic.ini
+updates.txt

@@ -1810,12 +1810,12 @@ def fed_help(update: Update, context: CallbackContext):
     elif help_info == "admin":
         help_text = gs(update.effective_chat.id, "FED_ADMIN_HELP")
     elif help_info == "user":
-        help_text = gs(update.effective_chat.id, "FED_USER_HELP") 
+        help_text = gs(update.effective_chat.id, "FED_USER_HELP")
     query.message.edit_text(
         text=help_text,
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton(text="Back", callback_data=f"help_module({__mod_name__.lower()})"),
+            [[InlineKeyboardButton(text="Back", callback_data=f"help_module({__mod_name__.replace(' ', '_').lower()})"),
             InlineKeyboardButton(text='Report Error', url='https://t.me/MetaProjectsSupport')]]
         ),
     )
