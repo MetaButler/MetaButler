@@ -5,12 +5,15 @@ import threading
 from typing import Optional
 from sys import argv
 from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.error import (TelegramError, Unauthorized, BadRequest,
-                            TimedOut, ChatMigrated, NetworkError)
-from telegram.ext import (
-    CallbackContext,
-    Filters
+from telegram.error import (
+    TelegramError,
+    Unauthorized,
+    BadRequest,
+    TimedOut,
+    ChatMigrated,
+    NetworkError,
 )
+from telegram.ext import CallbackContext, Filters
 from telegram.ext.dispatcher import DispatcherHandlerStop
 from telegram.utils.helpers import escape_markdown
 from MetaButler import (
@@ -25,7 +28,7 @@ from MetaButler import (
     URL,
     log,
     telethn,
-    MetaINIT
+    MetaINIT,
 )
 
 # needed to dynamically load modules
@@ -52,13 +55,17 @@ for module_name in ALL_MODULES:
     if not hasattr(imported_module, "__mod_name__"):
         imported_module.__mod_name__ = imported_module.__name__
 
-    if imported_module.__mod_name__.lower() not in IMPORTED:
-        IMPORTED[imported_module.__mod_name__.lower()] = imported_module
+    if imported_module.__mod_name__.replace(" ", "_").lower() not in IMPORTED:
+        IMPORTED[
+            imported_module.__mod_name__.replace(" ", "_").lower()
+        ] = imported_module
     else:
         raise Exception("Can't have two modules with the same name! Please change one")
 
     if hasattr(imported_module, "get_help") and imported_module.get_help:
-        HELPABLE[imported_module.__mod_name__.lower()] = imported_module
+        HELPABLE[
+            imported_module.__mod_name__.replace(" ", "_").lower()
+        ] = imported_module
 
     # Chats to migrate on chat_migrated events
     if hasattr(imported_module, "__migrate__"):
@@ -77,25 +84,29 @@ for module_name in ALL_MODULES:
         DATA_EXPORT.append(imported_module)
 
     if hasattr(imported_module, "__chat_settings__"):
-        CHAT_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
+        CHAT_SETTINGS[
+            imported_module.__mod_name__.replace(" ", "_").lower()
+        ] = imported_module
 
     if hasattr(imported_module, "__user_settings__"):
-        USER_SETTINGS[imported_module.__mod_name__.lower()] = imported_module
+        USER_SETTINGS[
+            imported_module.__mod_name__.replace(" ", "_").lower()
+        ] = imported_module
 
 
 # do not async
 def send_help(chat_id, text, keyboard=None):
-    '''#TODO
+    """#TODO
 
     Params:
         chat_id  -
         text     -
         keyboard -
-    '''
+    """
 
     if not keyboard:
         kb = paginate_modules(0, HELPABLE, "help")
-        #kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport'),
+        # kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport'),
         #           InlineKeyboardButton(text='Back', callback_data='start_back'),
         #           InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
         keyboard = InlineKeyboardMarkup(kb)
@@ -104,36 +115,35 @@ def send_help(chat_id, text, keyboard=None):
     )
 
 
-
-@metacmd(command='text')
+@metacmd(command="text")
 def test(update: Update, context: CallbackContext):
-    '''#TODO
+    """#TODO
 
     Params:
         update: Update           -
         context: CallbackContext -
-    '''
+    """
     # pprint(ast.literal_eval(str(update)))
     # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
     update.effective_message.reply_text("This person edited a message")
     print(update.effective_message)
 
 
-@metacallback(pattern=r'start_back')
-@metacmd(command='start', pass_args=True)
-def start(update: Update, context: CallbackContext):   # sourcery no-metrics
-    '''#TODO
+@metacallback(pattern=r"start_back")
+@metacmd(command="start", pass_args=True)
+def start(update: Update, context: CallbackContext):  # sourcery no-metrics
+    """#TODO
 
     Params:
         update: Update           -
         context: CallbackContext -
-    '''
+    """
     chat = update.effective_chat
     args = context.args
 
-    if hasattr(update, 'callback_query'):
+    if hasattr(update, "callback_query"):
         query = update.callback_query
-        if hasattr(query, 'id'):
+        if hasattr(query, "id"):
             first_name = update.effective_user.first_name
             update.effective_message.edit_text(
                 text=gs(chat.id, "pm_start_text").format(
@@ -147,7 +157,7 @@ def start(update: Update, context: CallbackContext):   # sourcery no-metrics
                         [
                             InlineKeyboardButton(
                                 text=gs(chat.id, "support_chat_link_btn"),
-                                url='https://t.me/MetaProjectsSupport',
+                                url="https://t.me/MetaProjectsSupport",
                             ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "updates_channel_link_btn"),
@@ -198,10 +208,19 @@ def start(update: Update, context: CallbackContext):   # sourcery no-metrics
                     help_buttons = help_list[1:]
                 elif isinstance(help_list, str):
                     help_text = help_list
-                text = "Here is the help for the *{}* module:\n".format(HELPABLE[mod].__mod_name__) + help_text
+                text = (
+                    "Here is the help for the *{}* module:\n".format(
+                        HELPABLE[mod].__mod_name__
+                    )
+                    + help_text
+                )
                 help_buttons.append(
-                    [InlineKeyboardButton(text="Back", callback_data="help_back"),
-                     InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport')]
+                    [
+                        InlineKeyboardButton(text="Back", callback_data="help_back"),
+                        InlineKeyboardButton(
+                            text="Support", url="https://t.me/MetaProjectsSupport"
+                        ),
+                    ]
                 )
                 send_help(
                     chat.id,
@@ -239,7 +258,7 @@ def start(update: Update, context: CallbackContext):   # sourcery no-metrics
                         [
                             InlineKeyboardButton(
                                 text=gs(chat.id, "support_chat_link_btn"),
-                                url='https://t.me/MetaProjectsSupport',
+                                url="https://t.me/MetaProjectsSupport",
                             ),
                             InlineKeyboardButton(
                                 text=gs(chat.id, "updates_channel_link_btn"),
@@ -273,10 +292,11 @@ def start(update: Update, context: CallbackContext):   # sourcery no-metrics
     else:
         update.effective_message.reply_text(gs(chat.id, "grp_start_text"))
 
-    if hasattr(update, 'callback_query'):
+    if hasattr(update, "callback_query"):
         query = update.callback_query
-        if hasattr(query, 'id'):
+        if hasattr(query, "id"):
             context.bot.answer_callback_query(query.id)
+
 
 # for test purposes
 def error_callback(_, context: CallbackContext):
@@ -306,7 +326,7 @@ def error_callback(_, context: CallbackContext):
         # handle all other telegram related errors
 
 
-@metacallback(pattern=r'help_')
+@metacallback(pattern=r"help_")
 def help_button(update: Update, context: CallbackContext):
     """#TODO
 
@@ -321,7 +341,7 @@ def help_button(update: Update, context: CallbackContext):
     next_match = re.match(r"help_next\((.+?)\)", query.data)
     back_match = re.match(r"help_back", query.data)
     chat = update.effective_chat
-    #print(query.message.chat.id)
+    # print(query.message.chat.id)
 
     try:
         if mod_match:
@@ -335,14 +355,18 @@ def help_button(update: Update, context: CallbackContext):
                 help_text = help_list
                 help_buttons = []
             text = (
-                    "Here is the help for the *{}* module:\n".format(
-                        HELPABLE[module].__mod_name__
-                    )
-                    + help_text
+                "Here is the help for the *{}* module:\n".format(
+                    HELPABLE[module].__mod_name__
+                )
+                + help_text
             )
             help_buttons.append(
-                [InlineKeyboardButton(text="Back", callback_data="help_back"),
-                 InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport')]
+                [
+                    InlineKeyboardButton(text="Back", callback_data="help_back"),
+                    InlineKeyboardButton(
+                        text="Support", url="https://t.me/MetaProjectsSupport"
+                    ),
+                ]
             )
             query.message.edit_text(
                 text=text,
@@ -353,7 +377,7 @@ def help_button(update: Update, context: CallbackContext):
         elif prev_match:
             curr_page = int(prev_match.group(1))
             kb = paginate_modules(curr_page - 1, HELPABLE, "help")
-            #kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport'),
+            # kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport'),
             #           InlineKeyboardButton(text='Back', callback_data='start_back'),
             #           InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
             query.message.edit_text(
@@ -365,7 +389,7 @@ def help_button(update: Update, context: CallbackContext):
         elif next_match:
             next_page = int(next_match.group(1))
             kb = paginate_modules(next_page + 1, HELPABLE, "help")
-            #kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport'),
+            # kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport'),
             #           InlineKeyboardButton(text='Back', callback_data='start_back'),
             #           InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
             query.message.edit_text(
@@ -376,7 +400,7 @@ def help_button(update: Update, context: CallbackContext):
 
         elif back_match:
             kb = paginate_modules(0, HELPABLE, "help")
-            #kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport'),
+            # kb.append([InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport'),
             #           InlineKeyboardButton(text='Back', callback_data='start_back'),
             #           InlineKeyboardButton(text="Try inline", switch_inline_query_current_chat="")])
             query.message.edit_text(
@@ -393,14 +417,14 @@ def help_button(update: Update, context: CallbackContext):
         pass
 
 
-@metacmd(command='help')
+@metacmd(command="help")
 def get_help(update: Update, context: CallbackContext):
-    '''#TODO
+    """#TODO
 
     Params:
         update  -
         context -
-    '''
+    """
 
     chat = update.effective_chat  # type: Optional[Chat]
     args = update.effective_message.text.split(None, 1)
@@ -459,10 +483,19 @@ def get_help(update: Update, context: CallbackContext):
                 help_buttons = help_list[1:]
             elif isinstance(help_list, str):
                 help_text = help_list
-            text = "Here is the available help for the *{}* module:\n".format(HELPABLE[module].__mod_name__) + help_text
+            text = (
+                "Here is the available help for the *{}* module:\n".format(
+                    HELPABLE[module].__mod_name__
+                )
+                + help_text
+            )
             help_buttons.append(
-                [InlineKeyboardButton(text="Back", callback_data="help_back"),
-                 InlineKeyboardButton(text='Support', url='https://t.me/MetaProjectsSupport')]
+                [
+                    InlineKeyboardButton(text="Back", callback_data="help_back"),
+                    InlineKeyboardButton(
+                        text="Support", url="https://t.me/MetaProjectsSupport"
+                    ),
+                ]
             )
             send_help(
                 chat.id,
@@ -479,13 +512,13 @@ def get_help(update: Update, context: CallbackContext):
 
 
 def send_settings(chat_id: int, user_id: int, user=False):
-    '''#TODO
+    """#TODO
 
     Params:
         chat_id -
         user_id -
         user    -
-    '''
+    """
 
     if user:
         if USER_SETTINGS:
@@ -528,12 +561,12 @@ def send_settings(chat_id: int, user_id: int, user=False):
 
 @metacallback(pattern=r"stngs_")
 def settings_button(update: Update, context: CallbackContext):
-    '''#TODO
+    """#TODO
 
     Params:
         update: Update           -
         context: CallbackContext -
-    '''
+    """
 
     query = update.callback_query
     user = update.effective_user
@@ -550,7 +583,7 @@ def settings_button(update: Update, context: CallbackContext):
             text = "*{}* has the following settings for the *{}* module:\n\n".format(
                 escape_markdown(chat.title), CHAT_SETTINGS[module].__mod_name__
             ) + CHAT_SETTINGS[module].__chat_settings__(chat_id, user.id)
-            query.message.reply_text(
+            query.message.edit_text(
                 text=text,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
@@ -568,10 +601,7 @@ def settings_button(update: Update, context: CallbackContext):
         elif prev_match:
             chat_id = prev_match.group(1)
             curr_page = int(prev_match.group(2))
-            chat = bot.get_chat(chat_id)
-            query.message.reply_text(
-                "Hi there! There are quite a few settings for {} - go ahead and pick what "
-                "you're interested in.".format(chat.title),
+            query.message.edit_reply_markup(
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(
                         curr_page - 1, CHAT_SETTINGS, "stngs", chat=chat_id
@@ -582,10 +612,7 @@ def settings_button(update: Update, context: CallbackContext):
         elif next_match:
             chat_id = next_match.group(1)
             next_page = int(next_match.group(2))
-            chat = bot.get_chat(chat_id)
-            query.message.reply_text(
-                "Hi there! There are quite a few settings for {} - go ahead and pick what "
-                "you're interested in.".format(chat.title),
+            query.message.edit_reply_markup(
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(
                         next_page + 1, CHAT_SETTINGS, "stngs", chat=chat_id
@@ -598,33 +625,34 @@ def settings_button(update: Update, context: CallbackContext):
             chat = bot.get_chat(chat_id)
             query.message.reply_text(
                 text="Hi there! There are quite a few settings for {} - go ahead and pick what "
-                     "you're interested in.".format(escape_markdown(chat.title)),
+                "you're interested in.".format(escape_markdown(chat.title)),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(0, CHAT_SETTINGS, "stngs", chat=chat_id)
                 ),
             )
+            query.message.delete()
 
         # ensure no spinny white circle
         bot.answer_callback_query(query.id)
-        query.message.delete()
+        # query.message.delete()
     except BadRequest as excp:
         if excp.message not in [
-            'Message is not modified',
-            'Query_id_invalid',
+            "Message is not modified",
+            "Query_id_invalid",
             "Message can't be deleted",
         ]:
-            log.exception('Exception in settings buttons. %s', str(query.data))
+            log.exception("Exception in settings buttons. %s", str(query.data))
 
 
-@metacmd(command='settings')
+@metacmd(command="settings")
 def get_settings(update: Update, context: CallbackContext):
-    '''#TODO
+    """#TODO
 
     Params:
         update: Update           -
         context: CallbackContext -
-    '''
+    """
 
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -655,7 +683,7 @@ def get_settings(update: Update, context: CallbackContext):
         text = "Click here to check your settings."
 
 
-@metacmd(command='donate')
+@metacmd(command="donate")
 def donate(update: Update, _: CallbackContext):
     """#TODO
 
@@ -708,12 +736,18 @@ def main():
             updater.bot.set_webhook(url=URL + TOKEN)
 
     else:
-        log.info(f"MetaButler started, Using long polling. | BOT: [@{dispatcher.bot.username}]")
+        log.info(
+            f"MetaButler started, Using long polling. | BOT: [@{dispatcher.bot.username}]"
+        )
         MetaINIT.bot_id = dispatcher.bot.id
         MetaINIT.bot_username = dispatcher.bot.username
         MetaINIT.bot_name = dispatcher.bot.first_name
-        updater.start_polling(timeout=15, read_latency=4, allowed_updates=Update.ALL_TYPES,
-                              drop_pending_updates=MInit.DROP_UPDATES)
+        updater.start_polling(
+            timeout=15,
+            read_latency=4,
+            allowed_updates=Update.ALL_TYPES,
+            drop_pending_updates=MInit.DROP_UPDATES,
+        )
     if len(argv) not in (1, 3, 4):
         telethn.disconnect()
     else:
@@ -724,7 +758,7 @@ def main():
 if __name__ == "__main__":
     log.info("[META] Successfully loaded modules: " + str(ALL_MODULES))
     telethn.start(bot_token=TOKEN)
-    if platform.system() == 'Windows':
+    if platform.system() == "Windows":
         main()
     else:
         threading.Thread(target=main).start()
