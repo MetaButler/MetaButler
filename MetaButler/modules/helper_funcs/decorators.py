@@ -15,9 +15,9 @@ class MetaTelegramHandler:
             group: Optional[int] = 40
     ):
         if filters:
-           filters = filters & ~Filters.update.edited_message
+           filters = filters & ~Filters.update.edited_message & ~Filters.forwarded
         else:
-            filters = ~Filters.update.edited_message
+            filters = ~Filters.update.edited_message & ~Filters.forwarded
         def _command(func):
             try:
                 if can_disable:
