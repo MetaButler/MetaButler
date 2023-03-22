@@ -1,0 +1,21 @@
+version: "3"
+services:
+  db:
+    image: postgres:latest
+    volumes:
+    - .:/code
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=metabutler
+      - POSTGRES_PASSWORD=metabutler
+      - POSTGRES_DB=metabutler
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    command: pip install alembic
+    command: alembic upgrade head
+    command: python3 -m MetaButler
