@@ -24,6 +24,8 @@ def translate(update: Update, context: CallbackContext) -> None:
         to_translate = reply_msg.caption
     elif reply_msg.text:
         to_translate = reply_msg.text
+    else:
+        return
     try:
         args = message.text.split()[1].lower()
         if "//" in args:
