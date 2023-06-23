@@ -1,5 +1,5 @@
 import telegram.ext as tg
-from telegram import Update
+from telegram import MessageEntity, Update
 from MetaButler import DEV_USERS, SUDO_USERS, WHITELIST_USERS, SUPPORT_USERS
 from pyrate_limiter import (
     BucketFullException,
@@ -86,6 +86,13 @@ class CustomCommandHandler(tg.CommandHandler):
                 if not (
                     command[0].lower() in self.command
                     and command[1].lower() == message.bot.username.lower()
+                ):
+                    return None
+
+                if (
+                    message.entities
+                    and message.entities[0].offset in range(1+len(command[0]))
+                    and message.entities[0].type != MessageEntity.BOT_COMMAND
                 ):
                     return None
 
