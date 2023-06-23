@@ -1,7 +1,7 @@
 from typing import Union
 
 from future.utils import string_types
-from telegram import ParseMode, Update, Chat
+from telegram import ParseMode, Update, Chat, MessageEntity
 from telegram.ext import CommandHandler, MessageHandler
 from telegram.utils.helpers import escape_markdown
 
@@ -64,6 +64,13 @@ if is_module_loaded(FILENAME):
                     if not (
                         command[0].lower() in self.command
                         and command[1].lower() == message.bot.username.lower()
+                    ):
+                        return None
+
+                    if (
+                        message.entities
+                        and message.entities[0].offset == 0
+                        and message.entities[0].type != MessageEntity.BOT_COMMAND
                     ):
                         return None
 
