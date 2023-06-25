@@ -91,8 +91,11 @@ class CustomCommandHandler(tg.CommandHandler):
 
                 if (
                     message.entities
-                    and message.entities[0].offset in range(1+len(command[0]))
-                    and message.entities[0].type != MessageEntity.BOT_COMMAND
+                    and any(
+                        entity.offset in range(1+len(command[0]))
+                        and entity.type != MessageEntity.BOT_COMMAND
+                        for entity in message.entities
+                    )
                 ):
                     return None
 

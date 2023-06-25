@@ -69,8 +69,11 @@ if is_module_loaded(FILENAME):
 
                     if (
                         message.entities
-                        and message.entities[0].offset in range(1+len(command))
-                        and message.entities[0].type != MessageEntity.BOT_COMMAND
+                        and any(
+                            entity.offset in range(1+len(command))
+                            and entity.type != MessageEntity.BOT_COMMAND
+                            for entity in message.entities
+                        )
                     ):
                         return None
 
