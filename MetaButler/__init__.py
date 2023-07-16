@@ -78,7 +78,6 @@ class MetaINIT:
         self.BOT_API_URL: str = self.parser.get('BOT_API_URL', "https://api.telegram.org/bot")
         self.BOT_API_FILE_URL: str = self.parser.get('BOT_API_FILE_URL', "https://api.telegram.org/file/bot")
         self.PRIVATEBIN_INSTANCE: str = self.parser.get('PRIVATEBIN_INSTANCE', 'https://bin.0xfc.de/')
-        self.USERGE_ANTISPAM_API_KEY = self.parser.get('USERGE_ANTISPAM_API_KEY', None)
         self.SIBYL_KEY = self.parser.get('SIBYL_KEY', None)
 
 
@@ -145,7 +144,6 @@ spamwatch_api = MInit.spamwatch_api
 WEATHER_API = MInit.WEATHER_API
 TIME_API_KEY = MInit.TIME_API_KEY
 PRIVATEBIN_INSTANCE = MInit.PRIVATEBIN_INSTANCE
-USERGE_ANTISPAM_API_KEY = MInit.USERGE_ANTISPAM_API_KEY
 SIBYL_KEY = MInit.SIBYL_KEY
 
 # SpamWatch

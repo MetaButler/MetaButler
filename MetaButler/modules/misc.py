@@ -23,7 +23,6 @@ from MetaButler import (
     INFOPIC,
     sw,
     StartTime,
-    USERGE_ANTISPAM_API_KEY,
 )
 from MetaButler.__main__ import STATS, USER_INFO, TOKEN
 from MetaButler.modules import ALL_MODULES
@@ -569,30 +568,6 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
             text += "<b> • SpamWatched:</b> No"
     except:
         pass  # don't crash if api is down somehow...
-
-    # Userge Antispam
-    if USERGE_ANTISPAM_API_KEY is not None:
-        userge_response = requests.get(
-            f"https://api.userge.live/ban?api_key={str(USERGE_ANTISPAM_API_KEY)}&user_id={str(user_id)}"
-        )
-        if userge_response.status_code <= 500:
-            userge_response = userge_response.json()
-            text += "\n\n<b>Userge Antispam Information:</b>\n"
-            if userge_response["success"] is True:
-                # Has been banned
-                text += "<b> • Banned by Userge Antispam:</b> Yes"
-                text += f"\n<b> • Reason</b>: <pre>{userge_response['reason']}</pre>"
-                text += f"\n<b> • Banned On</b>: <pre>{userge_response['date']}</pre>"
-                text += f"\n • Appeal at @UsergeAntiSpamSupport"
-            else:
-                # Has not been banned
-                text += "<b> • Banned by Userge Antispam:</b> No"
-        else:
-            # Server error, HTTP >= 500, ignore
-            pass
-    else:
-        # Userge Antispam Key not set, ignore
-        pass
 
     # Sibly Antispam
     if "sibylsystem" in ALL_MODULES:
