@@ -736,7 +736,7 @@ def welcome(update: Update, context: CallbackContext):
                         f"{first_name} {user.last_name}")
                 else:
                     fullname = escape_markdown(first_name)
-                count = chat.get_members_count()
+                count = chat.get_member_count()
                 mention = mention_markdown(
                     user.id, escape_markdown(first_name))
                 if user.username:
