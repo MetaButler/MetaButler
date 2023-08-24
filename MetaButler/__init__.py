@@ -8,7 +8,6 @@ import telegram.ext as tg
 from telethon import TelegramClient
 from telethon.sessions import MemorySession
 from configparser import ConfigParser
-from ptbcontrib.postgres_persistence import PostgresPersistence
 from logging.config import fileConfig
 from SibylSystem import PsychoPass
 
@@ -149,18 +148,13 @@ SIBYL_KEY = MInit.SIBYL_KEY
 # SpamWatch
 sw = MInit.init_sw()
 
-from MetaButler.modules.sql import SESSION
 from MetaButler.modules import ALL_MODULES
 
 # Sibyl Antispam
 if 'sibylsystem' in ALL_MODULES:
     sibylClient = MInit.init_sibyl_client()
 
-if not MInit.DROP_UPDATES:
-    updater = tg.Updater(token=TOKEN, base_url=MInit.BOT_API_URL, base_file_url=MInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10}, persistence=PostgresPersistence(session=SESSION))
-
-else:
-    updater = tg.Updater(token=TOKEN, base_url=MInit.BOT_API_URL, base_file_url=MInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10})
+updater = tg.Updater(token=TOKEN, base_url=MInit.BOT_API_URL, base_file_url=MInit.BOT_API_FILE_URL, workers=min(32, os.cpu_count() + 4), request_kwargs={"read_timeout": 10, "connect_timeout": 10})
 
 telethn = TelegramClient(MemorySession(), APP_ID, API_HASH)
 dispatcher = updater.dispatcher

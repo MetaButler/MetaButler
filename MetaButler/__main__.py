@@ -728,12 +728,10 @@ def main():
 
     if WEBHOOK:
         log.info("Using webhooks.")
-        updater.start_webhook(listen="127.0.0.1", port=PORT, url_path=TOKEN)
-
-        if CERT_PATH:
-            updater.bot.set_webhook(url=URL + TOKEN, certificate=open(CERT_PATH, "rb"))
-        else:
-            updater.bot.set_webhook(url=URL + TOKEN)
+        updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN, allowed_updates=Update.ALL_TYPES, 
+                            webhook_url=URL+TOKEN, drop_pending_updates=MInit.DROP_UPDATES, 
+                            cert=CERT_PATH if CERT_PATH else None)
+        log.info(f"MetaButler started, Using webhooks. | BOT: [@{dispatcher.bot.username}]")
 
     else:
         log.info(
@@ -748,10 +746,7 @@ def main():
             allowed_updates=Update.ALL_TYPES,
             drop_pending_updates=MInit.DROP_UPDATES,
         )
-    if len(argv) not in (1, 3, 4):
-        telethn.disconnect()
-    else:
-        telethn.run_until_disconnected()
+    telethn.run_until_disconnected()
     updater.idle()
 
 

@@ -8,7 +8,6 @@ emoji==1.7.0
 feedparser
 future
 geopy
-git+https://github.com/python-telegram-bot/ptbcontrib.git#egg=ptbcontrib
 gitpython
 gpytranslate
 hurry.filesize
@@ -22,7 +21,7 @@ pyYAML>=5.1.2
 pyrate-limiter
 pytesseract
 python-rapidjson
-python-telegram-bot==13.13
+python-telegram-bot==13.15
 requests
 spamwatch
 speedtest-cli
