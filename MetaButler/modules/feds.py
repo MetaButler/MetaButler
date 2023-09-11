@@ -21,6 +21,7 @@ from MetaButler.modules.helper_funcs.extraction import (extract_unt_fedban,
                                                         extract_user,
                                                         extract_user_fban)
 from MetaButler.modules.helper_funcs.string_handling import markdown_parser
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 from MetaButler.modules.log_channel import loggable
 from telegram import (Chat, ChatAction, ChatMember, InlineKeyboardButton,
                       InlineKeyboardMarkup, MessageEntity, ParseMode, Update,
@@ -254,7 +255,7 @@ def user_join_fed(update: Update, context: CallbackContext) -> None:
         to_promote_user_id = extract_user(message, args)
         if to_promote_user_id:
             pass
-        elif not message.reply_to_message and (not args or (len(args) >= 1 and not args[0].startswith('@') and not args[0].isdigit() and not message.parse_entities([MessageEntity.TEXT_MENTION]))):
+        elif not has_reply_to_message(message) and (not args or (len(args) >= 1 and not args[0].startswith('@') and not args[0].isdigit() and not message.parse_entities([MessageEntity.TEXT_MENTION]))):
             message.reply_text('I cannot extract an user from this message')
             return
         else:
@@ -311,7 +312,7 @@ def user_demote_fed(update: Update, context: CallbackContext) -> None:
         to_demote_user_id = extract_user(message, args)
         if to_demote_user_id:
             pass
-        elif not message.reply_to_message and (not args or (len(args) >= 1 and not args[0].startswith('@') and not args[0].isdigit() and not message.parse_entities([MessageEntity.TEXT_MENTION]))):
+        elif not has_message_to_reply(message) and (not args or (len(args) >= 1 and not args[0].startswith('@') and not args[0].isdigit() and not message.parse_entities([MessageEntity.TEXT_MENTION]))):
             message.reply_text('I cannot extract an user from this message',
                                reply_to_message_id=message.message_id, allow_sending_without_reply=True)
             return
@@ -1371,7 +1372,7 @@ def fed_stat_user(update: Update, context: CallbackContext) -> None:
                 text += '\nIf you want to find out more about the reason for any fedban specifically, use <code>/fbanstat FedID</code>'
                 message.reply_text(text, parse_mode=ParseMode.HTML,
                                    reply_to_message_id=message.message_id, allow_sending_without_reply=True)
-    elif not message.reply_to_message and not args:
+    elif not has_message_to_reply(message) and not args:
         user_id = message.from_user.id
         user_name, fbanlist = sql.get_user_fbanlist(user_id)
         if user_name == "":

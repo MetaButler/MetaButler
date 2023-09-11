@@ -8,6 +8,7 @@ import MetaButler.modules.sql.userinfo_sql as sql
 from MetaButler import SUDO_USERS, DEV_USERS
 from MetaButler.modules.helper_funcs.decorators import metacmd
 from MetaButler.modules.helper_funcs.extraction import extract_user
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 
 @metacmd(command='me', pass_args=True)
 def about_me(update: Update, context: CallbackContext):
@@ -24,7 +25,7 @@ def about_me(update: Update, context: CallbackContext):
             f"*{user.first_name}*:\n{escape_markdown(info)}",
             parse_mode=ParseMode.MARKDOWN,
         )
-    elif message.reply_to_message:
+    elif has_reply_to_message(message):
         username = message.reply_to_message.from_user.first_name
         update.effective_message.reply_text(
             f"{username} hasn't set an info message about themselves yet!"
@@ -43,7 +44,7 @@ def set_about_me(update: Update, context: CallbackContext):
     if user_id in (777000, 1087968824):
         message.reply_text("Don't set info for Telegram bots!")
         return
-    if message.reply_to_message:
+    if has_reply_to_message(message):
         repl_message = message.reply_to_message
         repl_user_id = repl_message.from_user.id
         if repl_user_id == bot.id and (user_id in SUDO_USERS or user_id in DEV_USERS):
@@ -82,7 +83,7 @@ def about_bio(update: Update, context: CallbackContext):
             "*{}*:\n{}".format(user.first_name, escape_markdown(info)),
             parse_mode=ParseMode.MARKDOWN,
         )
-    elif message.reply_to_message:
+    elif has_reply_to_message(message):
         username = user.first_name
         update.effective_message.reply_text(
             f"{username} hasn't had a message set about themselves yet!"
@@ -92,7 +93,7 @@ def about_bio(update: Update, context: CallbackContext):
             "You haven't had a bio set about yourself yet!"
         )
     message = update.effective_message
-    if message.reply_to_message:
+    if has_reply_to_message(message):
         repl_message = message.reply_to_message
         user_id = repl_message.from_user.id
 
@@ -140,7 +141,7 @@ def set_about_bio(update: Update, context: CallbackContext):
     sender_id = update.effective_user.id
     bot = context.bot
 
-    if message.reply_to_message:
+    if has_reply_to_message(message):
         repl_message = message.reply_to_message
         user_id = repl_message.from_user.id
         if user_id in (777000, 1087968824):

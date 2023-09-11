@@ -27,6 +27,7 @@ from MetaButler.modules.helper_funcs.chat_status import (
 )
 from MetaButler.modules.helper_funcs.extraction import extract_user_and_text
 from MetaButler.modules.helper_funcs.string_handling import extract_time
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 from MetaButler.modules.log_channel import loggable, gloggable
 from MetaButler.modules.helper_funcs.decorators import metacmd
 
@@ -48,7 +49,7 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:
     bot = context.bot
     log_message = ""
     reason = ""
-    if message.reply_to_message and message.reply_to_message.sender_chat:
+    if has_reply_to_message(message) and message.reply_to_message.sender_chat:
         r = bot.ban_chat_sender_chat(
             chat_id=chat.id, sender_chat_id=message.reply_to_message.sender_chat.id)
         if r:
@@ -122,13 +123,12 @@ def ban(update: Update, context: CallbackContext) -> Optional[str]:
         log_message += "\n<b>Reason:</b> {}".format(reason)
 
     try:
-        chat.ban_member(user_id)
         if silent:
-            if message.reply_to_message:
+            if has_reply_to_message(message):
                 message.delete()
             return log_message
         else:
-            if delban and message.reply_to_message:
+            if delban and has_reply_to_message(message):
                 message.reply_to_message.delete()
             context.bot.send_sticker(chat.id, BAN_STICKER)
             if reason:
@@ -314,7 +314,7 @@ def kick(update: Update, context: CallbackContext) -> str:
     res = chat.unban_member(user_id)  # unban on current user = kick
     if res:
         if delkick:
-            if message.reply_to_message:
+            if has_reply_to_message(message):
                 message.reply_to_message.delete()
         if not silent:
         # bot.send_sticker(chat.id, BAN_STICKER)  # banhammer marie sticker
@@ -373,7 +373,7 @@ def unban(update: Update, context: CallbackContext) -> Optional[str]:
     chat = update.effective_chat
     log_message = ""
     bot, args = context.bot, context.args
-    if message.reply_to_message and message.reply_to_message.sender_chat:
+    if has_reply_to_message(message) and message.reply_to_message.sender_chat:
         r = bot.unban_chat_sender_chat(
             chat_id=chat.id, sender_chat_id=message.reply_to_message.sender_chat.id)
         if r:

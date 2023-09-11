@@ -12,6 +12,7 @@ from MetaButler import (
 from cachetools import TTLCache
 from telegram import Chat, ChatMember, ParseMode, Update, TelegramError, User
 from telegram.ext import CallbackContext
+from ..helper_funcs.misc import has_reply_to_message
 
 # stores admin in memory for 10 min.
 ADMIN_CACHE = TTLCache(maxsize=512, ttl=60 * 10)
@@ -48,7 +49,7 @@ def is_user_admin(update: Update, user_id: int, member: ChatMember = None) -> bo
             or user_id in SUDO_USERS
             or user_id in DEV_USERS
             or chat.all_members_are_administrators
-            or (msg.reply_to_message and msg.reply_to_message.sender_chat is not None and
+            or (has_reply_to_message(msg) and msg.reply_to_message.sender_chat is not None and
                 msg.reply_to_message.sender_chat.type != "channel" and msg.reply_markup and not re.match(r'rm_warn\((.+?)\)', msg.reply_markup.inline_keyboard[0][0].callback_data))
     ):
         return True
@@ -103,7 +104,7 @@ def is_user_ban_protected(update: Update, user_id: int, member: ChatMember = Non
             or user_id in DEV_USERS
             or user_id in WHITELIST_USERS
             or chat.all_members_are_administrators
-            or (msg and msg.reply_to_message and msg.reply_to_message.sender_chat is not None
+            or (msg and has_reply_to_message(msg) and msg.reply_to_message.sender_chat is not None
                 and msg.reply_to_message.sender_chat.type != "channel")
     ):
         return True

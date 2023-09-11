@@ -18,6 +18,7 @@ from . import ALL_MODULES
 from .helper_funcs.chat_status import (connection_status, is_user_admin,
                                        user_admin)
 from .helper_funcs.extraction import extract_user
+from .helper_funcs.misc import has_reply_to_message
 from .log_channel import loggable
 from .sql.users_sql import get_user_com_chats
 
@@ -361,10 +362,10 @@ def sibyl_info(update: Update, context: CallbackContext):
     if user_id := extract_user(update.effective_message, args):
         user: User = bot.get_chat(user_id)
 
-    elif not message.reply_to_message and not args:
+    elif not has_reply_to_message(message) and not args:
         user = message.from_user
 
-    elif not message.reply_to_message and (
+    elif not has_reply_to_message(message) and (
             not args
             or (
                 len(args) >= 1

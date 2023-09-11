@@ -14,6 +14,7 @@ from MetaButler.modules.helper_funcs.chat_status import (
 )
 from MetaButler.modules.helper_funcs.decorators import metacmd
 from MetaButler.modules.helper_funcs.extraction import extract_user, extract_user_and_text
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message 
 from MetaButler.modules.language import gs
 from MetaButler.modules.log_channel import loggable
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
@@ -273,7 +274,7 @@ def pin(update: Update, context: CallbackContext) -> str:
                 or args[0].lower() == "violent"
         )
 
-    if prev_message and is_group:
+    if has_reply_to_message(update.effective_message) and is_group:
         try:
             bot.pinChatMessage(
                 chat.id, prev_message.message_id, disable_notification=is_silent

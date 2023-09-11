@@ -1,5 +1,6 @@
 from gpytranslate import SyncTranslator
 from MetaButler.modules.language import gs
+from .helper_funcs.misc import has_reply_to_message
 
 def get_help(chat):
     return gs(chat, "gtranslate_help")
@@ -17,7 +18,7 @@ def translate(update: Update, context: CallbackContext) -> None:
     bot = context.bot
     message = update.effective_message
     reply_msg = message.reply_to_message
-    if not reply_msg:
+    if not has_reply_to_message(message):
         message.reply_text("Reply to a message to translate it!")
         return
     if reply_msg.caption:

@@ -7,6 +7,7 @@ from telegram.error import BadRequest
 from MetaButler.modules.sql import afk_sql as sql
 from MetaButler.modules.users import get_user_id
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 
 @metamsg(Filters.regex("(?i)^brb"), friendly="afk", group=3)
 @metacmd(command="afk", group=3)
@@ -117,7 +118,7 @@ def reply_afk(update: Update, context: CallbackContext):
 
             check_afk(update, context, user_id, fst_name, userc_id)
 
-    elif message.reply_to_message:
+    elif has_reply_to_message(message):
         user_id = message.reply_to_message.from_user.id
         fst_name = message.reply_to_message.from_user.first_name
         check_afk(update, context, user_id, fst_name, userc_id)

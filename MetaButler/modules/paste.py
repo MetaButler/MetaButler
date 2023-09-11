@@ -4,6 +4,7 @@ from io import BytesIO
 import privatebinapi
 from MetaButler import PRIVATEBIN_INSTANCE
 from MetaButler.modules.helper_funcs.decorators import metacmd
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 from telegram import ParseMode, Update
 from telegram.ext import CallbackContext
 
@@ -14,7 +15,7 @@ def paste(update: Update, context: CallbackContext):
     message = update.effective_message
     chat = update.effective_chat
 
-    if message.reply_to_message:
+    if has_reply_to_message(message):
         data = message.reply_to_message.text or message.reply_to_message.caption
         if message.reply_to_message.document:
             file_info = context.bot.get_file(

@@ -2,6 +2,7 @@ import html
 
 from MetaButler import log, SUDO_USERS, WHITELIST_USERS
 from MetaButler.modules.helper_funcs.chat_status import user_not_admin
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.sql import reporting_sql as sql
 from telegram import Chat, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, Update
@@ -94,7 +95,7 @@ def report(update: Update, context: CallbackContext) -> str:
                 log.exception("Exception while reporting user")
         message.reply_text(reported, parse_mode=ParseMode.HTML)
 
-    if chat and message.reply_to_message and sql.chat_should_report(chat.id):
+    if chat and has_reply_to_message(message) and sql.chat_should_report(chat.id):
         reported_user = message.reply_to_message.from_user
         chat_name = chat.title or chat.username
         admin_list = chat.get_administrators()

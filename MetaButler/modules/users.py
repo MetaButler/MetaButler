@@ -5,6 +5,7 @@ from time import sleep
 import MetaButler.modules.sql.users_sql as sql
 from MetaButler import DEV_USERS, log, OWNER_ID, dispatcher
 from MetaButler.modules.helper_funcs.chat_status import dev_plus, sudo_plus
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 from MetaButler.modules.sql.users_sql import get_all_users
 from telegram import TelegramError, Update
 from telegram.error import BadRequest
@@ -97,7 +98,8 @@ def log_user(update: Update, _: CallbackContext):
 
     sql.update_user(msg.from_user.id, msg.from_user.username, chat.id, chat.title)
 
-    if rep := msg.reply_to_message:
+    if has_reply_to_message(msg):
+        rep = msg.reply_to_message
         sql.update_user(
             rep.from_user.id,
             rep.from_user.username,

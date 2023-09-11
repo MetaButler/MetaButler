@@ -10,7 +10,7 @@ from telegram import (InlineKeyboardButton, InlineKeyboardMarkup, ParseMode,
 from telegram.ext import CallbackContext
 from telegram.utils.helpers import mention_html
 from MetaButler.modules.helper_funcs.decorators import metacmd
-
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 
 @metacmd(command='stickerid')
 def stickerid(update: Update, context: CallbackContext):
@@ -84,7 +84,7 @@ def kang(update: Update, context: CallbackContext):
     # It can be animated or not.
 
     # first check if we're syntactically correct.
-    if not msg.reply_to_message and not args:
+    if not has_reply_to_message(msg) and not args:
         # this is quite a bit more difficult, we need to get all their packs managed by us.
         packs = ""
         # start with finding non-animated packs.
@@ -146,7 +146,8 @@ def kang(update: Update, context: CallbackContext):
         return
 
     # User sent /kang in reply to a message
-    if rep := msg.reply_to_message:
+    if has_reply_to_message(msg):
+        rep = msg.reply_to_message
         if rep.sticker:
             is_animated = rep.sticker.is_animated
             is_video = rep.sticker.is_video

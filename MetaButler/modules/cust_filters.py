@@ -21,6 +21,7 @@ from MetaButler.modules.helper_funcs.string_handling import (
     escape_invalid_curly_brackets,
     markdown_to_html,
 )
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 from MetaButler.modules.sql import cust_filters_sql as sql
 
 from MetaButler.modules.connection import connected
@@ -111,7 +112,7 @@ def filters(update, context):  # sourcery no-metrics
     else:
         chat_id = update.effective_chat.id
         chat_name = "local filters" if chat.type == "private" else chat.title
-    if not msg.reply_to_message and len(args) < 2:
+    if not has_reply_to_message(msg) and len(args) < 2:
         send_message(
             update.effective_message,
             "Please provide keyboard keyword for this filter to reply with!",

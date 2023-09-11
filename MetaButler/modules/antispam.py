@@ -27,6 +27,7 @@ from telegram.ext import CallbackContext, Filters
 from telegram.utils.helpers import mention_html
 from spamwatch.errors import SpamWatchError, Error, UnauthorizedError, NotFoundError, Forbidden, TooManyRequests
 from MetaButler.modules.helper_funcs.decorators import metacmd, metamsg
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 
 from ..modules.helper_funcs.anonymous import user_admin, AdminPerms
 
@@ -447,7 +448,7 @@ def enforce_gban(update: Update, context: CallbackContext):
             for mem in new_members:
                 check_and_ban(update, mem.id)
 
-        if msg.reply_to_message:
+        if has_reply_to_message(msg):
             user = msg.reply_to_message.from_user
             if user and not is_user_admin(update, user.id):
                 check_and_ban(update, user.id, should_message=False)

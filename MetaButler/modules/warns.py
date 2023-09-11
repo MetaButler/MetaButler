@@ -19,7 +19,7 @@ from MetaButler.modules.helper_funcs.extraction import (
     extract_user_and_text,
 )
 from MetaButler.modules.helper_funcs.filters import CustomFilters
-from MetaButler.modules.helper_funcs.misc import delete, split_message
+from MetaButler.modules.helper_funcs.misc import delete, split_message, has_reply_to_message
 from MetaButler.modules.helper_funcs.string_handling import split_quotes
 from MetaButler.modules.log_channel import loggable
 from MetaButler.modules.sql import warns_sql as sql
@@ -210,8 +210,8 @@ def warn_user(update: Update, context: CallbackContext) -> str:
 
     if user_id:
         if (
-                message.reply_to_message
-                and message.reply_to_message.from_user.id == user_id
+            has_reply_to_message(message)
+            and message.reply_to_message.from_user.id == user_id
         ):
             return warn(
                 message.reply_to_message.from_user,

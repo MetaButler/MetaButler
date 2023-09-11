@@ -10,6 +10,7 @@ from telegram import (
     ParseMode,
     InlineQueryResultArticle,
     InputTextMessageContent,
+    Message,
 )
 from telegram.error import TelegramError
 import requests
@@ -33,6 +34,16 @@ class EqInlineKeyboardButton(InlineKeyboardButton):
     def __gt__(self, other):
         return self.text > other.text
 
+
+def has_reply_to_message(msg: Message) -> bool:
+    if msg.reply_to_message is not None:
+        if msg.is_topic_message:
+            return msg.reply_to_message.forum_topic_created is None
+        else:
+            return True
+    else:
+        return False
+    
 
 def split_message(msg: str) -> List[str]:
     if len(msg) < MAX_MESSAGE_LENGTH:

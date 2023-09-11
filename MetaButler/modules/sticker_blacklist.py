@@ -14,7 +14,7 @@ from MetaButler.modules.helper_funcs.alternate import send_message
 from MetaButler.modules.helper_funcs.anonymous import AdminPerms
 from MetaButler.modules.helper_funcs.anonymous import user_admin
 from MetaButler.modules.helper_funcs.chat_status import user_not_admin
-from MetaButler.modules.helper_funcs.misc import split_message
+from MetaButler.modules.helper_funcs.misc import split_message, has_reply_to_message
 from MetaButler.modules.helper_funcs.string_handling import extract_time
 from MetaButler.modules.language import gs
 from MetaButler.modules.log_channel import loggable
@@ -228,7 +228,7 @@ def unblackliststicker(update: Update, context: CallbackContext):
                 ),
                 parse_mode=ParseMode.HTML,
             )
-    elif msg.reply_to_message:
+    elif has_reply_to_message(msg):
         trigger = msg.reply_to_message.sticker.set_name
         if trigger is None:
             send_message(update.effective_message, "Sticker is invalid!")

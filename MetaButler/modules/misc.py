@@ -31,6 +31,7 @@ from MetaButler.modules.sibylsystem import get_sibyl_info
 from MetaButler.modules.sql import SESSION
 from MetaButler.modules.helper_funcs.chat_status import user_admin, dev_plus, sudo_plus
 from MetaButler.modules.helper_funcs.extraction import extract_user
+from MetaButler.modules.helper_funcs.misc import has_reply_to_message
 import MetaButler.modules.sql.users_sql as sql
 from MetaButler.modules.users import __user_info__ as chat_count
 from MetaButler.modules.language import gs
@@ -123,14 +124,14 @@ def info(update: Update, context: CallbackContext):  # sourcery no-metrics
     if user_id := extract_user(update.effective_message, args):
         user = bot.get_chat(user_id)
 
-    elif not message.reply_to_message and not args:
+    elif not has_reply_to_message(message) and not args:
         user = (
             message.sender_chat
             if message.sender_chat is not None
             else message.from_user
         )
 
-    elif not message.reply_to_message and (
+    elif not has_reply_to_message(message) and (
         not args
         or (
             len(args) >= 1
@@ -252,7 +253,7 @@ def echo(update: Update, _):
     message = update.effective_message
 
     if len(args) > 1:
-        if message.reply_to_message:
+        if has_reply_to_message(message):
             message.reply_to_message.reply_text(args[1])
         else:
             message.reply_text(args[1], quote=False)
@@ -517,7 +518,7 @@ def spamcheck(update: Update, context: CallbackContext) -> None:
     bot = context.bot
     # Use a variable to denote user is not present in DB - False means presence in DB, True means absence
     no_user_db = False
-    if msg.reply_to_message:
+    if has_reply_to_message(msg):
         user_id = msg.reply_to_message.from_user.id
         user = msg.reply_to_message.from_user
     elif context.args:

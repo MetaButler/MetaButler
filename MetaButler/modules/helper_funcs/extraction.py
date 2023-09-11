@@ -4,11 +4,12 @@ from MetaButler import log
 from MetaButler.modules.users import get_user_id
 from telegram import Message, MessageEntity
 from telegram.error import BadRequest
+from ..helper_funcs.misc import has_reply_to_message
 
 
 def id_from_reply(message):
     prev_message = message.reply_to_message
-    if not prev_message:
+    if not has_reply_to_message(message):
         return None, None
     user_id = prev_message.from_user.id
     res = message.text.split(None, 1)
@@ -66,7 +67,7 @@ def extract_user_and_text(
         if len(res) >= 3:
             text = res[2]
 
-    elif prev_message:
+    elif has_reply_to_message(message):
         user_id, text = id_from_reply(message)
 
     else:
@@ -140,7 +141,7 @@ def extract_unt_fedban(
         if len(res) >= 3:
             text = res[2]
 
-    elif prev_message:
+    elif has_reply_to_message(message):
         user_id, text = id_from_reply(message)
 
     else:
