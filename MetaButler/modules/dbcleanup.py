@@ -113,14 +113,7 @@ def callback_button(update: Update, context: CallbackContext):
 
     bot.answer_callback_query(query.id)
 
-    if query_type == "db_leave_chat":
-        if query.from_user.id in admin_list:
-            bot.editMessageText("Leaving chats ...", chat_id, message.message_id)
-            chat_count = get_muted_chats(update, context, True)
-            bot.sendMessage(chat_id, f"Left {chat_count} chats.")
-        else:
-            query.answer("You are not allowed to use this.")
-    elif query_type == "db_cleanup":
+    if query_type == "db_cleanup":
         if query.from_user.id in admin_list:
             bot.editMessageText("Cleaning up DB ...", chat_id, message.message_id)
             invalid_chat_count = get_invalid_chats(update, context, True)

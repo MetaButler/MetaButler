@@ -1,3 +1,4 @@
+from functools import partial
 from MetaButler.modules.language import gs
 from multicolorcaptcha import CaptchaGenerator
 import html
@@ -6,7 +7,6 @@ import re
 import time
 from io import BytesIO
 import MetaButler.modules.sql.welcome_sql as sql
-import MetaButler.modules.sql.feds_sql as fed_sql
 from MetaButler import (
     DEV_USERS,
     log,
@@ -125,7 +125,7 @@ def send(update, message, keyboard, backup_message):
                     )
                 ),
                 parse_mode=ParseMode.MARKDOWN,
-                reply_to_message_id=reply,
+                reply_to_message_id=message.id,
             )
 
         elif excp.message == 'Wrong url host':
@@ -174,7 +174,6 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
     chat = update.effective_chat
     user = update.effective_user
     log_setting = logsql.get_chat_setting(chat.id)
-    fed_id = fed_sql.get_fed_id(chat.id)
     if not log_setting:
         logsql.set_chat_setting(logsql.LogChannelSettings(
             chat.id, True, True, True, True, True))
@@ -326,7 +325,6 @@ def new_member(update: Update, context: CallbackContext):  # sourcery no-metrics
         res = None
         keyboard = None
         backup_message = None
-        reply = None
 
     # User exceptions from welcomemutes
     if (
@@ -590,6 +588,7 @@ def left_member(update: Update, context: CallbackContext):  # sourcery no-metric
     bot = context.bot
     chat = update.effective_chat
     user = update.effective_user
+    message = update.effective_message
     should_goodbye, cust_goodbye, goodbye_type = sql.get_gdbye_pref(chat.id)
 
     if user.id == bot.id:
@@ -625,7 +624,7 @@ def left_member(update: Update, context: CallbackContext):  # sourcery no-metric
             elif left_mem.id in DEV_USERS:
                 bot.send_message(chat.id,
                     "Peru Dev Left",
-                    reply_to_message_id=reply,
+                    reply_to_message_id=message.id,
                 )
                 return
 

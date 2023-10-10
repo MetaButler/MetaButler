@@ -373,12 +373,6 @@ def removedev(update: Update, context: CallbackContext) -> str:
         message.reply_text("This user is not a Dev user!")
         return ""
 
-def send_metas(update):
-    update.effective_message.reply_text(
-        metas, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
-    )
-
-
 
 @metacmd(command=["supportlist"])
 @whitelist_plus
