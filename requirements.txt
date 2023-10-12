@@ -18,7 +18,7 @@ pillow>=4.2.0
 psutil
 psycopg2-binary
 pyYAML>=5.1.2
-pyrate-limiter==3.0.1
+pyrate-limiter==2.10.0
 pytesseract
 python-rapidjson
 python-telegram-bot==13.15
