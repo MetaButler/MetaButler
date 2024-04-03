@@ -96,7 +96,6 @@ def add_blackliststicker(update: Update, context: CallbackContext):
         added = 0
         for trigger in to_blacklist:
             try:
-                get = bot.getStickerSet(trigger)
                 sql.add_to_stickers(chat_id, trigger.lower())
                 added += 1
             except BadRequest:
@@ -132,7 +131,6 @@ def add_blackliststicker(update: Update, context: CallbackContext):
             send_message(update.effective_message, "Sticker is invalid!")
             return
         try:
-            get = bot.getStickerSet(trigger)
             sql.add_to_stickers(chat_id, trigger.lower())
             added += 1
         except BadRequest:
