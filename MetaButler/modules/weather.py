@@ -10,6 +10,7 @@ from requests import get
 from telegram import (Bot, ChatAction, InlineKeyboardButton,
                       InlineKeyboardMarkup, ParseMode, Update)
 from telegram.ext import CallbackContext, CommandHandler, Updater, run_async
+from telegram.utils import helpers
 
 from MetaButler import WEATHER_API, dispatcher
 from MetaButler.modules.helper_funcs.decorators import metacallback, metacmd
@@ -117,7 +118,7 @@ def weather(update: Update, context: CallbackContext):
                 city = newcity[0].strip() + "," + countrycode.strip()
 
         # Get the coordinates for the city
-        geocode_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={APPID}"
+        geocode_url = f"https://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={APPID}"
         geocode_request = get(geocode_url)
         geocode_result = json.loads(geocode_request.text)
 
@@ -196,7 +197,7 @@ def weather(update: Update, context: CallbackContext):
                     return xx
 
                 # Current weather message
-                msg = f"*{cityname}, {fullc_n}*\n"
+                msg = f"*{helpers.escape_markdown(cityname, version=2)}, {helpers.escape_markdown(fullc_n, version=2)}*\n"
                 msg += f"`Longitude: {longitude}`\n"
                 msg += f"`Latitude: {latitude}`\n\n"
                 msg += f"• *Time:* `{time}`\n"
