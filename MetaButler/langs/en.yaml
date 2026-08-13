@@ -445,6 +445,20 @@ rules_help: |
       • `/setrules <your rules here>`*:* set the rules for this chat.
       • `/clearrules`*:* clear the rules for this chat.
 
+sed_help: |
+      Reply to any message with `/s/find/replace/flags` to perform regex substitutions.
+      A new message with the substituted text will be sent as a reply to the original.
+      Your command message will be automatically deleted.
+
+      *Flags:*
+       • `g` - Global: replace all occurrences (not just the first)
+       • `i` - Case-insensitive matching
+       • Combined: `/s/find/replace/gi`
+
+      *Examples:*
+       • `/s/World/Telegram/` - Replaces "World" with "Telegram"
+       • `/s/foo/bar/g` - Replaces all "foo" with "bar"
+       • `/s/hello/hi/gi` - Replaces all "hello" with "hi" (case-insensitive)
 
 sticker_blacklist_help: |
        **Only admin:**

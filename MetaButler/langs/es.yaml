@@ -307,6 +307,22 @@ rules_help: |
     * Solo administradores: *
    • `/setrules <sus reglas aquí>` *: * establece las reglas para este chat.
    • `/clearrules` *: * borra las reglas para este chat.
+
+sed_help: |
+      Responde a cualquier mensaje con `/s/buscar/reemplazar/banderas` para realizar sustituciones regex.
+      Se enviará un nuevo mensaje con el texto sustituido como respuesta al original.
+      Tu mensaje de comando se eliminará automáticamente.
+
+      *Banderas:*
+       • `g` - Global: reemplaza todas las ocurrencias (no solo la primera)
+       • `i` - Coincidencia insensible a mayúsculas/minúsculas
+       • Combinadas: `/s/buscar/reemplazar/gi`
+
+      *Ejemplos:*
+       • `/s/Mundo/Telegram/` - Reemplaza "Mundo" con "Telegram"
+       • `/s/foo/bar/g` - Reemplaza todos los "foo" con "bar"
+       • `/s/hola/hola/gi` - Reemplaza todos los "hola" con "hola" (insensible a mayúsculas)
+
 userinfo_help: |
   - /setbio <text>: mientras responde, guardará la biografía de otro usuario
    - / bio: obtendrá tu biografía o la de otro usuario.  Esto no lo puede configurar usted mismo.
@@ -370,3 +386,16 @@ err_example_device: Why are you trying to get the example device?
 err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
 btn_dl: Click here to Download
 cmd_example: Please type your device **codename**!\nFor example, `/{} beryllium`
+
+tts_help: |
+  • `/tts <texto>` *:* convierte texto a voz y lo envía como mensaje de voz.
+  • `/tts <lang> <texto>` *:* igual, pero usando el código de idioma indicado.
+  *Ejemplo:*
+  `/tts Hello, world!`
+  `/tts es Hola, mundo!`
+
+tts_usage: |
+  Uso: `/tts <texto>` o `/tts <lang> <texto>`
+
+  Ejemplo: `/tts Hello, world!`
+  Ejemplo: `/tts es Hola, mundo!`
