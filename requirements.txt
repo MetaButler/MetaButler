@@ -40,3 +40,4 @@ pytimeparse
 SibylSystem
 alembic
 edge-tts
+SpeechRecognition

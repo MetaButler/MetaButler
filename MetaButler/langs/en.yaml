@@ -64,6 +64,18 @@ tts_help: |
 
    *Supported language codes:* `hi`, `mr`, `en`, `us`, `uk`, `es`, `fr`, `de`, `it`, `ja`, `ko`, `ru`, `pt`, `ta`, `te`, `bn`, `gu`, `kn`, `ml`, `ur`, `ar`, `zh`.
 
+stt_help: |
+   Convert voice notes and audio clips into written text (Speech-To-Text) using OpenAI Whisper.
+   • Reply to any voice note or audio message with `/stt` to transcribe it (Auto-detects language).
+   • Reply with `/stt -<lang_code>` to force transcription in a specific language.
+
+   *Examples:*
+   • Reply with `/stt`
+   • Reply with `/stt -hi`
+   • Reply with `/stt -mr`
+
+   *Supported language codes:* `hi`, `mr`, `en`, `es`, `fr`, `de`, `it`, `ja`, `ko`, `ru`, `pt`, `ta`, `te`, `bn`, `gu`, `kn`, `ml`, `ur`, `ar`, `zh`.
+
 
 antiflood_help: |
     Antiflood allows you to take action on users that send more than x messages in a row. Exceeding the set flood
