@@ -50,6 +50,21 @@ afk_help: |
    - brb <reason>: same as the afk command - but not a command.
    When marked as AFK, any mentions will be replied to with a message to say you're not available!
 
+tts_help: |
+   Convert text into high-quality neural voice clips (Text-to-Speech).
+   • `/tts <text>`: Convert text into speech (default: Hindi/Indian accent voice).
+   • `/tts -<lang_code> <text>`: Convert text into speech with specific language voice.
+   • Reply to any message with `/tts` or `/tts -<lang_code>` to convert that message.
+
+   *Examples:*
+   • `/tts Hello world`
+   • `/tts -hi Namaste dosto`
+   • `/tts -mr kai kartos re bhava`
+   • `/tts -es Hola mundo`
+
+   *Supported language codes:* `hi`, `mr`, `en`, `us`, `uk`, `es`, `fr`, `de`, `it`, `ja`, `ko`, `ru`, `pt`, `ta`, `te`, `bn`, `gu`, `kn`, `ml`, `ur`, `ar`, `zh`.
+
+
 antiflood_help: |
     Antiflood allows you to take action on users that send more than x messages in a row. Exceeding the set flood
     will result in restricting that user.

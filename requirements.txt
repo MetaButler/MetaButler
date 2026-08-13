@@ -39,3 +39,4 @@ privatebinapi
 pytimeparse
 SibylSystem
 alembic
+edge-tts
